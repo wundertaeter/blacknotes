@@ -1,0 +1,6 @@
+mutation UpdateProjectNameByPk($id: bigint!, $name: String!) {
+  update_notes_project_by_pk(pk_columns: {id: $id}, _set: {name: $name}) {
+    id
+    name
+  }
+}

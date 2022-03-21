@@ -1,0 +1,5 @@
+mutation DeleteNoteByPk($id: bigint!) {
+  note: delete_notes_note_by_pk(id: $id) {
+    id
+  }
+}

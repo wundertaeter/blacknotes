@@ -1,0 +1,185 @@
+<template>
+  <q-layout view="lHh Lpr lFf">
+    <q-header elevated>
+      <q-toolbar>
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+        />
+      </q-toolbar>
+    </q-header>
+
+    <q-drawer v-model="leftDrawerOpen" bordered>
+      <q-list class="menu-section">
+        <q-item
+          clickable
+          v-for="project in user.defaultProjects"
+          @click="selectProject(project)"
+          :key="project.id"
+          active-class="text-orange"
+          :active="currentProject.id == project.id"
+        >
+          <q-item-section avatar>
+            <q-icon :name="project.icon" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>
+              {{ project.name }}
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+
+      <q-separator />
+
+      <q-list class="menu-section">
+        <q-item
+          class="item"
+          clickable
+          @dblclick="project.edit = true"
+          @click="selectProject(project)"
+          v-for="project in projects"
+          :key="project.id"
+          active-class="text-orange"
+          :active="currentProject.id == project.id"
+        >
+          <q-item-section avatar>
+            <q-icon :name="project.icon" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-input
+              v-if="project.edit || !project.name"
+              v-model="project.name"
+              @blur="updateProjectName(project)"
+              @keydown.enter="updateProjectName(project)"
+              borderless
+              dense
+              autofocus
+              placeholder="New Project"
+            />
+            <span v-else>{{ project.name }}</span>
+          </q-item-section>
+        </q-item>
+      </q-list>
+      
+      <q-footer>
+        <q-toolbar class="fixed-bottom footer">
+          <q-toolbar-title>
+            <q-btn icon="add" label="New List">
+              <q-menu>
+                <q-list style="min-width: 100px">
+                  <q-item clickable v-close-popup @click="createProject">
+                    <q-item-section avatar>
+                      <q-icon name="radio_button_unchecked" />
+                    </q-item-section>
+
+                    <q-item-section> New Project </q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup>
+                    <q-item-section avatar>
+                      <q-icon name="view_in_ar" />
+                    </q-item-section>
+
+                    <q-item-section> New Space </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </q-toolbar-title>
+        </q-toolbar>
+      </q-footer>
+    </q-drawer>
+
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
+</template>
+
+<script>
+import { defineComponent } from "vue";
+import CREATE_PROJECT from "src/gql/mutations/CreateProject.gql";
+const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
+const UPDATE_PROJECT_NAME_BY_PK = require("src/gql/mutations/UpdateProjectNameByPk.gql");
+export default defineComponent({
+  name: "MainLayout",
+
+  data() {
+    return {
+      leftDrawerOpen: true,
+      projects: [],
+    };
+  },
+  methods: {
+    selectProject(project) {
+      this.$store.commit("user/updateCurrentProject", project);
+    },
+    updateProjectName(project) {
+      project.edit = false;
+      if (!project.name) return;
+      console.log("updateProjectName", project);
+      this.$apollo.mutate({
+        mutation: UPDATE_PROJECT_NAME_BY_PK,
+        variables: {
+          id: project.id,
+          name: project.name,
+        },
+      });
+    },
+    toggleLeftDrawer() {
+      this.leftDrawerOpen = !this.leftDrawerOpen;
+    },
+    createProject() {
+      this.$apollo.mutate({
+        mutation: CREATE_PROJECT,
+        variables: {
+          user_id: this.user.id,
+        },
+      });
+    },
+  },
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+    currentProject() {
+      return this.$store.getters['user/getCurrentProject'];
+    },
+  },
+  apollo: {
+    $subscribe: {
+      projects: {
+        query: SUBSCRIBE_PROJECTS,
+        variables() {
+          return {
+            user_id: this.$store.state.user.id,
+          };
+        },
+        skip() {
+          return !this.$store.state.user.id;
+        },
+        result(result) {
+          this.projects = result.data.projects.map((p) => {
+            return { ...p, edit: !p.name };
+          });
+        },
+      },
+    },
+  },
+});
+</script>
+<style scoped>
+.menu-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.item{
+  height: 50px;
+}
+</style>

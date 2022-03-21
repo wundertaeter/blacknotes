@@ -1,0 +1,23 @@
+query GetUserData($id: Int!) {
+  user: auth_user_by_pk(id: $id){
+    id
+    username
+    admin: is_superuser
+  }
+  spaces: notes_space(where: {user_id: {_eq: $id}}) {
+    id
+    name
+  }
+  projects: notes_project(where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, default: {_eq: false}}) {
+    id
+    name
+    icon
+    default
+  }
+  defaultProjects: notes_project(where: {_and: {user_id: {_eq: $id}}, default: {_eq: true}}) {
+    id
+    name
+    icon
+    default
+  }
+}

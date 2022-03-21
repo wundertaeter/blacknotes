@@ -1,0 +1,19 @@
+# Environment
+.env
+.env.production
+
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Editor 
+.vscode/
+
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+sec/

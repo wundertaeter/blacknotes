@@ -1,0 +1,7 @@
+query GetNotes($user_id: Int!, $project_id: bigint!) {
+  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, project_id: {_eq: $project_id}}}) {
+    id
+    title
+    content
+  }
+}

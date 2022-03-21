@@ -1,0 +1,18 @@
+subscription SubscribeProject($id: bigint!) {
+  project: notes_project_by_pk(id: $id) {
+    name
+    id
+    icon
+    deleted
+    default
+    notes {
+      id
+      position
+      title
+      deleted
+      user_id
+      content
+      deadline
+    }
+  }
+}
