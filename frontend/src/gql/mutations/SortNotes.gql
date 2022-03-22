@@ -1,0 +1,7 @@
+mutation SortNotes($objects: [notes_note_insert_input!] = []) {
+  insert_notes_note(objects: $objects, on_conflict: {constraint: notes_note_pkey, update_columns: position}) {
+    returning {
+      position
+    }
+  }
+}

@@ -12,20 +12,26 @@
             checked-icon="radio_button_checked"
             :unchecked-icon="projectCopy.icon"
             indeterminate-icon="help"
-            @update:modelValue="deleteProject(projectCopy)"
+            @update:modelValue="checkProject(projectCopy)"
           />
-          {{ projectCopy.name }}
+          {{ projectCopy.name ? projectCopy.name : 'New Project' }}
         </h4>
 
-          <note
-            v-for="(note, index) in projectCopy.notes"
-            :key="note.id"
-            class="note"
-            v-model="projectCopy.notes[index]"
-            @update:modelValue="updateNote"
-            @done="checkNote(note)"
-          />
-   
+        <draggable
+          v-model="projectCopy.notes"
+          @end="updatePositions"
+          item-key="id"
+        >
+          <template #item="{ element }">
+             <note
+              class="note"
+              v-model="projectCopy.notes[projectCopy.notes.indexOf(element)]"
+              @update:modelValue="updateNote"
+              @done="checkNote(note)"
+            />
+          </template>
+        </draggable>
+         
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
@@ -39,20 +45,22 @@
 <script>
 import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
+import draggable from "vuedraggable";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
 const DELETE_NOTE_BY_PK = require("src/gql/mutations/DeleteNoteByPk.gql");
 const PROJECT_TO_TRASH = require("src/gql/mutations/ProjectToTrash.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
-const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
+const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 
 
 export default defineComponent({
   name: "PageIndex",
   components: {
     Note,
+    draggable,
   },
   data() {
     return {
@@ -63,6 +71,7 @@ export default defineComponent({
   watch: {
     project: {
       handler(project) {
+        console.log('watcher', project);
         if (project) {
           this.projectCopy = JSON.parse(JSON.stringify(project));
         } else {
@@ -73,7 +82,36 @@ export default defineComponent({
     },
   },
   methods: {
-    deleteProject(project){
+    updatePositions() {
+      const objs = [];
+      for (let i = 0; i < this.projectCopy.notes.length; i++) {
+        this.projectCopy.notes[i].position = i;
+        objs.push(this.projectCopy.notes[i]);
+        delete objs[i].__typename;
+      }
+      this.$apollo.mutate({
+        mutation: SORT_NOTES,
+        variables: {
+          objects: objs,
+        }
+      });
+    },
+    //updateCache(store, { data: { note } }) {
+    //  const query = {
+    //    query: GET_PROJECT,
+    //    variables: {
+    //      id: this.currentProject.id,
+    //    },
+    //  };
+    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
+    //  data.project.notes = this.projectCopy.notes;
+    //  // Write back to the cache
+    //  store.writeQuery({
+    //    ...query,
+    //    data,
+    //  });
+    //},
+    checkProject(project){
       setTimeout(() => {
         if(!project.done) return;
         this.$apollo.mutate({
@@ -84,17 +122,6 @@ export default defineComponent({
         })
         this.$store.commit('user/updateCurrentProject', null);
       }, 1000)
-    },
-    checkNote(note) {
-      console.log("delete note", note);
-      note.deleted = true;
-      this.$apollo.mutate({
-        mutation: CHECK_NOTE,
-        variables: {
-          id: note.id,
-        },
-        //update: this.removeToCache,
-      });
     },
     //removeToCache(store, { data: note }) {
     //  const query = {

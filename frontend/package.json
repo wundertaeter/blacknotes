@@ -12,9 +12,6 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
-    "@tiptap/extension-placeholder": "^2.0.0-beta.48",
-    "@tiptap/starter-kit": "^2.0.0-beta.183",
-    "@tiptap/vue-3": "^2.0.0-beta.90",
     "@vue/apollo-option": "^4.0.0-alpha.16",
     "apexcharts": "^3.33.2",
     "apollo-link": "^1.2.14",

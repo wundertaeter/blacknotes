@@ -15,6 +15,7 @@ query GetProject($id: bigint!) {
       user_id
       content
       deadline
+      project_id
       done
     }
   }

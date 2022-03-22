@@ -28,7 +28,6 @@
 <script>
 import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
-const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const GET_LOGBOOK_NOTES = require("src/gql/queries/GetLogbookNotes.gql");
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
 
@@ -50,20 +49,7 @@ export default defineComponent({
       deep: true,
     },
   },
-  methods: {
-    uncheckNote(note) {
-      console.log("delete note", note);
-      note.deleted = true;
-      this.$apollo.mutate({
-        mutation: CHECK_NOTE,
-        variables: {
-          id: note.id,
-          done: false,
-        },
-        //update: this.removeToCache,
-      });
-    },
-  },
+  methods: {},
   computed: {
     user() {
       return this.$store.state.user;

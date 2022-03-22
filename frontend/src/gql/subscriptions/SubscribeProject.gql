@@ -15,6 +15,7 @@ subscription SubscribeProject($id: bigint!) {
       user_id
       content
       deadline
+      project_id
       done
     }
   }

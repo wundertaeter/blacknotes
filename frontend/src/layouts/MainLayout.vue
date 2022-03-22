@@ -15,104 +15,100 @@
 
     <q-drawer v-model="leftDrawerOpen" bordered>
       <div v-if="currentProject">
-      <q-list class="menu-section">
-        <q-item
-          clickable
-          v-for="project in user.defaultProjects"
-          @click="selectProject(project)"
-          :key="project.id"
-          active-class="text-orange"
-          :active="currentProject.id == project.id"
-        >
-          <q-item-section avatar>
-            <q-icon :name="project.icon" />
-          </q-item-section>
+        <q-list class="menu-section">
+          <q-item
+            clickable
+            v-for="project in user.defaultProjects"
+            @click="selectProject(project)"
+            :key="project.id"
+            active-class="text-orange"
+            :active="currentProject.id == project.id"
+          >
+            <q-item-section avatar>
+              <q-icon :name="project.icon" />
+            </q-item-section>
 
-          <q-item-section>
-            <q-item-label>
-              {{ project.name }}
-            </q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+            <q-item-section>
+              <q-item-label>
+                {{ project.name }}
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
 
-      <q-separator />
+        <q-separator />
 
-      <q-list class="menu-section">
-        <q-item
-          clickable
-          @click="goToLogBook"
-          active-class="text-orange"
-          :active="currentProject.id == 'logbook'"
-        >
-          <q-item-section avatar>
-            <q-icon name="assignment_turned_in" />
-          </q-item-section>
+        <q-list class="menu-section">
+          <q-item
+            clickable
+            @click="goToLogBook"
+            active-class="text-orange"
+            :active="projectActive('logbook')"
+          >
+            <q-item-section avatar>
+              <q-icon name="assignment_turned_in" />
+            </q-item-section>
 
-          <q-item-section>
-            <q-item-label>
-              Logbook
-            </q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item
-          clickable
-          @click="goToTrash"
-          active-class="text-orange"
-          :active="currentProject.id == 'trash'"
-        >
-          <q-item-section avatar>
-            <q-icon name="delete" />
-          </q-item-section>
+            <q-item-section>
+              <q-item-label> Logbook </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            @click="goToTrash"
+            active-class="text-orange"
+            :active="projectActive('trash')"
+          >
+            <q-item-section avatar>
+              <q-icon name="delete" />
+            </q-item-section>
 
-          <q-item-section>
-            <q-item-label>
-              Trash
-            </q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+            <q-item-section>
+              <q-item-label> Trash </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
 
-      <q-separator />
+        <q-separator />
 
-      <q-list class="menu-section">
-        <draggable
-          v-model="projects"
-          group="people"
-          @end="updatePositions"
-          item-key="id"
-        >
-          <template #item="{ element }">
-            <q-item
-              class="item"
-              clickable
-              @dblclick="element.edit = true"
-              @click="selectProject(element)"
-              active-class="text-orange"
-              :active="currentProject.id == element.id"
-            >
-              <q-item-section avatar>
-                <q-icon :name="element.icon" />
-              </q-item-section>
+        <q-list class="menu-section">
+          <draggable
+            v-model="projects"
+            group="people"
+            @end="updatePositions"
+            item-key="id"
+          >
+            <template #item="{ element }">
+              <q-item
+                class="item"
+                clickable
+                @dblclick="element.edit = true"
+                @click="selectProject(element)"
+                active-class="text-orange"
+                :active="projectActive(element)"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="element.icon" />
+                </q-item-section>
 
-              <q-item-section>
-                <q-input
-                  v-if="element.edit || !element.name"
-                  v-model="element.name"
-                  @blur="updateProjectName(element)"
-                  @keydown.enter="updateProjectName(element)"
-                  borderless
-                  dense
-                  autofocus
-                  placeholder="New Project"
-                />
-                <span v-else>{{ element.name }}</span>
-              </q-item-section>
-            </q-item>
-          </template>
-        </draggable>
-      </q-list>
-   </div>
+                <q-item-section>
+                  <q-input
+                    v-if="element.edit || !element.name"
+                    v-model="element.name"
+                    @blur="updateProjectName(element)"
+                    @keydown.enter="updateProjectName(element)"
+                    borderless
+                    dense
+                    autofocus
+                    placeholder="New Project"
+                  />
+                  <span v-else>{{ element.name }}</span>
+                </q-item-section>
+              </q-item>
+            </template>
+          </draggable>
+        </q-list>
+      </div>
       <q-footer>
         <q-toolbar class="fixed-bottom footer">
           <q-toolbar-title>
@@ -139,7 +135,6 @@
           </q-toolbar-title>
         </q-toolbar>
       </q-footer>
-     
     </q-drawer>
 
     <q-page-container>
@@ -168,11 +163,19 @@ export default defineComponent({
     };
   },
   methods: {
-    goToTrash(){
-      this.$router.push('/trash');
+    projectActive(project) {
+      if (this.$route.name == "project") {
+        if (typeof project != "object") return false;
+        return this.currentProject.id == project.id;
+      } else {
+        return project == this.$route.name;
+      }
     },
-    goToLogBook(){
-      this.$router.push('/logbook');
+    goToTrash() {
+      this.$router.push("/trash");
+    },
+    goToLogBook() {
+      this.$router.push("/logbook");
     },
     updatePositions(data) {
       for (let i = 0; i < this.projects.length; i++) {
@@ -189,7 +192,7 @@ export default defineComponent({
     },
     selectProject(project) {
       this.$store.commit("user/updateCurrentProject", project);
-      this.$router.push('/');
+      this.$router.push("/");
     },
     updateProjectName(project) {
       project.edit = false;
@@ -207,18 +210,17 @@ export default defineComponent({
       this.leftDrawerOpen = !this.leftDrawerOpen;
     },
     maxPosition() {
-      return this.projects.length
-        ? this.projects.reduce(function (p, v) {
-            return p.position > v.position ? p.position : v.position;
-          }).position
+      return this.projects.length > 0
+        ? this.projects[this.projects.length - 1].position
         : 0;
     },
     createProject() {
+      const maxPosition = this.maxPosition();
       this.$apollo.mutate({
         mutation: CREATE_PROJECT,
         variables: {
           user_id: this.user.id,
-          position: this.maxPosition() + 1,
+          position: maxPosition + 1,
         },
       });
     },
