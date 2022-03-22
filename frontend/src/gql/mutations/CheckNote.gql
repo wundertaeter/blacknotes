@@ -1,0 +1,6 @@
+mutation CheckNote($id: bigint!, $done: Boolean = true) {
+  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {done: $done}) {
+    done
+    id
+  }
+}

@@ -1,29 +1,29 @@
 <template>
   <q-page>
     <q-scroll-area class="fill-window">
-      <div class="q-pa-md container">
-        <h4 v-if="project">
-          <q-icon v-if="project.default" :name="project.icon" />
+      <div v-if="projectCopy" class="q-pa-md container">
+        <h4>
+          <q-icon v-if="projectCopy.default" :name="projectCopy.icon" />
           <q-checkbox
             v-else
-            v-model="checked"
+            v-model="projectCopy.done"
             size="lg"
             color="orange"
             checked-icon="radio_button_checked"
-            :unchecked-icon="project.icon"
+            :unchecked-icon="projectCopy.icon"
             indeterminate-icon="help"
-            @update:modelValue="deleteProject"
+            @update:modelValue="deleteProject(projectCopy)"
           />
-          {{ project.name }}
+          {{ projectCopy.name }}
         </h4>
 
           <note
-            v-for="(note, index) in notes"
+            v-for="(note, index) in projectCopy.notes"
             :key="note.id"
             class="note"
-            v-model="notes[index]"
+            v-model="projectCopy.notes[index]"
             @update:modelValue="updateNote"
-            @delete="deleteNote(note)"
+            @done="checkNote(note)"
           />
    
       </div>
@@ -44,6 +44,10 @@ const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
 const DELETE_NOTE_BY_PK = require("src/gql/mutations/DeleteNoteByPk.gql");
 const PROJECT_TO_TRASH = require("src/gql/mutations/ProjectToTrash.gql");
+const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
+const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
+const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
+
 
 export default defineComponent({
   name: "PageIndex",
@@ -52,15 +56,15 @@ export default defineComponent({
   },
   data() {
     return {
-      notes: [],
-      checked: false,
+      projectCopy: null,
+      updateId: null
     };
   },
   watch: {
     project: {
       handler(project) {
         if (project) {
-          this.notes = JSON.parse(JSON.stringify(project.notes));
+          this.projectCopy = JSON.parse(JSON.stringify(project));
         } else {
           this.$store.commit("user/updateCurrentProject", null);
         }
@@ -69,74 +73,85 @@ export default defineComponent({
     },
   },
   methods: {
-    deleteProject(){
+    deleteProject(project){
       setTimeout(() => {
-        if(!this.checked) return;
+        if(!project.done) return;
         this.$apollo.mutate({
-          mutation: PROJECT_TO_TRASH,
+          mutation: CHECK_PROJECT,
           variables: {
-            id: this.project.id
+            id: project.id
           }
         })
         this.$store.commit('user/updateCurrentProject', null);
-        this.checked = false;
       }, 1000)
     },
-    deleteNote(note) {
+    checkNote(note) {
       console.log("delete note", note);
       note.deleted = true;
       this.$apollo.mutate({
-        mutation: DELETE_NOTE_BY_PK,
+        mutation: CHECK_NOTE,
         variables: {
           id: note.id,
         },
-        update: this.removeToCache,
+        //update: this.removeToCache,
       });
     },
-    removeToCache(store, { data: note }) {
-      const query = {
-        query: GET_PROJECT,
-        variables: {
-          id: this.project.id,
-        },
-      };
-      const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-
-      data.project.notes = data.project.notes.filter((n) => n.id != note.id);
-      // Write back to the cache
-      store.writeQuery({
-        ...query,
-        data,
-      });
-    },
-    addToCache(store, { data: { note } }) {
-      const query = {
-        query: GET_PROJECT,
-        variables: {
-          id: this.project.id,
-        },
-      };
-      const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-      data.project.notes = [...data.project.notes, note];
-      // Write back to the cache
-      store.writeQuery({
-        ...query,
-        data,
-      });
-    },
+    //removeToCache(store, { data: note }) {
+    //  const query = {
+    //    query: GET_PROJECT,
+    //    variables: {
+    //      id: this.project.id,
+    //    },
+    //  };
+    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
+//
+    //  data.project.notes = data.project.notes.filter((n) => n.id != note.id);
+    //  // Write back to the cache
+    //  store.writeQuery({
+    //    ...query,
+    //    data,
+    //  });
+    //},
+    //addToCache(store, { data: { note } }) {
+    //  const query = {
+    //    query: GET_PROJECT,
+    //    variables: {
+    //      id: this.project.id,
+    //    },
+    //  };
+    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
+    //  data.project.notes = [...data.project.notes, note];
+    //  // Write back to the cache
+    //  store.writeQuery({
+    //    ...query,
+    //    data,
+    //  });
+    //},
     addNote() {
       this.$apollo.mutate({
         mutation: CREATE_NOTE,
         variables: {
           user_id: this.$store.state.user.id,
-          position: this.notes.length + 1,
+          position: this.project.notes.length + 1,
           project_id: this.project.id,
         },
-        update: this.addToCache,
+        //update: this.addToCache,
       });
     },
-    updateNote(value) {
-      console.log("update note!!", value);
+    updateNote(note) {
+      console.log("update note!! with throttle 1000", note);
+      if(this.updateId) clearTimeout(this.updateId);
+      this.updateId = setTimeout(() => {
+        this.$apollo.mutate({
+          mutation: UPDATE_NOTE,
+          variables: {
+            id: note.id,
+            title: note.title ?? "",
+            content: note.content ?? "",
+            deadline: note.deadline
+          }
+        })
+      }, 1000)
     },
   },
   computed: {
@@ -189,7 +204,6 @@ export default defineComponent({
 .container {
   margin-left: 50px;
   margin-right: 50px;
-  overflow-y: scroll !important;
 }
 
 .head-icon {

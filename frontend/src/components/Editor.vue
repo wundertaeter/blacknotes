@@ -18,8 +18,14 @@ export default {
     },
     autofocus: {
       type: Boolean,
-      default: false
-    }
+      required: false,
+      default: false,
+    },
+    readonly: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   watch: {
     modelValue(value) {
@@ -52,6 +58,7 @@ export default {
         Placeholder.configure({
           // Use a placeholder:
           placeholder: "Notes",
+          showOnlyWhenEditable: false,
           // Use different placeholders depending on the node type:
           // placeholder: ({ node }) => {
           //   if (node.type.name === 'heading') {
@@ -71,7 +78,8 @@ export default {
         // this.$emit('update:modelValue', this.editor.getJSON())
       },
       autofocus: this.autofocus,
-      content: "",
+      editable: !this.readonly,
+      content: this.modelValue,
     });
   },
 

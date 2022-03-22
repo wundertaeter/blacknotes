@@ -1,0 +1,8 @@
+mutation SortProjects($objects: [notes_project_insert_input!] = []) {
+  insert_notes_project(objects: $objects, on_conflict: {constraint: notes_project_pkey, update_columns: position}) {
+    returning {
+      id
+      position
+    }
+  }
+}

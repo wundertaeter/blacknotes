@@ -3,5 +3,6 @@ query GetNotes($user_id: Int!, $project_id: bigint!) {
     id
     title
     content
+    done
   }
 }

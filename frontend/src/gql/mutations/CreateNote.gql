@@ -1,5 +1,5 @@
-mutation CreateNote($user_id: Int!, $content: String = "", $title: String = "", $position: Int!, $project_id: bigint!, $deleted: Boolean = false) {
-  note: insert_notes_note_one(object: {user_id: $user_id, content: $content, title: $title, position: $position, project_id: $project_id, deleted: $deleted}) {
+mutation CreateNote($user_id: Int!, $content: String = "", $title: String = "", $position: Int!, $project_id: bigint!, $deleted: Boolean = false, $done: Boolean = false) {
+  note: insert_notes_note_one(object: {user_id: $user_id, content: $content, title: $title, position: $position, project_id: $project_id, deleted: $deleted, done: $done}) {
     id
     position
     title

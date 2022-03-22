@@ -2,18 +2,30 @@
   <q-card>
     <q-checkbox
       v-model="done"
-      @update:modelValue="deleteNote"
+      @update:modelValue="checkNote"
       style="position: absolute; top: 24px; z-index: 999"
       color="orange"
     />
     <q-card-section class="text-white editor">
-      <q-input borderless autofocus v-model="title" @update:modelValue="updateModelValue" placeholder="New To-Do" />
-      <editor v-model="content" @update:modelValue="updateModelValue"/>
+      <q-input
+        :readonly="readonly"
+        borderless
+        autofocus
+        v-model="title"
+        @update:modelValue="updateModelValue"
+        placeholder="New To-Do"
+      />
+      <editor
+        :readonly="readonly"
+        v-model="content"
+        @update:modelValue="updateModelValue"
+      />
     </q-card-section>
 
     <q-card-actions class="actions-card">
       <div class="editor-actions">
         <q-btn
+          :disable="readonly"
           :outline="btnHover"
           :flat="!btnHover"
           @mouseleave="btnHover = false"
@@ -23,7 +35,12 @@
           ><q-icon name="today" />{{ date
           }}<q-icon name="close" v-if="btnHover" style="margin-left: 10px"
         /></q-btn>
-        <q-btn flat icon="calendar_month" class="float-right">
+        <q-btn
+          flat
+          :disable="readonly"
+          icon="calendar_month"
+          class="float-right"
+        >
           <q-menu v-model="showMenu">
             <q-date
               v-model="date"
@@ -40,7 +57,7 @@
 
 <script>
 import Editor from "src/components/Editor.vue";
-    
+
 export default {
   components: {
     Editor,
@@ -48,6 +65,16 @@ export default {
   props: {
     modelValue: {
       type: Object,
+    },
+    readonly: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    actions: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
   watch: {
@@ -59,29 +86,41 @@ export default {
       if (this.title !== value.title) {
         this.title = value.title;
       }
+
+      if (this.done !== value.done) {
+        this.done = value.done;
+      }
     },
   },
   data() {
     return {
       date: null,
-      done: false,
+      done: this.modelValue.done,
       showMenu: false,
       btnHover: false,
-      content: null,
-      title: null,
+      content: this.modelValue.content,
+      title: this.modelValue.title,
     };
   },
   methods: {
-    deleteNote(){
+    checkNote() {
       setTimeout(() => {
-        if(this.done) this.$emit('delete');
-      }, 1000)
+        if (this.done) {
+          this.$emit("done");
+        } else {
+          this.$emit("undone");
+        }
+      }, 1000);
     },
-    updateModelValue(){
-      const note = {...this.modelValue, title: this.title, content: this.content};
-      this.$emit('update:modelValue', note);
+    updateModelValue() {
+      const note = {
+        ...this.modelValue,
+        title: this.title,
+        content: this.content,
+      };
+      this.$emit("update:modelValue", note);
     },
-  }
+  },
 };
 </script>
 

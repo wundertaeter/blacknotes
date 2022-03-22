@@ -1,0 +1,8 @@
+subscription SubscribeLogbookNotes($user_id: Int!) {
+  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: false}, done: {_eq: true}}}) {
+    id
+    title
+    content
+    done
+  }
+}

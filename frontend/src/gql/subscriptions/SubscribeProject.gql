@@ -6,7 +6,8 @@ subscription SubscribeProject($id: bigint!) {
     deleted
     default
     position
-    notes {
+    done
+    notes(order_by: {position: asc}, where: {_and: {deleted: {_eq: false}, done: {_eq: false}}}) {
       id
       position
       title
@@ -14,6 +15,7 @@ subscription SubscribeProject($id: bigint!) {
       user_id
       content
       deadline
+      done
     }
   }
 }

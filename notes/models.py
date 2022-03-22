@@ -20,6 +20,8 @@ class Project(models.Model):
     space = models.ForeignKey(Space, null=True, blank=True, on_delete=models.CASCADE, related_name='projects')
     position = models.IntegerField()
     default = models.BooleanField(default=False)
+    done = models.BooleanField(default=False)
+    completed_at = models.DateField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
 
 class Note(models.Model):
@@ -29,12 +31,17 @@ class Note(models.Model):
     position = models.IntegerField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='notes')
     deleted = models.BooleanField(default=False)
+    done = models.BooleanField(default=False)
+    completed_at = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
 
 
 def user_post_save_receiver(sender, instance, created, **kwargs):
     if created:
-        Project.objects.create(name='Today', default=True, icon="star", user=instance)
+        Project.objects.create(name='Today', default=True, position=1, icon="star", user=instance)
+        Project.objects.create(name='Upcoming', default=True, position=2, icon="date_range", user=instance)
+        Project.objects.create(name='Anytime', default=True, position=3, icon="reorder", user=instance)
+        Project.objects.create(name='Someday', default=True, position=4, icon="unarchive", user=instance)
 
 
 post_save.connect(user_post_save_receiver, sender=User)
