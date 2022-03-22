@@ -1,29 +1,33 @@
 <template>
-  <q-page class="q-pa-md container">
-    <h4 v-if="project">
-      <q-icon v-if="project.default" :name="project.icon" />
-      <q-checkbox
-        v-else
-        v-model="checked"
-        size="lg"
-        color="orange"
-        checked-icon="radio_button_checked"
-        :unchecked-icon="project.icon"
-        indeterminate-icon="help"
-      />
-      {{ project.name }}
-    </h4>
-    <transition-group name="notes" tag="div">
-      <note
-        v-for="(note, index) in notes"
-        :key="note.id"
-        :class="{ note: true, transition: note.deleted }"
-        v-model="notes[index]"
-        @update:modelValue="updateNote"
-        @delete="deleteNote(note)"
-      />
-    </transition-group>
+  <q-page>
+    <q-scroll-area class="fill-window">
+      <div class="q-pa-md container">
+        <h4 v-if="project">
+          <q-icon v-if="project.default" :name="project.icon" />
+          <q-checkbox
+            v-else
+            v-model="checked"
+            size="lg"
+            color="orange"
+            checked-icon="radio_button_checked"
+            :unchecked-icon="project.icon"
+            indeterminate-icon="help"
+            @update:modelValue="deleteProject"
+          />
+          {{ project.name }}
+        </h4>
 
+          <note
+            v-for="(note, index) in notes"
+            :key="note.id"
+            class="note"
+            v-model="notes[index]"
+            @update:modelValue="updateNote"
+            @delete="deleteNote(note)"
+          />
+   
+      </div>
+    </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
         <q-toolbar-title><q-btn icon="add" @click="addNote" /></q-toolbar-title>
@@ -35,10 +39,11 @@
 <script>
 import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
-import CREATE_NOTE from "src/gql/mutations/CreateNote.gql";
-import GET_PROJECT from "src/gql/queries/GetProject.gql";
-import SUBSCRIBE_PROJECT from "src/gql/subscriptions/SubscribeProject.gql";
-import DELETE_NOTE_BY_PK from "src/gql/mutations/DeleteNoteByPk.gql";
+const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
+const GET_PROJECT = require("src/gql/queries/GetProject.gql");
+const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
+const DELETE_NOTE_BY_PK = require("src/gql/mutations/DeleteNoteByPk.gql");
+const PROJECT_TO_TRASH = require("src/gql/mutations/ProjectToTrash.gql");
 
 export default defineComponent({
   name: "PageIndex",
@@ -64,16 +69,29 @@ export default defineComponent({
     },
   },
   methods: {
-    deleteNote(note){
-      console.log('delete note', note);
+    deleteProject(){
+      setTimeout(() => {
+        if(!this.checked) return;
+        this.$apollo.mutate({
+          mutation: PROJECT_TO_TRASH,
+          variables: {
+            id: this.project.id
+          }
+        })
+        this.$store.commit('user/updateCurrentProject', null);
+        this.checked = false;
+      }, 1000)
+    },
+    deleteNote(note) {
+      console.log("delete note", note);
       note.deleted = true;
       this.$apollo.mutate({
         mutation: DELETE_NOTE_BY_PK,
         variables: {
-          id: note.id
+          id: note.id,
         },
-        update: this.removeToCache
-      })
+        update: this.removeToCache,
+      });
     },
     removeToCache(store, { data: note }) {
       const query = {
@@ -84,7 +102,7 @@ export default defineComponent({
       };
       const data = JSON.parse(JSON.stringify(store.readQuery(query)));
 
-      data.project.notes = data.project.notes.filter(n => n.id != note.id);
+      data.project.notes = data.project.notes.filter((n) => n.id != note.id);
       // Write back to the cache
       store.writeQuery({
         ...query,
@@ -162,38 +180,24 @@ export default defineComponent({
 .note {
   margin-bottom: 15px;
 }
-.transition {
-  transition: all 1s;
-}
 
 .notes {
   position: relative;
   text-align: center;
 }
 
-.notes-enter,
-.notes-leave-to {
-  opacity: 0;
-}
-
-.notes-enter {
-  transform: translateY(30%);
-}
-
-.notes-leave-to {
-  transform: translateX(300%);
-}
-
-.notes-leave-active {
-  position: absolute;
-}
-
 .container {
   margin-left: 50px;
   margin-right: 50px;
+  overflow-y: scroll !important;
 }
 
 .head-icon {
   margin-right: 5px;
+}
+
+.fill-window {
+  height: calc(100vh - 105px);
+  width: 100%;
 }
 </style>

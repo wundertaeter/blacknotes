@@ -37,8 +37,3 @@ export default defineComponent({
   }
 });
 </script>
-<style>
-body {
-  overflow: hidden;
-}
-</style>

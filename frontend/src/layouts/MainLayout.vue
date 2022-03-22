@@ -97,8 +97,12 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+
+        <router-view />
+
     </q-page-container>
+
+ 
   </q-layout>
 </template>
 
@@ -112,7 +116,7 @@ export default defineComponent({
 
   data() {
     return {
-      leftDrawerOpen: true,
+      leftDrawerOpen: false,
       projects: [],
     };
   },
@@ -135,11 +139,17 @@ export default defineComponent({
     toggleLeftDrawer() {
       this.leftDrawerOpen = !this.leftDrawerOpen;
     },
+    maxPosition() {
+      return this.projects.length ? this.projects.reduce(function (p, v) {
+        return ( p.position > v.position ? p.position : v.position );
+      }) : 0;
+    },
     createProject() {
       this.$apollo.mutate({
         mutation: CREATE_PROJECT,
         variables: {
           user_id: this.user.id,
+          position: this.maxPosition() + 1
         },
       });
     },
@@ -182,4 +192,6 @@ export default defineComponent({
 .item{
   height: 50px;
 }
+
+
 </style>

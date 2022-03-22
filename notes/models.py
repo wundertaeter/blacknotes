@@ -10,6 +10,7 @@ class Space(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='spaces')
     name = models.CharField(max_length=128, null=True, blank=True)
     icon = models.CharField(max_length=64, default="view_in_ar")
+    position = models.IntegerField()
     deleted = models.BooleanField(default=False)
 
 class Project(models.Model):
@@ -17,6 +18,7 @@ class Project(models.Model):
     name = models.CharField(max_length=128, null=True, blank=True)
     icon = models.CharField(max_length=64, default="radio_button_unchecked")
     space = models.ForeignKey(Space, null=True, blank=True, on_delete=models.CASCADE, related_name='projects')
+    position = models.IntegerField()
     default = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
 

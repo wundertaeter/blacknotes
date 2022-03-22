@@ -5,6 +5,7 @@ subscription SubscribeProject($id: bigint!) {
     icon
     deleted
     default
+    position
     notes {
       id
       position
