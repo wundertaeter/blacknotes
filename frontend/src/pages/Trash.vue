@@ -15,7 +15,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Trash", icon: "delete", default: true, notes: [] },
+      project: { name: "Trash", icon: "delete", default: true, notes: [] },
     };
   },
   watch: {
@@ -64,27 +64,3 @@ export default defineComponent({
   },
 });
 </script>
-<style scoped>
-.note {
-  margin-bottom: 15px;
-}
-
-.notes {
-  position: relative;
-  text-align: center;
-}
-
-.container {
-  margin-left: 50px;
-  margin-right: 50px;
-}
-
-.head-icon {
-  margin-right: 5px;
-}
-
-.fill-window {
-  height: calc(100vh - 105px);
-  width: 100%;
-}
-</style>

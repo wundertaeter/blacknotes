@@ -36,7 +36,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn icon="add" @click="addNote"/>
+        <q-btn icon="add" @click="addNote" :disabled="!project.id"/>
       </q-toolbar>
     </q-footer>
   </q-page>

@@ -1,50 +1,27 @@
 <template>
-  <q-page>
-    <q-scroll-area class="fill-window">
-      <div class="q-pa-md container">
-        <h4>
-          <q-icon name="star" />
-          Logbook
-        </h4>
-
-        <note
-          v-for="(note, index) in notesCopy"
-          :key="note.id"
-          class="note"
-          v-model="notesCopy[index]"
-          readonly
-          @undone="uncheckNote(note)"
-        />
-      </div>
-    </q-scroll-area>
-    <q-footer class="fixed-bottom footer">
-      <q-toolbar>
-        <q-toolbar-title></q-toolbar-title>
-      </q-toolbar>
-    </q-footer>
-  </q-page>
+  <project v-if="project" v-model="project" />
 </template>
 
 <script>
 import { defineComponent } from "vue";
-import Note from "src/components/Note.vue";
 const GET_LOGBOOK_NOTES = require("src/gql/queries/GetLogbookNotes.gql");
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
+import Project from "src/components/Project.vue";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Note,
+    Project,
   },
   data() {
     return {
-      notesCopy: null,
+      project: { name: "Logbook", icon: "assignment_turned_in", default: true, notes: [] },
     };
   },
   watch: {
     notes: {
       handler(notes) {
-        this.notesCopy = JSON.parse(JSON.stringify(notes));
+        this.project.notes = notes;
       },
       deep: true,
     },
@@ -87,27 +64,3 @@ export default defineComponent({
   },
 });
 </script>
-<style scoped>
-.note {
-  margin-bottom: 15px;
-}
-
-.notes {
-  position: relative;
-  text-align: center;
-}
-
-.container {
-  margin-left: 50px;
-  margin-right: 50px;
-}
-
-.head-icon {
-  margin-right: 5px;
-}
-
-.fill-window {
-  height: calc(100vh - 105px);
-  width: 100%;
-}
-</style>
