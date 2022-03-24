@@ -17,9 +17,17 @@
         />
       </div>
     </q-scroll-area>
-    <q-footer class="fixed-bottom footer">
+<q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-toolbar-title></q-toolbar-title>
+        <div class="row justify-center" style="width: 100%">
+          <div class="col-12 text-center self-center">
+            <q-btn
+              icon="delete"
+              flat
+   
+            />
+          </div>
+        </div>
       </q-toolbar>
     </q-footer>
   </q-page>

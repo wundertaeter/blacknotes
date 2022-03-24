@@ -1,42 +1,9 @@
 <template>
   <q-page>
-    <q-scroll-area class="fill-window">
-      <div v-if="projectCopy" class="q-pa-md container">
-        <h4>
-          <q-icon v-if="projectCopy.default" :name="projectCopy.icon" />
-          <q-checkbox
-            v-else
-            v-model="projectCopy.done"
-            size="lg"
-            color="orange"
-            checked-icon="radio_button_checked"
-            :unchecked-icon="projectCopy.icon"
-            indeterminate-icon="help"
-            @update:modelValue="checkProject(projectCopy)"
-          />
-          {{ projectCopy.name ? projectCopy.name : 'New Project' }}
-        </h4>
-
-        <draggable
-          v-model="projectCopy.notes"
-          @end="updatePositions"
-          item-key="id"
-        >
-          <template #item="{ element }">
-             <note
-              class="note"
-              v-model="projectCopy.notes[projectCopy.notes.indexOf(element)]"
-              @update:modelValue="updateNote"
-              @done="checkNote(note)"
-            />
-          </template>
-        </draggable>
-         
-      </div>
-    </q-scroll-area>
+    <project v-if="project" v-model="project" @select="noteSelected"/>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-toolbar-title><q-btn icon="add" @click="addNote" /></q-toolbar-title>
+        <q-btn icon="add" @click="addNote" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -44,116 +11,32 @@
 
 <script>
 import { defineComponent } from "vue";
-import Note from "src/components/Note.vue";
-import draggable from "vuedraggable";
-const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
-const DELETE_NOTE_BY_PK = require("src/gql/mutations/DeleteNoteByPk.gql");
-const PROJECT_TO_TRASH = require("src/gql/mutations/ProjectToTrash.gql");
-const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
-const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
-const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
-
+const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
+const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
+import Project from "src/components/Project.vue";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Note,
-    draggable,
+    Project
   },
   data() {
     return {
       projectCopy: null,
-      updateId: null
+      selectedNote: null,
     };
   },
-  watch: {
-    project: {
-      handler(project) {
-        console.log('watcher', project);
-        if (project) {
-          this.projectCopy = JSON.parse(JSON.stringify(project));
-        } else {
-          this.$store.commit("user/updateCurrentProject", null);
-        }
-      },
-      deep: true,
+  computed: {
+    currentProject() {
+      return this.$store.getters["user/getCurrentProject"];
     },
   },
   methods: {
-    updatePositions() {
-      const objs = [];
-      for (let i = 0; i < this.projectCopy.notes.length; i++) {
-        this.projectCopy.notes[i].position = i;
-        objs.push(this.projectCopy.notes[i]);
-        delete objs[i].__typename;
-      }
-      this.$apollo.mutate({
-        mutation: SORT_NOTES,
-        variables: {
-          objects: objs,
-        }
-      });
+    noteSelected(note){
+      this.selectedNote = note;
     },
-    //updateCache(store, { data: { note } }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.currentProject.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //  data.project.notes = this.projectCopy.notes;
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
-    checkProject(project){
-      setTimeout(() => {
-        if(!project.done) return;
-        this.$apollo.mutate({
-          mutation: CHECK_PROJECT,
-          variables: {
-            id: project.id
-          }
-        })
-        this.$store.commit('user/updateCurrentProject', null);
-      }, 1000)
-    },
-    //removeToCache(store, { data: note }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.project.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-//
-    //  data.project.notes = data.project.notes.filter((n) => n.id != note.id);
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
-    //addToCache(store, { data: { note } }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.project.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //  data.project.notes = [...data.project.notes, note];
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
     addNote() {
       this.$apollo.mutate({
         mutation: CREATE_NOTE,
@@ -164,26 +47,6 @@ export default defineComponent({
         },
         //update: this.addToCache,
       });
-    },
-    updateNote(note) {
-      console.log("update note!! with throttle 1000", note);
-      if(this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(() => {
-        this.$apollo.mutate({
-          mutation: UPDATE_NOTE,
-          variables: {
-            id: note.id,
-            title: note.title ?? "",
-            content: note.content ?? "",
-            deadline: note.deadline
-          }
-        })
-      }, 1000)
-    },
-  },
-  computed: {
-    currentProject() {
-      return this.$store.getters["user/getCurrentProject"];
     },
   },
   apollo: {
@@ -218,27 +81,3 @@ export default defineComponent({
   },
 });
 </script>
-<style scoped>
-.note {
-  margin-bottom: 15px;
-}
-
-.notes {
-  position: relative;
-  text-align: center;
-}
-
-.container {
-  margin-left: 50px;
-  margin-right: 50px;
-}
-
-.head-icon {
-  margin-right: 5px;
-}
-
-.fill-window {
-  height: calc(100vh - 105px);
-  width: 100%;
-}
-</style>

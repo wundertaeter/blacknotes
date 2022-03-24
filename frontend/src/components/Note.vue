@@ -1,5 +1,5 @@
 <template>
-  <q-card style="cursor: grab">
+  <q-card style="cursor: grab" :class="{'focused': focused}">
     <q-checkbox
       v-model="done"
       @update:modelValue="checkNote"
@@ -8,14 +8,15 @@
     />
     <q-card-section class="text-white editor">
       <q-input
-        :readonly="readonly"
+        :readonly="readonly || !edit"
         borderless
-        autofocus
+        :autofocus="autofocus"
         v-model="title"
         @update:modelValue="updateModelValue"
         placeholder="New To-Do"
       />
       <q-input
+        v-if="edit"
         v-model="content"
         borderless
         class="content-area"
@@ -30,7 +31,7 @@
       /-->
     </q-card-section>
 
-    <q-card-actions class="actions-card">
+    <q-card-actions class="actions-card" v-if="edit">
       <div class="editor-actions">
         <q-btn
           :disable="readonly"
@@ -43,7 +44,7 @@
           ><q-icon name="today" />{{ date
           }}<q-icon name="close" v-if="btnHover" style="margin-left: 10px"
         /></q-btn>
-        <q-btn :icon="deleted ? 'refresh' : 'delete'" flat class="float-right" @click="trashNote"/>
+        
         <q-btn
           flat
           :disable="readonly"
@@ -66,7 +67,6 @@
 
 <script>
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
-const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 export default {
   components: {},
   props: {
@@ -83,6 +83,21 @@ export default {
       required: false,
       default: true,
     },
+    autofocus: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    edit: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    focused: {
+      type: Boolean,
+      required: false,
+      default: false,
+    }
   },
   watch: {
     modelValue(value) {
@@ -113,27 +128,9 @@ export default {
       content: this.modelValue.content,
       title: this.modelValue.title,
       checkNoteTimeout: null,
-      trashNoteTimeout: null,
     };
   },
   methods: {
-    trashNote() {
-      this.deleted = !this.deleted;
-      const note = { ...this.modelValue, deleted: this.deleted };
-      this.$emit("update/modelValue", note);
-      if (this.trashNoteTimeout) {
-        clearTimeout(this.trashNoteTimeout);
-      }
-      this.trashNoteTimeout = setTimeout(() => {
-        this.$apollo.mutate({
-          mutation: TRASH_NOTE,
-          variables: {
-            id: note.id,
-            deleted: note.deleted,
-          },
-        });
-      }, 1000);
-    },
     checkNote() {
       const note = { ...this.modelValue, done: this.done };
       this.$emit("update/modelValue", note);
@@ -175,5 +172,8 @@ export default {
 }
 .actions-card {
   border-top: 1px solid black;
+}
+.focused{
+  border: 3px solid $orange;
 }
 </style>
