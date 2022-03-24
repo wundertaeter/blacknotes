@@ -1,58 +1,27 @@
 <template>
-  <q-page>
-    <q-scroll-area class="fill-window">
-      <div class="q-pa-md container">
-        <h4>
-          <q-icon name="delete" />
-          Trash
-        </h4>
-
-        <note
-          v-for="(note, index) in notesCopy"
-          :key="note.id"
-          class="note"
-          v-model="notesCopy[index]"
-          readonly
-          @undone="uncheckNote(note)"
-        />
-      </div>
-    </q-scroll-area>
-<q-footer class="fixed-bottom footer">
-      <q-toolbar>
-        <div class="row justify-center" style="width: 100%">
-          <div class="col-12 text-center self-center">
-            <q-btn
-              icon="delete"
-              flat
-   
-            />
-          </div>
-        </div>
-      </q-toolbar>
-    </q-footer>
-  </q-page>
+  <project v-if="project" v-model="project" />
 </template>
 
 <script>
 import { defineComponent } from "vue";
-import Note from "src/components/Note.vue";
 const GET_TRASH_NOTES = require("src/gql/queries/GetTrashNotes.gql");
 const SUBSCRIBE_TRASH_NOTES = require("src/gql/subscriptions/SubscribeTrashNotes.gql");
+import Project from "src/components/Project.vue";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Note,
+    Project,
   },
   data() {
     return {
-      notesCopy: null,
+      project: { title: "Trash", icon: "delete", default: true, notes: [] },
     };
   },
   watch: {
     notes: {
       handler(notes) {
-        this.notesCopy = JSON.parse(JSON.stringify(notes));
+        this.project.notes = notes;
       },
       deep: true,
     },

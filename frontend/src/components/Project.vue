@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <q-page>
     <q-scroll-area class="fill-window" @click="resetSelectedNote">
       <div v-if="project" class="q-pa-md container">
         <h4>
@@ -34,7 +34,12 @@
         </draggable>
       </div>
     </q-scroll-area>
-  </div>
+    <q-footer class="fixed-bottom footer">
+      <q-toolbar>
+        <q-btn icon="add" @click="addNote"/>
+      </q-toolbar>
+    </q-footer>
+  </q-page>
 </template>
 
 <script>
@@ -42,12 +47,13 @@ import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
 import draggable from "vuedraggable";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
-const DELETE_NOTE_BY_PK = require("src/gql/mutations/DeleteNoteByPk.gql");
 const PROJECT_TO_TRASH = require("src/gql/mutations/ProjectToTrash.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
+const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
+const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 
 export default defineComponent({
   name: "PageIndex",
@@ -81,7 +87,7 @@ export default defineComponent({
   watch: {
     modelValue: {
       handler(value) {
-        Promise.all(this.promiseQueue).then(() => (this.loading = false));
+        Promise.all(this.promiseQueue).finally(() => (this.loading = false));
         if (!this.loading) {
           this.project = JSON.parse(JSON.stringify(value));
         }
@@ -95,6 +101,18 @@ export default defineComponent({
     },
   },
   methods: {
+    addNote() {
+      this.mutateQueue({
+        mutation: CREATE_NOTE,
+        variables: {
+          user_id: this.$store.state.user.id,
+          position: this.project.notes.length + 1,
+          project_id: this.project.id,
+        },
+      }).then((result) => {
+        this.project.notes.push(result.data.note)
+      });
+    },
     onKeydown(e) {
       if (this.editedNote) return;
       if (e.keyCode === 8 && this.selectedNote) {
@@ -107,24 +125,37 @@ export default defineComponent({
     },
     mutateQueue(mutation){
       this.loading = true;
-      this.promiseQueue.push(this.$apollo.mutate(mutation));
+      let p = this.$apollo.mutate(mutation);
+      this.promiseQueue.push(p);
+      return p;
     },
     trashNote() {
       this.loading = true;
-      console.log("trash note!!");
       const note = this.selectedNote;
       const index = this.project.notes.indexOf(this.focusedNote);
       this.project.notes.splice(this.project.notes.indexOf(note), 1);
       const next = this.project.notes[index];
       const length = this.project.notes.length;
       this.focusedNote = next || this.project.notes[length - 1];
-      this.mutateQueue({
-        mutation: TRASH_NOTE,
-        variables: {
-          id: note.id,
-          deleted: true,
-        },
-      });
+
+      if(note.deleted){
+        console.log("delete note!!");
+        this.mutateQueue({
+          mutation: DELETE_NOTE,
+          variables: {
+            id: note.id,
+          },
+        });
+      }else{
+        console.log("trash note!!");
+        this.mutateQueue({
+          mutation: TRASH_NOTE,
+          variables: {
+            id: note.id,
+            deleted: true,
+          },
+        });
+      }
     },
     selectionDown() {
       const index = this.project.notes.indexOf(this.focusedNote);

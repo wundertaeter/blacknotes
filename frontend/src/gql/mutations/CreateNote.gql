@@ -7,5 +7,7 @@ mutation CreateNote($user_id: Int!, $content: String = "", $title: String = "", 
     user_id
     content
     deadline
+    project_id
+    done
   }
 }
