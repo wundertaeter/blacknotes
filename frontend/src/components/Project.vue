@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <q-scroll-area class="fill-window" @click="resetSelectedNote">
+    <q-scroll-area class="fill-window" @click="resetfocuseNote">
       <div v-if="project" class="q-pa-md container">
         <h4>
           <q-icon v-if="project.default" :name="project.icon" />
@@ -20,15 +20,13 @@
         <draggable v-model="project.notes" @end="updatePositions" item-key="id">
           <template #item="{ element }">
             <note
-              @click.stop="focusNote(element)"
-              @dblclick="editNote(element)"
-              @keydown.enter="editedNote ? editedNote = null : editedNote = element"
-              :focused="focusedNote && focusedNote.id == element.id"
-              :edit="editedNote && editedNote.id == element.id"
+              @click.stop="setFocusNote(element)"
+              :focused="focuseNote && focuseNote.id == element.id"
               class="note"
               v-model="project.notes[project.notes.indexOf(element)]"
               @update:modelValue="updateNote"
-              @done="checkNote(note)"
+              @check="checkNote"
+              @edit="setEditNote"
             />
           </template>
         </draggable>
@@ -36,7 +34,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn icon="add" @click="addNote" :disabled="!project.id"/>
+        <q-btn icon="add" @click="addNote" :disabled="!project.id" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -54,6 +52,7 @@ const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
+const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 
 export default defineComponent({
   name: "PageIndex",
@@ -72,10 +71,10 @@ export default defineComponent({
       project: JSON.parse(JSON.stringify(this.modelValue)),
       updateId: null,
       trashNoteTimeout: null,
-      editedNote: null,
-      focusedNote: null,
+      focuseNote: null,
       loading: false,
       promiseQueue: [],
+      editNote: null,
     };
   },
   props: {
@@ -87,20 +86,27 @@ export default defineComponent({
   watch: {
     modelValue: {
       handler(value) {
-        Promise.all(this.promiseQueue).finally(() => (this.loading = false));
+        console.log("update", this.loading, this.promiseQueue);
+        Promise.all(this.promiseQueue).finally(() => {
+          this.promiseQueue = [];
+          this.loading = false;
+        });
         if (!this.loading) {
           this.project = JSON.parse(JSON.stringify(value));
         }
       },
       deep: true,
     },
-    selectedNote: {
+    focuseNote: {
       handler(value) {
         this.$emit("select", value);
       },
     },
   },
   methods: {
+    setEditNote(note) {
+      this.editNote = note;
+    },
     addNote() {
       this.mutateQueue({
         mutation: CREATE_NOTE,
@@ -110,20 +116,21 @@ export default defineComponent({
           project_id: this.project.id,
         },
       }).then((result) => {
-        this.project.notes.push(result.data.note)
+        this.project.notes.push(result.data.note);
       });
     },
     onKeydown(e) {
-      if (this.editedNote) return;
-      if (e.keyCode === 8 && this.selectedNote) {
-        this.trashNote();
-      } else if (e.keyCode == 38) {
-        this.selectionUp();
-      } else if (e.keyCode == 40) {
-        this.selectionDown();
+      if (!this.editNote) {
+        if (e.keyCode === 8 && this.focuseNote) {
+          this.trashNote();
+        } else if (e.keyCode == 38) {
+          this.selectionUp();
+        } else if (e.keyCode == 40) {
+          this.selectionDown();
+        }
       }
     },
-    mutateQueue(mutation){
+    mutateQueue(mutation) {
       this.loading = true;
       let p = this.$apollo.mutate(mutation);
       this.promiseQueue.push(p);
@@ -131,14 +138,14 @@ export default defineComponent({
     },
     trashNote() {
       this.loading = true;
-      const note = this.selectedNote;
-      const index = this.project.notes.indexOf(this.focusedNote);
+      const note = this.focuseNote;
+      const index = this.project.notes.indexOf(this.focuseNote);
       this.project.notes.splice(this.project.notes.indexOf(note), 1);
       const next = this.project.notes[index];
       const length = this.project.notes.length;
-      this.focusedNote = next || this.project.notes[length - 1];
+      this.focuseNote = next || this.project.notes[length - 1];
 
-      if(note.deleted){
+      if (note.deleted) {
         console.log("delete note!!");
         this.mutateQueue({
           mutation: DELETE_NOTE,
@@ -146,7 +153,7 @@ export default defineComponent({
             id: note.id,
           },
         });
-      }else{
+      } else {
         console.log("trash note!!");
         this.mutateQueue({
           mutation: TRASH_NOTE,
@@ -158,31 +165,22 @@ export default defineComponent({
       }
     },
     selectionDown() {
-      const index = this.project.notes.indexOf(this.focusedNote);
+      const index = this.project.notes.indexOf(this.focuseNote);
       const next = this.project.notes[index + 1];
-      this.focusedNote = next || this.project.notes[0];
+      this.focuseNote = next || this.project.notes[0];
     },
     selectionUp() {
-      const index = this.project.notes.indexOf(this.focusedNote);
+      const index = this.project.notes.indexOf(this.focuseNote);
       const next = this.project.notes[index - 1];
       const length = this.project.notes.length;
-      this.focusedNote = next || this.project.notes[length - 1];
+      this.focuseNote = next || this.project.notes[length - 1];
     },
-    focusNote(note) {
-      if (!this.editedNote || this.editedNote.id !== note.id) {
-        this.editedNote = null;
-        this.focusedNote = note;
-      }
+    setFocusNote(note) {
+      this.focuseNote = note;
     },
-    editNote(note) {
-      if (!this.editedNote) {
-        //this.focusedNote = null;
-        this.editedNote = note;
-      }
-    },
-    resetSelectedNote() {
-      this.editedNote = null;
-      this.focusedNote = null;
+    resetfocuseNote() {
+      this.focuseNote = null;
+      this.editNote = null;
     },
     updatePositions() {
       const objs = [];
@@ -214,16 +212,40 @@ export default defineComponent({
     //  });
     //},
     checkProject(project) {
-      setTimeout(() => {
-        if (!project.done) return;
-        this.mutateQueue({
-          mutation: CHECK_PROJECT,
-          variables: {
-            id: project.id,
-          },
-        });
-        this.$store.commit("user/updateCurrentProject", null);
-      }, 1000);
+      this.loading = true;
+      let p = new Promise((resolve) => {
+        setTimeout(() => {
+          console.log("project.done", project.done);
+          if (!project.done) return;
+          this.mutateQueue({
+            mutation: CHECK_PROJECT,
+            variables: {
+              id: project.id,
+            },
+          });
+          this.$store.commit("user/updateCurrentProject", null);
+          console.log("resolve");
+          resolve();
+        }, 1000);
+      });
+      this.promiseQueue.push(p);
+    },
+    checkNote(note) {
+      console.log("check note", note);
+      note.done = !note.done;
+      let p = new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+          this.mutateQueue({
+            mutation: CHECK_NOTE,
+            variables: {
+              id: note.id,
+              done: note.done,
+            },
+          });
+        }, 1000);
+      });
+      this.promiseQueue.push(p);
     },
     //removeToCache(store, { data: note }) {
     //  const query = {
@@ -269,14 +291,10 @@ export default defineComponent({
             deadline: note.deadline,
           },
         });
-      }, 1000);
+      }, 500);
     },
   },
-  computed: {
-    selectedNote() {
-      return this.editedNote || this.focusedNote;
-    },
-  },
+  computed: {},
 });
 </script>
 <style lang="scss" scoped>

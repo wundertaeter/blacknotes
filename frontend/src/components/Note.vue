@@ -1,8 +1,12 @@
 <template>
-  <q-card style="cursor: grab" :class="{'focused': focused}">
+  <q-card
+    style="cursor: grab"
+    :class="{ focused: focused }"
+    @dblclick="edit = true"
+  >
     <q-checkbox
       v-model="done"
-      @update:modelValue="checkNote"
+      @update:modelValue="$emit('check', modelValue)"
       style="position: absolute; top: 24px; z-index: 999"
       color="orange"
     />
@@ -10,13 +14,15 @@
       <q-input
         :readonly="readonly || !edit"
         borderless
+        ref="title"
         :autofocus="autofocus"
+        @keydown.enter="closeNote"
         v-model="title"
         @update:modelValue="updateModelValue"
         placeholder="New To-Do"
       />
       <q-input
-        v-if="edit"
+        v-if="edit && focused"
         v-model="content"
         borderless
         class="content-area"
@@ -31,7 +37,7 @@
       /-->
     </q-card-section>
 
-    <q-card-actions class="actions-card" v-if="edit">
+    <q-card-actions class="actions-card" v-if="edit && focused">
       <div class="editor-actions">
         <q-btn
           :disable="readonly"
@@ -44,7 +50,7 @@
           ><q-icon name="today" />{{ date
           }}<q-icon name="close" v-if="btnHover" style="margin-left: 10px"
         /></q-btn>
-        
+
         <q-btn
           flat
           :disable="readonly"
@@ -88,16 +94,17 @@ export default {
       required: false,
       default: false,
     },
-    edit: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     focused: {
       type: Boolean,
       required: false,
       default: false,
-    }
+    },
+  },
+  mounted() {
+    document.addEventListener("keydown", this.onKeydown);
+  },
+  unmounted() {
+    document.removeEventListener("keydown", this.onKeydown);
   },
   watch: {
     modelValue(value) {
@@ -112,17 +119,26 @@ export default {
       if (this.done !== value.done) {
         this.done = value.done;
       }
-
-      if (this.deleted !== value.deleted) {
-        this.deleted = value.deleted;
-      }
+    },
+    focused: {
+      handler(value) {
+        if (!value) {
+          this.blurTitle();
+          this.edit = false;
+        }
+      },
+    },
+    edit: {
+      handler(value) {
+        this.$emit("edit", value ? this.modelValue : null);
+      },
     },
   },
   data() {
     return {
+      edit: false,
       date: null,
       done: this.modelValue.done,
-      deleted: this.modelValue.deleted,
       showMenu: false,
       btnHover: false,
       content: this.modelValue.content,
@@ -131,6 +147,35 @@ export default {
     };
   },
   methods: {
+    onKeydown(e) {
+      if (e.keyCode == 13) {
+        // up and down make problems
+        if (this.edit && this.focused) {
+          this.blurTitle();
+          this.edit = false;
+        } else if (this.focused) {
+          this.edit = true;
+          this.focusTitle();
+        }
+      }
+    },
+    focusTitle() {
+      this.$nextTick(() => {
+        if (this.$refs.title) this.$refs.title.focus();
+      });
+    },
+    blurTitle() {
+      this.$nextTick(() => {
+        if (this.$refs.title) this.$refs.title.blur();
+      });
+    },
+    closeNote(e) {
+      console.log("closeNote", this.edit);
+      if (!this.edit) {
+        e.stopPropagation();
+        this.edit = true;
+      }
+    },
     checkNote() {
       const note = { ...this.modelValue, done: this.done };
       this.$emit("update/modelValue", note);
@@ -173,7 +218,7 @@ export default {
 .actions-card {
   border-top: 1px solid black;
 }
-.focused{
+.focused {
   border: 3px solid $orange;
 }
 </style>
