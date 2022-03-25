@@ -1,11 +1,11 @@
 <template>
-  <project v-if="project" v-model="project" :deadline="today"/>
+  <project v-if="project" v-model="project"/>
 </template>
 
 <script>
 import { defineComponent } from "vue";
-const GET_TODAY_NOTES = require("src/gql/queries/GetTodayNotes.gql");
-const SUBSCRIBE_TODAY_NOTES = require("src/gql/subscriptions/SubscribeTodayNotes.gql");
+const GET_ANYTIME_NOTES = require("src/gql/queries/GetAnytimeNotes.gql");
+const SUBSCRIBE_ANYTIME_NOTES = require("src/gql/subscriptions/SubscribeAnytimeNotes.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -15,7 +15,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { name: "Today", icon: "star", default: true, notes: [] },
+      project: { name: "Anytime", icon: "reorder", default: true, notes: [] },
     };
   },
   watch: {
@@ -37,7 +37,7 @@ export default defineComponent({
   },
   apollo: {
     notes: {
-      query: GET_TODAY_NOTES,
+      query: GET_ANYTIME_NOTES,
       variables() {
         return {
           user_id: this.user.id,
@@ -47,7 +47,7 @@ export default defineComponent({
         return !this.user.id;
       },
       subscribeToMore: {
-        document: SUBSCRIBE_TODAY_NOTES,
+        document: SUBSCRIBE_ANYTIME_NOTES,
         variables() {
           return {
             user_id: this.user.id,

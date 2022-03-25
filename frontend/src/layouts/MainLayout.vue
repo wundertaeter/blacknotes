@@ -13,7 +13,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" bordered>
+    <q-drawer v-model="leftDrawerOpen" persistent bordered>
       <div v-if="currentProject">
         <q-list class="menu-section">
           <q-item
@@ -48,7 +48,7 @@
 
           <q-item
             clickable
-            to="anynime"
+            to="anytime"
             active-class="text-orange"
             :active="projectActive('anytime')"
           >

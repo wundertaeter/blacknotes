@@ -79,6 +79,7 @@
           <q-menu v-model="showMenu">
             <q-date
               v-model="deadline"
+              :options="dateOptions"
               minimal
               @update:modelValue="updateDeadline"
             />
@@ -175,20 +176,43 @@ export default {
     today() {
       return new Date();
     },
+    someday() {
+      return new Date(0);
+    },
   },
   methods: {
-    formatDate(timestamp, format) {
-      if (Date.parse(timestamp) - Date.parse(this.today) < 0) {
-        return "Today";
-      } else if (
-        Date.parse(timestamp) - date.addToDate(this.today, { day: 1 }) <
-        0
-      ) {
-        return "Tomorrow";
-      } else if (
+    dateOptions(timestamp) {
+      return this.isToday(timestamp) || this.isFuture(timestamp);
+    },
+    isFuture(timestamp) {
+      return Date.parse(timestamp) >= Date.parse(this.today);
+    },
+    isToday(timestamp) {
+      return date.isSameDate(timestamp, this.today, "day");
+    },
+    isSomeday(timestamp) {
+      return Date.parse(timestamp) == Date.parse(this.someday);
+    },
+    isTodayOrLess(timestamp) {
+      return Date.parse(timestamp) - Date.parse(this.today) < 0;
+    },
+    isTomorrow(timestamp) {
+      return Date.parse(timestamp) - date.addToDate(this.today, { day: 1 }) < 0;
+    },
+    isCurrentWeek(timestamp) {
+      return (
         date.getWeekOfYear(new Date(timestamp)) ==
         date.getWeekOfYear(this.today)
-      ) {
+      );
+    },
+    formatDate(timestamp, format) {
+      if (this.isSomeday(timestamp)) {
+        return "Someday";
+      } else if (this.isTodayOrLess(timestamp)) {
+        return "Today";
+      } else if (this.isTomorrow(timestamp)) {
+        return "Tomorrow";
+      } else if (this.isCurrentWeek(timestamp)) {
         return date.formatDate(timestamp, "dddd");
       }
       return date.formatDate(timestamp, format);

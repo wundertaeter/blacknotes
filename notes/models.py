@@ -24,7 +24,7 @@ class Note(models.Model):
     content = models.TextField()
     title = models.CharField(max_length=256)
     position = models.IntegerField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='notes')
+    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name='notes')
     deleted = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
     completed_at = models.DateField(null=True, blank=True)

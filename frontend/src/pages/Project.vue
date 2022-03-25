@@ -23,9 +23,6 @@ export default defineComponent({
       return this.$store.getters["user/getCurrentProject"];
     },
   },
-  mounted(){
-    if(!this.currentProject) this.$router.push('today');
-  },
   apollo: {
     project: {
       query: GET_PROJECT,
@@ -49,9 +46,6 @@ export default defineComponent({
         },
         skip() {
           return !this.currentProject;
-        },
-        result(data){
-          if(!data.project) this.$router.push('today');
         },
         updateQuery: (previousResult, { subscriptionData }) => {
           if (subscriptionData.data) {

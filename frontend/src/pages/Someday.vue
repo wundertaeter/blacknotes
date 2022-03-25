@@ -1,11 +1,11 @@
 <template>
-  <project v-if="project" v-model="project" :deadline="today"/>
+  <project v-if="project" v-model="project" :deadline="someday"/>
 </template>
 
 <script>
 import { defineComponent } from "vue";
-const GET_TODAY_NOTES = require("src/gql/queries/GetTodayNotes.gql");
-const SUBSCRIBE_TODAY_NOTES = require("src/gql/subscriptions/SubscribeTodayNotes.gql");
+const GET_SOMEDAY_NOTES = require("src/gql/queries/GetSomedayNotes.gql");
+const SUBSCRIBE_SOMEDAY_NOTES = require("src/gql/subscriptions/SubscribeSomedayNotes.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -15,7 +15,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { name: "Today", icon: "star", default: true, notes: [] },
+      project: { name: "Someday", icon: "unarchive", default: true, notes: [] },
     };
   },
   watch: {
@@ -31,13 +31,13 @@ export default defineComponent({
     user() {
       return this.$store.state.user;
     },
-    today() {
-      return new Date();
+    someday() {
+      return new Date(0);
     },
   },
   apollo: {
     notes: {
-      query: GET_TODAY_NOTES,
+      query: GET_SOMEDAY_NOTES,
       variables() {
         return {
           user_id: this.user.id,
@@ -47,7 +47,7 @@ export default defineComponent({
         return !this.user.id;
       },
       subscribeToMore: {
-        document: SUBSCRIBE_TODAY_NOTES,
+        document: SUBSCRIBE_SOMEDAY_NOTES,
         variables() {
           return {
             user_id: this.user.id,

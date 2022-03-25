@@ -34,7 +34,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn icon="add" @click="addNote" :disabled="!project.id" />
+        <q-btn icon="add" @click="addNote" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -82,6 +82,11 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    deadline: {
+      type: Object,
+      required: false,
+      default: null,
+    }
   },
   watch: {
     modelValue: {
@@ -114,6 +119,7 @@ export default defineComponent({
           user_id: this.$store.state.user.id,
           position: this.project.notes.length + 1,
           project_id: this.project.id,
+          deadline: this.deadline
         },
       }).then((result) => {
         this.project.notes.push(result.data.note);
