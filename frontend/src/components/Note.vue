@@ -2,7 +2,10 @@
   <q-card
     style="cursor: grab"
     :class="{ focused: focused }"
-    @dblclick="edit = true; focusTitle()"
+    @dblclick="
+      edit = true;
+      focusTitle();
+    "
   >
     <q-checkbox
       v-model="done"
@@ -13,12 +16,12 @@
     <q-card-section class="text-white editor">
       <div class="row justify-center" style="height: 55px" v-if="!edit">
         <div class="col-6 text-left self-center ellipsis">
-          {{ title }}
+          {{ title ? title : "New To-Do" }}
         </div>
         <div class="col-6 text-right self-center ellipsis">
-          <span class="deadline">
+          <span class="deadline" v-if="deadline">
             <q-icon name="today" />
-            {{ formatDate(deadline, "MMM D") }}
+            {{ formatDate(deadline, "D. MMM") }}
           </span>
         </div>
       </div>
@@ -63,7 +66,7 @@
           v-if="deadline"
         >
           <q-icon name="today" />
-          {{ formatDate(deadline, "dddd, MMM D, YYYY") }}
+          {{ formatDate(deadline, "ddd D. MMM") }}
           <q-icon name="close" v-if="btnHover" style="margin-left: 10px" />
         </q-btn>
 
@@ -77,7 +80,6 @@
             <q-date
               v-model="deadline"
               minimal
-              mask="dddd, MMM D, YYYY"
               @update:modelValue="updateDeadline"
             />
           </q-menu>
@@ -90,6 +92,7 @@
 <script>
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 import { date } from "quasar";
+
 export default {
   components: {},
   props: {
@@ -168,8 +171,26 @@ export default {
       contentFocused: false,
     };
   },
+  computed: {
+    today() {
+      return new Date();
+    },
+  },
   methods: {
     formatDate(timestamp, format) {
+      if (Date.parse(timestamp) - Date.parse(this.today) < 0) {
+        return "Today";
+      } else if (
+        Date.parse(timestamp) - date.addToDate(this.today, { day: 1 }) <
+        0
+      ) {
+        return "Tomorrow";
+      } else if (
+        date.getWeekOfYear(new Date(timestamp)) ==
+        date.getWeekOfYear(this.today)
+      ) {
+        return date.formatDate(timestamp, "dddd");
+      }
       return date.formatDate(timestamp, format);
     },
     removeDeadline() {
