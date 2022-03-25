@@ -16,7 +16,6 @@
         borderless
         ref="title"
         :autofocus="autofocus"
-        @keydown.enter="closeNote"
         v-model="title"
         @update:modelValue="updateModelValue"
         placeholder="New To-Do"
@@ -25,6 +24,9 @@
         v-if="edit && focused"
         v-model="content"
         borderless
+        @focus="onContentFocus"
+        @blur="onContentBlur"
+        ref="content"
         class="content-area"
         type="textarea"
         placeholder="Notes"
@@ -144,18 +146,43 @@ export default {
       content: this.modelValue.content,
       title: this.modelValue.title,
       checkNoteTimeout: null,
+      contentFocused: false,
     };
   },
   methods: {
+    onContentFocus() {
+      this.contentFocused = true;
+    },
+    onContentBlur() {
+      this.contentFocused = false;
+    },
     onKeydown(e) {
-      if (e.keyCode == 13) {
-        // up and down make problems
-        if (this.edit && this.focused) {
+      if (!this.contentFocused && this.focused && e.keyCode == 13) {
+        if (this.edit) {
           this.blurTitle();
           this.edit = false;
-        } else if (this.focused) {
+        } else {
           this.edit = true;
           this.focusTitle();
+        }
+      } else if (this.edit) {
+        const textarea =
+          this.$refs.content.$el.getElementsByTagName("textarea")[0];
+        if (e.keyCode == 40) {
+          e.preventDefault();
+          const firstLineLen = this.content.split("\n")[0].length;
+          this.$refs.content.focus();
+          textarea.setSelectionRange(firstLineLen, firstLineLen);
+        } else if (e.keyCode == 38) {
+          const linerNum = textarea.value
+            .substr(0, textarea.selectionStart)
+            .split("\n").length;
+          if (linerNum == 1) {
+            e.preventDefault();
+            this.$refs.title.focus();
+            const title = this.$refs.title.$el.getElementsByTagName("input")[0];
+            title.setSelectionRange(this.title.length, this.title.length);
+          }
         }
       }
     },
