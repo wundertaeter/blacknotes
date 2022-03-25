@@ -16,3 +16,13 @@ body {
  textarea::-webkit-scrollbar {
    display: none;
  }
+
+ .container {
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+.fill-window {
+  height: calc(100vh - 105px);
+  width: 100%;
+}

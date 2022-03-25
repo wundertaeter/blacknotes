@@ -92,7 +92,13 @@
 
 <script>
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
-import { date } from "quasar";
+import {
+  formatDate,
+  today,
+  someday,
+  isToday,
+  isFuture,
+} from "src/common/date.js";
 
 export default {
   components: {},
@@ -174,48 +180,18 @@ export default {
   },
   computed: {
     today() {
-      return new Date();
+      return today();
     },
     someday() {
-      return new Date(0);
+      return someday();
     },
   },
   methods: {
     dateOptions(timestamp) {
-      return this.isToday(timestamp) || this.isFuture(timestamp);
-    },
-    isFuture(timestamp) {
-      return Date.parse(timestamp) >= Date.parse(this.today);
-    },
-    isToday(timestamp) {
-      return date.isSameDate(timestamp, this.today, "day");
-    },
-    isSomeday(timestamp) {
-      return Date.parse(timestamp) == Date.parse(this.someday);
-    },
-    isTodayOrLess(timestamp) {
-      return Date.parse(timestamp) - Date.parse(this.today) < 0;
-    },
-    isTomorrow(timestamp) {
-      return Date.parse(timestamp) - date.addToDate(this.today, { day: 1 }) < 0;
-    },
-    isCurrentWeek(timestamp) {
-      return (
-        date.getWeekOfYear(new Date(timestamp)) ==
-        date.getWeekOfYear(this.today)
-      );
+      return isToday(timestamp) || isFuture(timestamp);
     },
     formatDate(timestamp, format) {
-      if (this.isSomeday(timestamp)) {
-        return "Someday";
-      } else if (this.isTodayOrLess(timestamp)) {
-        return "Today";
-      } else if (this.isTomorrow(timestamp)) {
-        return "Tomorrow";
-      } else if (this.isCurrentWeek(timestamp)) {
-        return date.formatDate(timestamp, "dddd");
-      }
-      return date.formatDate(timestamp, format);
+      return formatDate(timestamp, format);
     },
     removeDeadline() {
       this.deadline = null;
