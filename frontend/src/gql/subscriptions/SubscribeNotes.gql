@@ -3,5 +3,6 @@ subscription SubscribeNotes($user_id: Int!, $project_id: bigint!) {
     id
     title
     content
+    deadline
   }
 }

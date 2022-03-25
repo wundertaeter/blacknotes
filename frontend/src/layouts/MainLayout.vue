@@ -18,20 +18,61 @@
         <q-list class="menu-section">
           <q-item
             clickable
-            v-for="project in user.defaultProjects"
-            @click="selectProject(project)"
-            :key="project.id"
+            to="today"
             active-class="text-orange"
-            :active="currentProject.id == project.id"
+            :active="projectActive('today')"
           >
             <q-item-section avatar>
-              <q-icon :name="project.icon" />
+              <q-icon name="star" />
             </q-item-section>
 
             <q-item-section>
-              <q-item-label>
-                {{ project.name }}
-              </q-item-label>
+              <q-item-label> Today </q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            to="upcoming"
+            active-class="text-orange"
+            :active="projectActive('upcoming')"
+          >
+            <q-item-section avatar>
+              <q-icon name="date_range" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label> Upcoming </q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            to="anynime"
+            active-class="text-orange"
+            :active="projectActive('anytime')"
+          >
+            <q-item-section avatar>
+              <q-icon name="reorder" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label> Anytime </q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            to="someday"
+            active-class="text-orange"
+            :active="projectActive('someday')"
+          >
+            <q-item-section avatar>
+              <q-icon name="unarchive" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label> Someday </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -41,7 +82,7 @@
         <q-list class="menu-section">
           <q-item
             clickable
-            @click="goToLogBook"
+            to="logbook"
             active-class="text-orange"
             :active="projectActive('logbook')"
           >
@@ -55,7 +96,7 @@
           </q-item>
           <q-item
             clickable
-            @click="goToTrash"
+            to="trash"
             active-class="text-orange"
             :active="projectActive('trash')"
           >
@@ -170,12 +211,6 @@ export default defineComponent({
       } else {
         return project == this.$route.name;
       }
-    },
-    goToTrash() {
-      this.$router.push("/trash");
-    },
-    goToLogBook() {
-      this.$router.push("/logbook");
     },
     updatePositions(data) {
       for (let i = 0; i < this.projects.length; i++) {

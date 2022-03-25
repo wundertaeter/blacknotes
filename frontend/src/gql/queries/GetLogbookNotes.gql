@@ -3,6 +3,7 @@ query GetLogbookNotes($user_id: Int!) {
     id
     title
     content
+    deadline
     done
   }
 }

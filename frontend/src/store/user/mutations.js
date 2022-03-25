@@ -17,9 +17,6 @@ export function updateUser(state, data) {
     // if (data.spaces) {
     //     state.spaces = data.spaces;
     // }
-    if (data.defaultProjects) {
-        state.defaultProjects = data.defaultProjects;
-    }
 }
 
 export function updateCurrentProject(state, currentProject) {

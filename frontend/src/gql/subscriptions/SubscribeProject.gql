@@ -4,7 +4,6 @@ subscription SubscribeProject($id: bigint!) {
     id
     icon
     deleted
-    default
     position
     done
     notes(order_by: {position: asc}, where: {_and: {deleted: {_eq: false}, done: {_eq: false}}}) {
@@ -17,6 +16,7 @@ subscription SubscribeProject($id: bigint!) {
       deadline
       project_id
       done
+      deadline
     }
   }
 }

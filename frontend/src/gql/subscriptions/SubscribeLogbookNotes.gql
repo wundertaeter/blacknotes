@@ -4,5 +4,6 @@ subscription SubscribeLogbookNotes($user_id: Int!) {
     title
     content
     done
+    deadline
   }
 }

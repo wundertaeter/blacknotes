@@ -8,16 +8,9 @@ query GetUserData($id: Int!) {
     id
     name
   }
-  projects: notes_project(where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, default: {_eq: false}}) {
+  projects: notes_project(where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}}) {
     id
     name
     icon
-    default
-  }
-  defaultProjects: notes_project(where: {_and: {user_id: {_eq: $id}}, default: {_eq: true}}) {
-    id
-    name
-    icon
-    default
   }
 }

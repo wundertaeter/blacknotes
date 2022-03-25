@@ -2,7 +2,7 @@
   <q-card
     style="cursor: grab"
     :class="{ focused: focused }"
-    @dblclick="edit = true"
+    @dblclick="edit = true; focusTitle()"
   >
     <q-checkbox
       v-model="done"
@@ -11,8 +11,20 @@
       color="orange"
     />
     <q-card-section class="text-white editor">
+      <div class="row justify-center" style="height: 55px" v-if="!edit">
+        <div class="col-6 text-left self-center ellipsis">
+          {{ title }}
+        </div>
+        <div class="col-6 text-right self-center ellipsis">
+          <span class="deadline">
+            <q-icon name="today" />
+            {{ formatDate(deadline, "MMM D") }}
+          </span>
+        </div>
+      </div>
       <q-input
-        :readonly="readonly || !edit"
+        v-if="edit"
+        :readonly="readonly"
         borderless
         ref="title"
         :autofocus="autofocus"
@@ -47,11 +59,13 @@
           :flat="!btnHover"
           @mouseleave="btnHover = false"
           @mouseover="btnHover = true"
-          @click="date = null"
-          v-if="date"
-          ><q-icon name="today" />{{ date
-          }}<q-icon name="close" v-if="btnHover" style="margin-left: 10px"
-        /></q-btn>
+          @click="removeDeadline"
+          v-if="deadline"
+        >
+          <q-icon name="today" />
+          {{ formatDate(deadline, "dddd, MMM D, YYYY") }}
+          <q-icon name="close" v-if="btnHover" style="margin-left: 10px" />
+        </q-btn>
 
         <q-btn
           flat
@@ -61,10 +75,10 @@
         >
           <q-menu v-model="showMenu">
             <q-date
-              v-model="date"
+              v-model="deadline"
               minimal
               mask="dddd, MMM D, YYYY"
-              @update:modelValue="showMenu = false"
+              @update:modelValue="updateDeadline"
             />
           </q-menu>
         </q-btn>
@@ -75,6 +89,7 @@
 
 <script>
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
+import { date } from "quasar";
 export default {
   components: {},
   props: {
@@ -121,6 +136,10 @@ export default {
       if (this.done !== value.done) {
         this.done = value.done;
       }
+
+      if (this.deadline !== value.deadline) {
+        this.deadline = value.deadline;
+      }
     },
     focused: {
       handler(value) {
@@ -139,7 +158,7 @@ export default {
   data() {
     return {
       edit: false,
-      date: null,
+      deadline: this.modelValue.deadline,
       done: this.modelValue.done,
       showMenu: false,
       btnHover: false,
@@ -150,6 +169,17 @@ export default {
     };
   },
   methods: {
+    formatDate(timestamp, format) {
+      return date.formatDate(timestamp, format);
+    },
+    removeDeadline() {
+      this.deadline = null;
+      this.updateModelValue();
+    },
+    updateDeadline() {
+      this.showMenu = false;
+      this.updateModelValue();
+    },
     onContentFocus() {
       this.contentFocused = true;
     },
@@ -222,6 +252,7 @@ export default {
     updateModelValue() {
       const note = {
         ...this.modelValue,
+        deadline: this.deadline,
         title: this.title,
         content: this.content,
       };
@@ -247,5 +278,8 @@ export default {
 }
 .focused {
   border: 3px solid $orange;
+}
+.deadline {
+  min-width: 100px;
 }
 </style>

@@ -10,6 +10,5 @@ export default function () {
     //projects: [],
     //spaces: [],
     currentProject: currentProject,
-    defaulProjects: []
   }
 }
