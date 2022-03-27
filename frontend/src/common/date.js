@@ -8,6 +8,9 @@ export function today() {
 export function someday() {
     return new Date(0);
 }
+export function tomorrow() {
+    return date.addToDate(today(), { day: 1 });
+}
 export function isFuture(timestamp) {
     return Date.parse(timestamp) >= Date.parse(today());
 }
@@ -21,7 +24,7 @@ export function isTodayOrLess(timestamp) {
     return Date.parse(timestamp) - Date.parse(today()) < 0;
 }
 export function isTomorrow(timestamp) {
-    return Date.parse(timestamp) - date.addToDate(today(), { day: 1 }) < 0;
+    return date.isSameDate(timestamp, tomorrow(), "day");;
 }
 export function isCurrentWeek(timestamp) {
     return (

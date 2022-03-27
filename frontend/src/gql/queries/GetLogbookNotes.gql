@@ -5,5 +5,8 @@ query GetLogbookNotes($user_id: Int!) {
     content
     deadline
     done
+    user_id
+    project_id
+    deleted
   }
 }

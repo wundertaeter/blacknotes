@@ -19,7 +19,7 @@
           {{ title ? title : "New To-Do" }}
         </div>
         <div class="col-6 text-right self-center ellipsis">
-          <span class="deadline" v-if="deadline">
+          <span class="deadline" v-if="deadline && datePreview">
             <q-icon name="today" />
             {{ formatDate(deadline, "D. MMM") }}
           </span>
@@ -126,6 +126,11 @@ export default {
       required: false,
       default: false,
     },
+    datePreview: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
   },
   mounted() {
     document.addEventListener("keydown", this.onKeydown);
@@ -135,6 +140,7 @@ export default {
   },
   watch: {
     modelValue(value) {
+      console.log('watcher from note', value.deadline);
       if (this.content !== value.content) {
         this.content = value.content;
       }

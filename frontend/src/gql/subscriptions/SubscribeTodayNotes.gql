@@ -5,5 +5,8 @@ subscription SubscribeTodayNotes($user_id: Int!) {
     content
     done
     deadline
+    user_id
+    project_id
+    deleted
   }
 }

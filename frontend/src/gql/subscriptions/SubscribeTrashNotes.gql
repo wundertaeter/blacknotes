@@ -4,7 +4,9 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     title
     content
     done
-    deleted
     deadline
+    user_id
+    project_id
+    deleted
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <draggable v-model="notes" @end="updatePositions" item-key="id">
+  <draggable v-model="notes" @add="updatePositions" :group="group" item-key="id">
     <template #item="{ element }">
       <note
         @click.stop="setFocusNote(element)"
@@ -9,6 +9,7 @@
         @update:modelValue="updateNote"
         @check="checkNote"
         @edit="setEditNote"
+        :date-preview="datePreview"
       />
     </template>
   </draggable>
@@ -55,11 +56,19 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    group: {
+      type: String,
+      required: false,
+    },
     deadline: {
       type: Object,
-      required: false,
-      default: null,
+      required: false
     },
+    datePreview: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
   },
   watch: {
     modelValue: {
@@ -155,6 +164,11 @@ export default defineComponent({
       for (let i = 0; i < this.notes.length; i++) {
         this.notes[i].position = i;
         const { __typename, ...obj } = this.notes[i];
+        if(this.deadline){
+          console.log('add deadline', this.deadline);
+          obj.deadline = this.deadline;
+          //this.notes[i].deadline = this.deadline;
+        }
         objs.push(obj);
       }
       this.mutateQueue({
@@ -265,7 +279,11 @@ export default defineComponent({
       }, 500);
     },
   },
-  computed: {},
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+  },
 });
 </script>
 <style lang="scss" scoped>
