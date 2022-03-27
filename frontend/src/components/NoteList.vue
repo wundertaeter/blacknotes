@@ -1,9 +1,15 @@
 <template>
-  <draggable v-model="notes" @add="updatePositions" :group="group" item-key="id">
+  <draggable
+    v-model="notes"
+    @add="updatePositions"
+    @sort="updatePositions"
+    :group="group"
+    item-key="id"
+  >
     <template #item="{ element }">
       <note
         @click.stop="setFocusNote(element)"
-        :focused="focuseNote && focuseNote.id == element.id"
+        :focused="focusedNote && focusedNote.id == element.id"
         class="note"
         v-model="notes[notes.indexOf(element)]"
         @update:modelValue="updateNote"
@@ -19,6 +25,8 @@
 import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
 import draggable from "vuedraggable";
+import mitt from "mitt";
+export const bus = mitt();
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
@@ -33,19 +41,31 @@ export default defineComponent({
     draggable,
   },
   mounted() {
-    document.addEventListener("click", this.resetfocuseNote);
-    document.addEventListener("keydown", this.onKeydown);
+    if (this.selectable) {
+      document.addEventListener("click", this.resetFocusedNote);
+      document.addEventListener("keydown", this.onKeydown);
+    } else {
+      bus.on("focusNote", this.focusNote);
+      bus.on("resetFocusedNote", this.resetFocusedNote);
+      bus.on('trashNote', this.trashNote);
+    }
   },
   unmounted() {
-    document.removeEventListener("click", this.resetfocuseNote);
-    document.removeEventListener("keydown", this.onKeydown);
+    if (this.selectable) {
+      document.removeEventListener("click", this.resetFocusedNote);
+      document.removeEventListener("keydown", this.onKeydown);
+    } else {
+      bus.off("focusNote", this.focusNote);
+      bus.off("resetFocusedNote", this.resetFocusedNote);
+      bus.off('trashNote', this.trashNote);
+    }
   },
   data() {
     return {
       notes: JSON.parse(JSON.stringify(this.modelValue)),
       updateId: null,
       trashNoteTimeout: null,
-      focuseNote: null,
+      focusedNote: null,
       loading: false,
       promiseQueue: [],
       editNote: null,
@@ -62,13 +82,18 @@ export default defineComponent({
     },
     deadline: {
       type: Object,
-      required: false
+      required: false,
     },
     datePreview: {
       type: Boolean,
       required: false,
-      default: true
-    }
+      default: true,
+    },
+    selectable: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   watch: {
     modelValue: {
@@ -86,19 +111,15 @@ export default defineComponent({
       },
       deep: true,
     },
-    focuseNote: {
-      handler(value) {
-        this.$emit("select", value);
-      },
-    },
   },
   methods: {
     setEditNote(note) {
       this.editNote = note;
+      this.$emit("edit", note);
     },
     onKeydown(e) {
       if (!this.editNote) {
-        if (e.keyCode === 8 && this.focuseNote) {
+        if (e.keyCode === 8 && this.focusedNote) {
           this.trashNote();
         } else if (e.keyCode == 38) {
           this.selectionUp();
@@ -115,12 +136,12 @@ export default defineComponent({
     },
     trashNote() {
       this.loading = true;
-      const note = this.focuseNote;
-      const index = this.notes.indexOf(this.focuseNote);
+      const note = this.focusedNote;
+      const index = this.notes.indexOf(this.focusedNote);
       this.notes.splice(this.notes.indexOf(note), 1);
       const next = this.notes[index];
       const length = this.notes.length;
-      this.focuseNote = next || this.notes[length - 1];
+      this.focusedNote = next || this.notes[length - 1];
 
       if (note.deleted) {
         console.log("delete note!!");
@@ -141,22 +162,29 @@ export default defineComponent({
         });
       }
     },
+    focusNote(note) {
+      this.focusedNote = note;
+    },
     selectionDown() {
-      const index = this.notes.indexOf(this.focuseNote);
+      const index = this.notes.indexOf(this.focusedNote);
       const next = this.notes[index + 1];
-      this.focuseNote = next || this.notes[0];
+      this.focusNote(next || this.notes[0]);
     },
     selectionUp() {
-      const index = this.notes.indexOf(this.focuseNote);
+      const index = this.notes.indexOf(this.focusedNote);
       const next = this.notes[index - 1];
       const length = this.notes.length;
-      this.focuseNote = next || this.notes[length - 1];
+      this.focusNote(next || this.notes[length - 1]);
     },
     setFocusNote(note) {
-      this.focuseNote = note;
+      if(this.selectable){
+        this.focusedNote = note;
+      }else{
+        this.$emit("select", note);
+      }
     },
-    resetfocuseNote() {
-      this.focuseNote = null;
+    resetFocusedNote() {
+      this.focusedNote = null;
       this.editNote = null;
     },
     updatePositions() {
@@ -164,11 +192,12 @@ export default defineComponent({
       for (let i = 0; i < this.notes.length; i++) {
         this.notes[i].position = i;
         const { __typename, ...obj } = this.notes[i];
-        if(this.deadline){
-          console.log('add deadline', this.deadline);
+        if (this.deadline) {
+          console.log("add deadline", this.deadline);
           obj.deadline = this.deadline;
-          //this.notes[i].deadline = this.deadline;
+          this.notes[i].deadline = this.deadline;
         }
+        this.$emit('update:modelValue', this.notes);
         objs.push(obj);
       }
       this.mutateQueue({

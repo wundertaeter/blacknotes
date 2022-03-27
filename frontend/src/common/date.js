@@ -8,8 +8,11 @@ export function today() {
 export function someday() {
     return new Date(0);
 }
-export function tomorrow() {
-    return date.addToDate(today(), { day: 1 });
+export function tomorrow(day) {
+    return date.addToDate(day || today(), { day: 1 });
+}
+export function yesterday(day) {
+    return date.subtractFromDate(day || today(), { day: 1 });
 }
 export function isFuture(timestamp) {
     return Date.parse(timestamp) >= Date.parse(today());
