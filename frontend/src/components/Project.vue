@@ -17,7 +17,7 @@
           {{ project.name ? project.name : "New Project" }}
         </h4>
 
-        <note-list v-model="project.notes" />
+        <note-list v-model="project.notes" :sort-mode="sortMode"/>
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
@@ -54,6 +54,11 @@ export default defineComponent({
       required: false,
       default: null,
     },
+    sortMode: {
+      type: String,
+      required: false,
+      default: "",
+    },
   },
   watch: {
     modelValue: {
@@ -65,21 +70,25 @@ export default defineComponent({
   },
   computed: {
     maxPosition() {
-      const positions = this.modelValue.notes.map((note) => note.position);
+      const positions = this.modelValue.notes.map((note) => note[this.positionColumn]);
       return positions.length ? Math.max(...positions) : 0;
     },
     user() {
       return this.$store.state.user;
     },
+    positionColumn() {
+      return this.sortMode ? `${this.sortMode}_position` : "position";
+    },
   },
   methods: {
     addNote() {
+      console.log('hallo?????', this.positionColumn);
       this.$apollo
         .mutate({
           mutation: CREATE_NOTE,
           variables: {
             user_id: this.user.id,
-            position: ++this.maxPosition,
+            [this.positionColumn]: ++this.maxPosition,
             project_id: this.project.id,
             deadline: this.deadline ? toDatabaseString(this.deadline) : null,
           },

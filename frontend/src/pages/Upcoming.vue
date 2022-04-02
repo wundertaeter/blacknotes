@@ -16,7 +16,7 @@
               @select="setFocusNote"
               @edit="setEditNote"
               :selectable="false"
-              :on-keydown="onKeydown"
+              sort-mode="upcoming"
               group="people"
               v-model="sortedNotes[date.title]"
               :deadline="date.date"

@@ -1,5 +1,5 @@
 subscription SubscribeTodayNotes($user_id: Int!) {
-  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deadline: {_lte: Today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}) {
+  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deadline: {_lte: Today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc}) {
     id
     title
     content
@@ -7,6 +7,7 @@ subscription SubscribeTodayNotes($user_id: Int!) {
     deadline
     user_id
     project_id
+    today_position
     deleted
   }
 }

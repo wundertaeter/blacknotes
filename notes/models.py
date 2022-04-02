@@ -23,17 +23,11 @@ class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')
     content = models.TextField()
     title = models.CharField(max_length=256)
-    position = models.IntegerField()
+    position = models.IntegerField(null=True, blank=True)
+    upcoming_position = models.IntegerField(null=True, blank=True)
+    today_position = models.IntegerField(null=True, blank=True)
     project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name='notes')
     deleted = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
     completed_at = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
-
-
-#class TodayNotePositions(models.Model): pass
-
-#class UpcomingNotePositions(models.Model): pass
-
-#class NotePositions():
-#    type = 'upcomeing / today'

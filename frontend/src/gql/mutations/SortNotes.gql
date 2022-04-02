@@ -1,5 +1,5 @@
-mutation SortNotes($objects: [notes_note_insert_input!] = []) {
-  insert_notes_note(objects: $objects, on_conflict: {constraint: notes_note_pkey, update_columns: [position, deadline]}) {
+mutation SortNotes($objects: [notes_note_insert_input!] = [], $update_columns: [notes_note_update_column!]!) {
+  insert_notes_note(objects: $objects, on_conflict: {constraint: notes_note_pkey, update_columns: $update_columns}) {
     returning {
       position
       deadline

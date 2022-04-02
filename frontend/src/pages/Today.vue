@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" :deadline="today"/>
+  <project v-if="project" v-model="project" :deadline="today" sort-mode="today"/>
 </template>
 
 <script>

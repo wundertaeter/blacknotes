@@ -95,6 +95,11 @@ export default defineComponent({
       required: false,
       default: true,
     },
+    sortMode: {
+      type: String,
+      required: false,
+      default: "",
+    },
   },
   watch: {
     modelValue: {
@@ -197,8 +202,9 @@ export default defineComponent({
     },
     updatePositions() {
       const objs = [];
+      const update_columns = ["deadline", this.positionColumn];
       for (let i = 0; i < this.notes.length; i++) {
-        this.notes[i].position = i;
+        this.notes[i][this.positionColumn] = i;
         const { __typename, ...obj } = this.notes[i];
         if (this.deadline) {
           obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
@@ -211,6 +217,7 @@ export default defineComponent({
         mutation: SORT_NOTES,
         variables: {
           objects: objs,
+          update_columns: update_columns,
         },
       });
     },
@@ -318,6 +325,9 @@ export default defineComponent({
   computed: {
     user() {
       return this.$store.state.user;
+    },
+    positionColumn() {
+      return this.sortMode ? `${this.sortMode}_position` : "position";
     },
   },
 });
