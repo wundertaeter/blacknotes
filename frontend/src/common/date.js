@@ -2,6 +2,9 @@ import { date as qdate } from "quasar";
 
 export const date = qdate;
 
+export function toDatabaseString(timestamp){
+    return date.formatDate(timestamp, 'YYYY-MM-DD');
+}
 export function today() {
     return new Date();
 }
@@ -24,7 +27,7 @@ export function isSomeday(timestamp) {
     return Date.parse(timestamp) == Date.parse(someday());
 }
 export function isTodayOrLess(timestamp) {
-    return Date.parse(timestamp) - Date.parse(today()) < 0;
+    return isToday(timestamp) || Date.parse(timestamp) - Date.parse(today()) < 0;
 }
 export function isTomorrow(timestamp) {
     return date.isSameDate(timestamp, tomorrow(), "day");;

@@ -29,3 +29,11 @@ class Note(models.Model):
     done = models.BooleanField(default=False)
     completed_at = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
+
+
+#class TodayNotePositions(models.Model): pass
+
+#class UpcomingNotePositions(models.Model): pass
+
+#class NotePositions():
+#    type = 'upcomeing / today'

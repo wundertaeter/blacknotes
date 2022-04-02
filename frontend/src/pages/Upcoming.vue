@@ -1,41 +1,53 @@
 <template>
-  <div class="q-px-lg q-pb-md">
-    <q-timeline color="secondary">
-      <q-timeline-entry heading> Timeline heading </q-timeline-entry>
+  <q-page>
+    <q-scroll-area class="fill-window">
+      <div class="q-px-lg q-pb-md">
+        <q-timeline color="secondary">
+          <q-timeline-entry heading> Timeline heading </q-timeline-entry>
 
-      <q-timeline-entry
-        v-for="date in dates"
-        :key="date.title"
-        :subtitle="date.title"
-        avatar="https://cdn.quasar.dev/img/avatar2.jpg"
-      >
-        <note-list
-          v-if="sortedNotes[date.title]"
-          @select="setFocusNote"
-          @edit="setEditNote"
-          :selectable="false"
-          :on-keydown="onKeydown"
-          group="people"
-          v-model="sortedNotes[date.title]"
-          :deadline="date.date"
-          xxdate-preview="false"
-        />
-      </q-timeline-entry>
+          <q-timeline-entry
+            v-for="date in dates"
+            :key="date.title"
+            :subtitle="date.title"
+            avatar="https://cdn.quasar.dev/img/avatar2.jpg"
+          >
+            <note-list
+              v-if="sortedNotes[date.title]"
+              @select="setFocusNote"
+              @edit="setEditNote"
+              :selectable="false"
+              :on-keydown="onKeydown"
+              group="people"
+              v-model="sortedNotes[date.title]"
+              :deadline="date.date"
+              :date-preview="false"
+            />
+          </q-timeline-entry>
 
-      <!--q-timeline-entry heading>
+          <!--q-timeline-entry heading>
         November, 2017
       </q-timeline-entry-->
-    </q-timeline>
-  </div>
+        </q-timeline>
+      </div>
+    </q-scroll-area>
+    <q-footer class="fixed-bottom footer">
+      <q-toolbar>
+        <q-btn icon="add" @click="addNote" />
+      </q-toolbar>
+    </q-footer>
+  </q-page>
 </template>
 
 <script>
 import { defineComponent } from "vue";
 const GET_UPCOMING_NOTES = require("src/gql/queries/GetUpcomingNotes.gql");
 const SUBSCRIBE_UPCOMING_NOTES = require("src/gql/subscriptions/SubscribeUpcomingNotes.gql");
+const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
+const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 import NoteList from "src/components/NoteList.vue";
 import { bus } from "src/components/NoteList.vue";
 import {
+  toDatabaseString,
   formatDate,
   date,
   tomorrow,
@@ -56,7 +68,7 @@ export default defineComponent({
       watchers: [],
       focusNote: null,
       editNote: null,
-      timeline: 7
+      timeline: 7,
     };
   },
   mounted() {
@@ -75,6 +87,7 @@ export default defineComponent({
         });
         notes.forEach((note) => {
           let dateString = this.formatDate(note.deadline);
+          console.log(dateString);
           this.sortedNotes[dateString].push(note);
         });
         console.log("this.sorted", this.sortedNotes);
@@ -83,26 +96,69 @@ export default defineComponent({
     },
     focusNote: {
       handler(value) {
+        console.log("emit focus note");
         bus.emit("focusNote", value);
       },
     },
   },
   methods: {
+    addNote() {
+      const deadline = this.focusNote
+        ? this.focusNote.deadline
+        : this.editNote
+        ? this.editNote.deadline
+        : this.tomorrow;
+      this.$apollo
+        .mutate({
+          mutation: CREATE_NOTE,
+          variables: {
+            user_id: this.user.id,
+            position: 0,
+            project_id: null,
+            deadline: toDatabaseString(deadline),
+          },
+        })
+        .then((result) => {
+          this.sortedNotes[this.formatDate(deadline)].push(result.data.note);
+        });
+    },
     onKeydown(e) {
       console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
       if (!this.editNote) {
         if (e.keyCode === 8) {
-          if (this.focuseNote) bus.emit("trashNote");
+          if (this.focusNote) this.trashNote();
         } else if (e.keyCode == 38) {
+          e.preventDefault();
           this.selectionUp();
         } else if (e.keyCode == 40) {
+          e.preventDefault();
           this.selectionDown();
         }
       }
     },
+    trashNote() {
+      this.loading = true;
+      const note = this.focusNote;
+      const index = this.notes.indexOf(this.focusNote);
+      this.sortedNotes[this.formatDate(note.deadline)].splice(
+        this.sortedNotes[this.formatDate(note.deadline)].findIndex(
+          (n) => n.id == note.id
+        ),
+        1
+      );
+      this.$apollo.mutate({
+        mutation: TRASH_NOTE,
+        variables: {
+          id: note.id,
+          deleted: true,
+        },
+      });
+    },
     resetFocusedNote() {
       console.log("resetFocusedNote");
       bus.emit("resetFocusedNote");
+      this.focusNote = null;
+      this.editNote = null;
     },
     setFocusNote(note) {
       console.log("select ", note);
@@ -117,7 +173,7 @@ export default defineComponent({
       const notes = this.sortedNotes[this.formatDate(nextDay)];
       console.log("selectNextNote", notes);
       if (notes === undefined) {
-        return this.selectNextNote(today());
+        return this.selectNextNote(this.today);
       }
       const next = notes[0];
       if (next) {
@@ -200,9 +256,15 @@ export default defineComponent({
       }
       return dates;
     },
-    timelineEnd(){
-      return date.addToDate(tomorrow(), { day: this.timeline});
-    }
+    timelineEnd() {
+      return date.addToDate(tomorrow(), { day: this.timeline });
+    },
+    today() {
+      return today();
+    },
+    tomorrow() {
+      return tomorrow();
+    },
   },
   apollo: {
     notes: {
@@ -210,6 +272,7 @@ export default defineComponent({
       variables() {
         return {
           user_id: this.user.id,
+          today: toDatabaseString(this.today),
         };
       },
       skip() {
@@ -220,6 +283,7 @@ export default defineComponent({
         variables() {
           return {
             user_id: this.user.id,
+            today: toDatabaseString(this.today),
           };
         },
         skip() {

@@ -26,6 +26,7 @@ import { defineComponent } from "vue";
 import Note from "src/components/Note.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
+import { toDatabaseString } from "src/common/date.js";
 export const bus = mitt();
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
@@ -47,7 +48,7 @@ export default defineComponent({
     } else {
       bus.on("focusNote", this.focusNote);
       bus.on("resetFocusedNote", this.resetFocusedNote);
-      bus.on('trashNote', this.trashNote);
+      //bus.on("trashNote", this.trashNote);
     }
   },
   unmounted() {
@@ -57,7 +58,7 @@ export default defineComponent({
     } else {
       bus.off("focusNote", this.focusNote);
       bus.off("resetFocusedNote", this.resetFocusedNote);
-      bus.off('trashNote', this.trashNote);
+      //bus.off("trashNote", this.trashNote);
     }
   },
   data() {
@@ -135,6 +136,7 @@ export default defineComponent({
       return p;
     },
     trashNote() {
+      console.log('trashNote!!!');
       this.loading = true;
       const note = this.focusedNote;
       const index = this.notes.indexOf(this.focusedNote);
@@ -166,20 +168,24 @@ export default defineComponent({
       this.focusedNote = note;
     },
     selectionDown() {
-      const index = this.notes.indexOf(this.focusedNote);
+      const index = this.notes.findIndex(
+        (note) => note.id == this.focusedNote.id
+      );
       const next = this.notes[index + 1];
       this.focusNote(next || this.notes[0]);
     },
     selectionUp() {
-      const index = this.notes.indexOf(this.focusedNote);
+      const index = this.notes.findIndex(
+        (note) => note.id == this.focusedNote.id
+      );
       const next = this.notes[index - 1];
       const length = this.notes.length;
       this.focusNote(next || this.notes[length - 1]);
     },
     setFocusNote(note) {
-      if(this.selectable){
+      if (this.selectable) {
         this.focusedNote = note;
-      }else{
+      } else {
         this.$emit("select", note);
       }
     },
@@ -193,11 +199,10 @@ export default defineComponent({
         this.notes[i].position = i;
         const { __typename, ...obj } = this.notes[i];
         if (this.deadline) {
-          console.log("add deadline", this.deadline);
-          obj.deadline = this.deadline;
+          obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
           this.notes[i].deadline = this.deadline;
         }
-        this.$emit('update:modelValue', this.notes);
+        this.$emit("update:modelValue", this.notes);
         objs.push(obj);
       }
       this.mutateQueue({
@@ -302,7 +307,7 @@ export default defineComponent({
             id: note.id,
             title: note.title ?? "",
             content: note.content ?? "",
-            deadline: note.deadline,
+            deadline: note.deadline ? toDatabaseString(note.deadline) : null,
           },
         });
       }, 500);

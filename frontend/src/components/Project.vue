@@ -32,6 +32,7 @@
 import { defineComponent } from "vue";
 import NoteList from "src/components/NoteList.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
+import { toDatabaseString } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
@@ -41,9 +42,6 @@ export default defineComponent({
   data() {
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
-      maxPosition: Math.max(
-        ...this.modelValue.notes.map((note) => note.position)
-      ),
     };
   },
   props: {
@@ -65,16 +63,25 @@ export default defineComponent({
       deep: true,
     },
   },
+  computed: {
+    maxPosition() {
+      const positions = this.modelValue.notes.map((note) => note.position);
+      return positions.length ? Math.max(...positions) : 0;
+    },
+    user() {
+      return this.$store.state.user;
+    },
+  },
   methods: {
     addNote() {
       this.$apollo
         .mutate({
           mutation: CREATE_NOTE,
           variables: {
-            user_id: this.$store.state.user.id,
+            user_id: this.user.id,
             position: ++this.maxPosition,
             project_id: this.project.id,
-            deadline: this.deadline,
+            deadline: this.deadline ? toDatabaseString(this.deadline) : null,
           },
         })
         .then((result) => {
