@@ -136,14 +136,16 @@ export default defineComponent({
       return p;
     },
     trashNote() {
-      console.log('trashNote!!!');
-      this.loading = true;
+      console.log("trashNote!!!");
       const note = this.focusedNote;
-      const index = this.notes.indexOf(this.focusedNote);
-      this.notes.splice(this.notes.indexOf(note), 1);
-      const next = this.notes[index];
-      const length = this.notes.length;
-      this.focusedNote = next || this.notes[length - 1];
+      const index = this.notes.findIndex((n) => n.id == note.id);
+      this.notes.splice(index, 1);
+      let next = this.notes[index];
+      if (!next) {
+        const length = this.notes.length;
+        next = this.notes[length - 1];
+      }
+      this.focusedNote = next;
 
       if (note.deleted) {
         console.log("delete note!!");

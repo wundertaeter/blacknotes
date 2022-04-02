@@ -69,6 +69,8 @@ export default defineComponent({
       focusNote: null,
       editNote: null,
       timeline: 7,
+      loading: false,
+      promiseQueue: [],
     };
   },
   mounted() {
@@ -82,15 +84,22 @@ export default defineComponent({
   watch: {
     notes: {
       handler(notes) {
-        this.dates.forEach((date) => {
-          this.sortedNotes[date.title] = [];
+        Promise.all(this.promiseQueue).finally(() => {
+          this.promiseQueue = [];
+          this.loading = false;
         });
-        notes.forEach((note) => {
-          let dateString = this.formatDate(note.deadline);
-          console.log(dateString);
-          this.sortedNotes[dateString].push(note);
-        });
-        console.log("this.sorted", this.sortedNotes);
+
+        if (!this.loading) {
+          this.dates.forEach((date) => {
+            this.sortedNotes[date.title] = [];
+          });
+          notes.forEach((note) => {
+            let dateString = this.formatDate(note.deadline);
+            console.log(dateString);
+            this.sortedNotes[dateString].push(note);
+          });
+          console.log("this.sorted", this.sortedNotes);
+        }
       },
       deep: true,
     },
@@ -102,25 +111,29 @@ export default defineComponent({
     },
   },
   methods: {
+    mutateQueue(mutation) {
+      this.loading = true;
+      let p = this.$apollo.mutate(mutation);
+      this.promiseQueue.push(p);
+      return p;
+    },
     addNote() {
       const deadline = this.focusNote
         ? this.focusNote.deadline
         : this.editNote
         ? this.editNote.deadline
         : this.tomorrow;
-      this.$apollo
-        .mutate({
-          mutation: CREATE_NOTE,
-          variables: {
-            user_id: this.user.id,
-            position: 0,
-            project_id: null,
-            deadline: toDatabaseString(deadline),
-          },
-        })
-        .then((result) => {
-          this.sortedNotes[this.formatDate(deadline)].push(result.data.note);
-        });
+      this.mutateQueue({
+        mutation: CREATE_NOTE,
+        variables: {
+          user_id: this.user.id,
+          position: 0,
+          project_id: null,
+          deadline: toDatabaseString(deadline),
+        },
+      }).then((result) => {
+        this.sortedNotes[this.formatDate(deadline)].push(result.data.note);
+      });
     },
     onKeydown(e) {
       console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
@@ -137,16 +150,31 @@ export default defineComponent({
       }
     },
     trashNote() {
-      this.loading = true;
       const note = this.focusNote;
-      const index = this.notes.indexOf(this.focusNote);
-      this.sortedNotes[this.formatDate(note.deadline)].splice(
-        this.sortedNotes[this.formatDate(note.deadline)].findIndex(
-          (n) => n.id == note.id
-        ),
-        1
+      const deadline = this.formatDate(note.deadline);
+      const index = this.sortedNotes[deadline].findIndex(
+        (n) => n.id == note.id
       );
-      this.$apollo.mutate({
+
+      this.sortedNotes[deadline].splice(index, 1);
+      let next = this.sortedNotes[deadline][index];
+      if (!next) {
+        const length = this.sortedNotes[deadline].length;
+        next = this.sortedNotes[deadline][length - 1];
+      }
+      const dates = [...this.dates];
+      while (dates[0].title != deadline) {
+        dates.push(dates.shift());
+      }
+      if (!next) {
+        for (const date of dates) {
+          next = this.sortedNotes[date.title][0];
+          if (next) break;
+        }
+      }
+      this.focusNote = next;
+
+      this.mutateQueue({
         mutation: TRASH_NOTE,
         variables: {
           id: note.id,
