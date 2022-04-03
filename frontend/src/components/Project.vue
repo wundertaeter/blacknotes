@@ -17,7 +17,12 @@
           {{ project.name ? project.name : "New Project" }}
         </h4>
 
-        <note-list v-model="project.notes" :sort-mode="sortMode"/>
+        <note-list
+          v-model="project.notes"
+          :sort-mode="sortMode"
+          :sort="sort"
+          :select="select"
+        />
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
@@ -59,6 +64,16 @@ export default defineComponent({
       required: false,
       default: "",
     },
+    select: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    sort: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   watch: {
     modelValue: {
@@ -70,7 +85,9 @@ export default defineComponent({
   },
   computed: {
     maxPosition() {
-      const positions = this.modelValue.notes.map((note) => note[this.positionColumn]);
+      const positions = this.modelValue.notes.map(
+        (note) => note[this.positionColumn]
+      );
       return positions.length ? Math.max(...positions) : 0;
     },
     user() {
@@ -82,7 +99,7 @@ export default defineComponent({
   },
   methods: {
     addNote() {
-      console.log('hallo?????', this.positionColumn);
+      console.log("hallo?????", this.positionColumn);
       this.$apollo
         .mutate({
           mutation: CREATE_NOTE,

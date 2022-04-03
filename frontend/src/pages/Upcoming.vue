@@ -15,7 +15,7 @@
               v-if="sortedNotes[date.title]"
               @select="setFocusNote"
               @edit="setEditNote"
-              :selectable="false"
+              :select="false"
               sort-mode="upcoming"
               group="people"
               v-model="sortedNotes[date.title]"

@@ -3,6 +3,7 @@
     v-model="notes"
     @add="updatePositions"
     @sort="updatePositions"
+    :sort="sort"
     :group="group"
     item-key="id"
   >
@@ -42,7 +43,7 @@ export default defineComponent({
     draggable,
   },
   mounted() {
-    if (this.selectable) {
+    if (this.select) {
       document.addEventListener("click", this.resetFocusedNote);
       document.addEventListener("keydown", this.onKeydown);
     } else {
@@ -52,7 +53,7 @@ export default defineComponent({
     }
   },
   unmounted() {
-    if (this.selectable) {
+    if (this.select) {
       document.removeEventListener("click", this.resetFocusedNote);
       document.removeEventListener("keydown", this.onKeydown);
     } else {
@@ -90,7 +91,12 @@ export default defineComponent({
       required: false,
       default: true,
     },
-    selectable: {
+    select: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    sort: {
       type: Boolean,
       required: false,
       default: true,
@@ -190,7 +196,7 @@ export default defineComponent({
       this.focusNote(next || this.notes[length - 1]);
     },
     setFocusNote(note) {
-      if (this.selectable) {
+      if (this.select) {
         this.focusedNote = note;
       } else {
         this.$emit("select", note);
@@ -257,6 +263,7 @@ export default defineComponent({
     },
     checkNote(note) {
       console.log("check note", note);
+      this.loading = true;
       note.done = !note.done;
       let p = new Promise((resolve) => {
         setTimeout(() => {
