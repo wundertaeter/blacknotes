@@ -29,7 +29,6 @@ import draggable from "vuedraggable";
 import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
 export const bus = mitt();
-const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
@@ -242,25 +241,7 @@ export default defineComponent({
     //    data,
     //  });
     //},
-    checkProject(project) {
-      this.loading = true;
-      let p = new Promise((resolve) => {
-        setTimeout(() => {
-          console.log("project.done", project.done);
-          if (!project.done) return;
-          this.mutateQueue({
-            mutation: CHECK_PROJECT,
-            variables: {
-              id: project.id,
-            },
-          });
-          this.$store.commit("user/updateCurrentProject", null);
-          console.log("resolve");
-          resolve();
-        }, 1000);
-      });
-      this.promiseQueue.push(p);
-    },
+
     checkNote(note) {
       console.log("check note", note);
       this.loading = true;

@@ -14,7 +14,7 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" persistent bordered>
-      <div v-if="currentProject">
+      <div>
         <q-list class="menu-section">
           <q-item
             clickable
@@ -196,6 +196,11 @@ export default defineComponent({
   components: {
     draggable,
   },
+  mounted() {
+    if (this.$route.name == "project" && !this.currentProject) {
+      this.$router.push("/today");
+    }
+  },
   data() {
     return {
       leftDrawerOpen: false,
@@ -205,7 +210,7 @@ export default defineComponent({
   },
   methods: {
     projectActive(project) {
-      if (this.$route.name == "project") {
+      if (this.currentProject && this.$route.name == "project") {
         if (typeof project != "object") return false;
         return this.currentProject.id == project.id;
       } else {

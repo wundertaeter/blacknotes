@@ -12,7 +12,7 @@
             checked-icon="radio_button_checked"
             :unchecked-icon="project.icon"
             indeterminate-icon="help"
-            @update:modelValue="checkProject(project)"
+            @update:modelValue="checkProject"
           />
           {{ project.name ? project.name : "New Project" }}
         </h4>
@@ -37,6 +37,7 @@
 import { defineComponent } from "vue";
 import NoteList from "src/components/NoteList.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
+const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 import { toDatabaseString } from "src/common/date.js";
 
 export default defineComponent({
@@ -98,6 +99,20 @@ export default defineComponent({
     },
   },
   methods: {
+    checkProject() {
+      setTimeout(() => {
+        console.log("project.done", this.project.done);
+        if (!this.project.done) return;
+        this.$apollo.mutate({
+          mutation: CHECK_PROJECT,
+          variables: {
+            id: this.project.id,
+          },
+        });
+        this.$store.commit("user/updateCurrentProject", null);
+        console.log("resolve");
+      });
+    },
     addNote() {
       console.log("hallo?????", this.positionColumn);
       this.$apollo
