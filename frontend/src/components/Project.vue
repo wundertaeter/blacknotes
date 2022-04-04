@@ -127,6 +127,7 @@ export default defineComponent({
             }
             console.log("next project", projects, next);
             this.$store.commit("user/updateCurrentProject", next);
+            this.$store.commit("user/updateProjects", projects);
             if (!next) {
               this.$router.push("/today");
             }

@@ -5,7 +5,8 @@
 import { defineComponent } from "vue";
 import { useQuasar } from "quasar";
 
-import GET_USER_DATA from "src/gql/queries/GetUserData.gql";
+const GET_USER_DATA = require("src/gql/queries/GetUserData.gql");
+const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
 
 export default defineComponent({
   name: "App",
@@ -33,7 +34,25 @@ export default defineComponent({
         return !this.$store.state.user.id
       },
     },
-    
+    $subscribe: {
+      projects: {
+        query: SUBSCRIBE_PROJECTS,
+        variables() {
+          return {
+            user_id: this.$store.state.user.id,
+          };
+        },
+        skip() {
+          return !this.$store.state.user.id;
+        },
+        result(result) {
+          let projects = result.data.projects.map((p) => {
+            return { ...p, edit: false };
+          });
+          this.$store.commit('user/updateProjects', projects);
+        },
+      },
+    },
   }
 });
 </script>

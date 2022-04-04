@@ -188,7 +188,6 @@
 import { defineComponent } from "vue";
 import CREATE_PROJECT from "src/gql/mutations/CreateProject.gql";
 import draggable from "vuedraggable";
-const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
 const UPDATE_PROJECT_NAME_BY_PK = require("src/gql/mutations/UpdateProjectNameByPk.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 export default defineComponent({
@@ -204,7 +203,6 @@ export default defineComponent({
   data() {
     return {
       leftDrawerOpen: false,
-      projects: [],
       drag: false,
     };
   },
@@ -269,29 +267,11 @@ export default defineComponent({
     user() {
       return this.$store.state.user;
     },
+    projects(){
+      return this.user.projects;
+    },
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
-    },
-  },
-  apollo: {
-    $subscribe: {
-      projects: {
-        query: SUBSCRIBE_PROJECTS,
-        variables() {
-          return {
-            user_id: this.$store.state.user.id,
-          };
-        },
-        skip() {
-          return !this.$store.state.user.id;
-        },
-        result(result) {
-          this.projects = result.data.projects.map((p) => {
-            return { ...p, edit: !p.title };
-          });
-          this.$store.commit('user/updateProjects', this.projects);
-        },
-      },
     },
   },
 });
