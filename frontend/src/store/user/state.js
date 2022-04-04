@@ -7,7 +7,7 @@ export default function () {
     id: null,
     username: null,
     admin: null,
-    //projects: [],
+    projects: [],
     //spaces: [],
     currentProject: currentProject,
   }

@@ -134,8 +134,8 @@
 
                 <q-item-section>
                   <q-input
-                    v-if="element.edit || !element.name"
-                    v-model="element.name"
+                    v-if="element.edit || !element.title"
+                    v-model="element.title"
                     @blur="updateProjectName(element)"
                     @keydown.enter="updateProjectName(element)"
                     borderless
@@ -143,7 +143,7 @@
                     autofocus
                     placeholder="New Project"
                   />
-                  <span v-else>{{ element.name }}</span>
+                  <span v-else>{{ element.title }}</span>
                 </q-item-section>
               </q-item>
             </template>
@@ -236,13 +236,13 @@ export default defineComponent({
     },
     updateProjectName(project) {
       project.edit = false;
-      if (!project.name) return;
+      if (!project.title) return;
       console.log("updateProjectName", project);
       this.$apollo.mutate({
         mutation: UPDATE_PROJECT_NAME_BY_PK,
         variables: {
           id: project.id,
-          name: project.name,
+          title: project.title,
         },
       });
     },
@@ -287,8 +287,9 @@ export default defineComponent({
         },
         result(result) {
           this.projects = result.data.projects.map((p) => {
-            return { ...p, edit: !p.name };
+            return { ...p, edit: !p.title };
           });
+          this.$store.commit('user/updateProjects', this.projects);
         },
       },
     },

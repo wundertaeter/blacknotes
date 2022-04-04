@@ -15,7 +15,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { name: "Someday", icon: "unarchive", default: true, notes: [] },
+      project: { title: "Someday", icon: "unarchive", default: true, notes: [] },
     };
   },
   watch: {

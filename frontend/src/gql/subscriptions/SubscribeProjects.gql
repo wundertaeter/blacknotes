@@ -1,7 +1,7 @@
 subscription SubscribeProjects($user_id: Int!) {
   projects: notes_project(order_by: {position: asc}, where: {_and: {user_id: {_eq: $user_id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
     id
-    name
+    title
     icon
     user_id
     position

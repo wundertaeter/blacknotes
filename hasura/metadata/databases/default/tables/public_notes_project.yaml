@@ -1,0 +1,18 @@
+table:
+  name: notes_project
+  schema: public
+object_relationships:
+- name: space
+  using:
+    foreign_key_constraint_on: space_id
+- name: user
+  using:
+    foreign_key_constraint_on: user_id
+array_relationships:
+- name: notes
+  using:
+    foreign_key_constraint_on:
+      column: project_id
+      table:
+        name: notes_note
+        schema: public

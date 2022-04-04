@@ -1,5 +1,5 @@
-mutation CreateProject($user_id: Int!, $space_id: bigint = null, $deleted: Boolean = false, $position: Int!, $done: Boolean = false) {
-  insert_notes_project_one(object: {user_id: $user_id, space_id: $space_id, icon: "radio_button_unchecked", deleted: $deleted, position: $position, done: $done}) {
+mutation CreateProject($user_id: Int!, $space_id: bigint = null, $position: Int!) {
+  insert_notes_project_one(object: {user_id: $user_id, space_id: $space_id, icon: "radio_button_unchecked", position: $position}) {
     id
     name
     space_id

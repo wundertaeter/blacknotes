@@ -8,5 +8,6 @@ subscription SubscribeLogbookNotes($user_id: Int!) {
     user_id
     project_id
     deleted
+    updated_at
   }
 }

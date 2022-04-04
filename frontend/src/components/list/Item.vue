@@ -7,7 +7,19 @@
       focusTitle();
     "
   >
+     <q-checkbox
+        v-if="modelValue.icon"
+        v-model="done"
+        size="lg"
+        color="orange"
+        checked-icon="radio_button_checked"
+        :unchecked-icon="modelValue.icon"
+        indeterminate-icon="help"
+        style="position: absolute; top: 19px; left: -5px; z-index: 999"
+        @update:modelValue="$emit('check', modelValue)"
+      />   
     <q-checkbox
+      v-else
       v-model="done"
       @update:modelValue="$emit('check', modelValue)"
       style="position: absolute; top: 24px; z-index: 999"

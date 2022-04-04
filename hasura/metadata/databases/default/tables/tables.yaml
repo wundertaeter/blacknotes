@@ -1,0 +1,4 @@
+- "!include public_auth_user.yaml"
+- "!include public_notes_note.yaml"
+- "!include public_notes_project.yaml"
+- "!include public_notes_space.yaml"

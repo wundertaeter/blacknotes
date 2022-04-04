@@ -1,6 +1,6 @@
-mutation UpdateProjectNameByPk($id: bigint!, $name: String!) {
-  update_notes_project_by_pk(pk_columns: {id: $id}, _set: {name: $name}) {
+mutation UpdateProjectNameByPk($id: bigint!, $title: String!) {
+  update_notes_project_by_pk(pk_columns: {id: $id}, _set: {title: $title}) {
     id
-    name
+    title
   }
 }

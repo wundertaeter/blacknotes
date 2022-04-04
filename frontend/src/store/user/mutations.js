@@ -19,6 +19,10 @@ export function updateUser(state, data) {
     // }
 }
 
+export function updateProjects(state, projects) {
+    state.projects = projects;
+}
+
 export function updateCurrentProject(state, currentProject) {
     currentProject = JSON.stringify(currentProject);
     console.log('string', currentProject);

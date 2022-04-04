@@ -14,10 +14,10 @@
             indeterminate-icon="help"
             @update:modelValue="checkProject"
           />
-          {{ project.name ? project.name : "New Project" }}
+          {{ project.title ? project.title : "New Project" }}
         </h4>
 
-        <note-list
+        <list
           v-model="project.notes"
           :sort-mode="sortMode"
           :sort="sort"
@@ -35,19 +35,21 @@
 
 <script>
 import { defineComponent } from "vue";
-import NoteList from "src/components/NoteList.vue";
+import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
+const GET_PROJECTS = require("src/gql/queries/GetProjects.gql");
 import { toDatabaseString } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    NoteList,
+    List,
   },
   data() {
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
+      timeout: null,
     };
   },
   props: {
@@ -94,24 +96,42 @@ export default defineComponent({
     user() {
       return this.$store.state.user;
     },
+    projects() {
+      return this.user.projects;
+    },
     positionColumn() {
       return this.sortMode ? `${this.sortMode}_position` : "position";
     },
   },
   methods: {
     checkProject() {
-      setTimeout(() => {
+      console.log("projects", this.projects);
+      const projects = [...this.projects];
+      if (this.timeout) clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
-        if (!this.project.done) return;
-        this.$apollo.mutate({
-          mutation: CHECK_PROJECT,
-          variables: {
-            id: this.project.id,
-          },
-        });
-        this.$store.commit("user/updateCurrentProject", null);
-        console.log("resolve");
-      });
+        this.$apollo
+          .mutate({
+            mutation: CHECK_PROJECT,
+            variables: {
+              id: this.project.id,
+              done: this.project.done,
+            },
+          })
+          .then(() => {
+            const index = projects.findIndex((p) => p.id == this.project.id);
+            projects.splice(index, 1);
+            let next = projects[index];
+            if (!next) {
+              next = projects[projects.length - 1] || null;
+            }
+            console.log("next project", projects, next);
+            this.$store.commit("user/updateCurrentProject", next);
+            if (!next) {
+              this.$router.push("/today");
+            }
+          });
+      }, 1000);
     },
     addNote() {
       console.log("hallo?????", this.positionColumn);
@@ -120,7 +140,7 @@ export default defineComponent({
           mutation: CREATE_NOTE,
           variables: {
             user_id: this.user.id,
-            [this.positionColumn]: ++this.maxPosition,
+            [this.positionColumn]: this.maxPosition + 1,
             project_id: this.project.id,
             deadline: this.deadline ? toDatabaseString(this.deadline) : null,
           },

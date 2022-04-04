@@ -1,6 +1,6 @@
 <template>
   <draggable
-    v-model="notes"
+    v-model="items"
     @add="updatePositions"
     @sort="updatePositions"
     :sort="sort"
@@ -8,13 +8,13 @@
     item-key="id"
   >
     <template #item="{ element }">
-      <note
+      <item
         @click.stop="setFocusNote(element)"
         :focused="focusedNote && focusedNote.id == element.id"
         class="note"
-        v-model="notes[notes.indexOf(element)]"
+        v-model="items[items.indexOf(element)]"
         @update:modelValue="updateNote"
-        @check="checkNote"
+        @check="check"
         @edit="setEditNote"
         :date-preview="datePreview"
       />
@@ -24,7 +24,7 @@
 
 <script>
 import { defineComponent } from "vue";
-import Note from "src/components/Note.vue";
+import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
@@ -34,11 +34,12 @@ const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
+const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
 export default defineComponent({
   name: "NoteList",
   components: {
-    Note,
+    Item,
     draggable,
   },
   mounted() {
@@ -63,7 +64,7 @@ export default defineComponent({
   },
   data() {
     return {
-      notes: JSON.parse(JSON.stringify(this.modelValue)),
+      items: JSON.parse(JSON.stringify(this.modelValue)),
       updateId: null,
       trashNoteTimeout: null,
       focusedNote: null,
@@ -109,7 +110,7 @@ export default defineComponent({
   watch: {
     modelValue: {
       handler(value) {
-        console.log("update", this.loading, this.promiseQueue);
+        console.log("update note list", value);
 
         Promise.all(this.promiseQueue).finally(() => {
           this.promiseQueue = [];
@@ -117,7 +118,7 @@ export default defineComponent({
         });
 
         if (!this.loading) {
-          this.notes = JSON.parse(JSON.stringify(value));
+          this.items = JSON.parse(JSON.stringify(value));
         }
       },
       deep: true,
@@ -129,8 +130,8 @@ export default defineComponent({
       this.$emit("edit", note);
     },
     onKeydown(e) {
-      if (!this.editNote) {
-        if (e.keyCode === 8 && this.focusedNote) {
+      if (!this.editNote && this.focusedNote) {
+        if (e.keyCode === 8) {
           this.trashNote();
         } else if (e.keyCode == 38) {
           this.selectionUp();
@@ -148,12 +149,14 @@ export default defineComponent({
     trashNote() {
       console.log("trashNote!!!");
       const note = this.focusedNote;
-      const index = this.notes.findIndex((n) => n.id == note.id);
-      this.notes.splice(index, 1);
-      let next = this.notes[index];
+      const index = this.items.findIndex(
+        (it) => it.id == note.id && it.__typename == note.__typename
+      );
+      this.items.splice(index, 1);
+      let next = this.items[index];
       if (!next) {
-        const length = this.notes.length;
-        next = this.notes[length - 1];
+        const length = this.items.length;
+        next = this.items[length - 1];
       }
       this.focusedNote = next;
 
@@ -180,19 +183,23 @@ export default defineComponent({
       this.focusedNote = note;
     },
     selectionDown() {
-      const index = this.notes.findIndex(
-        (note) => note.id == this.focusedNote.id
+      const index = this.items.findIndex(
+        (it) =>
+          it.id == this.focusedNote.id &&
+          it.__typename == this.focusedNote.__typename
       );
-      const next = this.notes[index + 1];
-      this.focusNote(next || this.notes[0]);
+      const next = this.items[index + 1];
+      this.focusNote(next || this.items[0]);
     },
     selectionUp() {
-      const index = this.notes.findIndex(
-        (note) => note.id == this.focusedNote.id
+      const index = this.items.findIndex(
+        (it) =>
+          it.id == this.focusedNote.id &&
+          it.__typename == this.focusedNote.__typename
       );
-      const next = this.notes[index - 1];
-      const length = this.notes.length;
-      this.focusNote(next || this.notes[length - 1]);
+      const next = this.items[index - 1];
+      const length = this.items.length;
+      this.focusNote(next || this.items[length - 1]);
     },
     setFocusNote(note) {
       if (this.select) {
@@ -208,14 +215,14 @@ export default defineComponent({
     updatePositions() {
       const objs = [];
       const update_columns = ["deadline", this.positionColumn];
-      for (let i = 0; i < this.notes.length; i++) {
-        this.notes[i][this.positionColumn] = i;
-        const { __typename, ...obj } = this.notes[i];
+      for (let i = 0; i < this.items.length; i++) {
+        this.items[i][this.positionColumn] = i;
+        const { __typename, ...obj } = this.items[i];
         if (this.deadline) {
           obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
-          this.notes[i].deadline = this.deadline;
+          this.items[i].deadline = this.deadline;
         }
-        this.$emit("update:modelValue", this.notes);
+        this.$emit("update:modelValue", this.items);
         objs.push(obj);
       }
       this.mutateQueue({
@@ -234,7 +241,7 @@ export default defineComponent({
     //    },
     //  };
     //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //  data.notes = this.notes;
+    //  data.notes = this.items;
     //  // Write back to the cache
     //  store.writeQuery({
     //    ...query,
@@ -242,21 +249,24 @@ export default defineComponent({
     //  });
     //},
 
-    checkNote(note) {
-      console.log("check note", note);
+    check(item) {
+      console.log("check note", item.__typename);
+      const type = item.__typename;
       this.loading = true;
-      note.done = !note.done;
+      item.done = !item.done;
       let p = new Promise((resolve) => {
         setTimeout(() => {
-          if (note.done) {
-            const index = this.notes.indexOf(note);
-            this.notes.splice(index, 1);
+          if (item.done) {
+            const index = this.items.findIndex(
+              (it) => it.id == item.id && it.__typename == type
+            );
+            this.items.splice(index, 1);
           }
           this.mutateQueue({
-            mutation: CHECK_NOTE,
+            mutation: type == "notes_note" ? CHECK_NOTE : CHECK_PROJECT,
             variables: {
-              id: note.id,
-              done: note.done,
+              id: item.id,
+              done: item.done,
             },
           }).finally(() => this.$nextTick(resolve));
         }, 1000);

@@ -9,9 +9,9 @@
             v-for="date in dates"
             :key="date.title"
             :subtitle="date.title"
-            avatar="https://cdn.quasar.dev/img/avatar2.jpg"
+            xxavatar="https://cdn.quasar.dev/img/avatar2.jpg"
           >
-            <note-list
+            <list
               v-if="sortedNotes[date.title]"
               @select="setFocusNote"
               @edit="setEditNote"
@@ -44,8 +44,8 @@ const GET_UPCOMING_NOTES = require("src/gql/queries/GetUpcomingNotes.gql");
 const SUBSCRIBE_UPCOMING_NOTES = require("src/gql/subscriptions/SubscribeUpcomingNotes.gql");
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
-import NoteList from "src/components/NoteList.vue";
-import { bus } from "src/components/NoteList.vue";
+import List from "src/components/list/List.vue";
+import { bus } from "src/components/list/List.vue";
 import {
   toDatabaseString,
   formatDate,
@@ -59,7 +59,7 @@ export default defineComponent({
   name: "PageIndex",
   components: {
     //Project,
-    NoteList,
+    List,
   },
   data() {
     return {
@@ -137,9 +137,9 @@ export default defineComponent({
     },
     onKeydown(e) {
       console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
-      if (!this.editNote) {
+      if (!this.editNote && this.focusNote) {
         if (e.keyCode === 8) {
-          if (this.focusNote) this.trashNote();
+          this.trashNote();
         } else if (e.keyCode == 38) {
           e.preventDefault();
           this.selectionUp();
@@ -264,7 +264,9 @@ export default defineComponent({
       console.log("this.watchers", this.watchers);
     },
     formatDate(timestamp) {
-      return formatDate(timestamp, "dddd");
+      return (
+        date.formatDate(timestamp, "D") + " " + formatDate(timestamp, "dddd")
+      );
     },
   },
   computed: {

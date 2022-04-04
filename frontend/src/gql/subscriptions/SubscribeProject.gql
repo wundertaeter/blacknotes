@@ -1,6 +1,6 @@
 subscription SubscribeProject($id: bigint!) {
   project: notes_project_by_pk(id: $id) {
-    name
+    title
     id
     icon
     deleted
