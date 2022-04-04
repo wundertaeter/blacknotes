@@ -202,9 +202,20 @@ export default defineComponent({
   },
   data() {
     return {
-      leftDrawerOpen: false,
+      leftDrawerOpen: true,
       drag: false,
+      projects: [],
     };
+  },
+  mounted(){
+    this.projects = JSON.parse(JSON.stringify(this.userProjects));;
+  },
+  watch: {
+    userProjects: {
+      handler(value) {
+        this.projects = JSON.parse(JSON.stringify(value));
+      },
+    },
   },
   methods: {
     projectActive(project) {
@@ -267,7 +278,7 @@ export default defineComponent({
     user() {
       return this.$store.state.user;
     },
-    projects(){
+    userProjects() {
       return this.user.projects;
     },
     currentProject() {
