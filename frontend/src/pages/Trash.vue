@@ -5,7 +5,9 @@
 <script>
 import { defineComponent } from "vue";
 const SUBSCRIBE_TRASH_NOTES = require("src/gql/subscriptions/SubscribeTrashNotes.gql");
+const GET_TRASH_NOTES = require("src/gql/queries/GetTrashNotes.gql");
 const SUBSCRIBE_TRASH_PROJECTS = require("src/gql/subscriptions/SubscribeTrashProjects.gql");
+const GET_TRASH_PROJECTS = require("src/gql/queries/GetTrashProjects.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -41,9 +43,22 @@ export default defineComponent({
     },
   },
   apollo: {
-    $subscribe: {
-      projects: {
-        query: SUBSCRIBE_TRASH_PROJECTS,
+    notes: {
+      query: GET_TRASH_NOTES,
+      variables() {
+        return {
+          user_id: this.user.id,
+        };
+      },
+      skip() {
+        return !this.user.id;
+      },
+      result({ data }) {
+        console.log("result", data);
+        this.mergeList();
+      },
+      subscribeToMore: {
+        document: SUBSCRIBE_TRASH_NOTES,
         variables() {
           return {
             user_id: this.user.id,
@@ -52,14 +67,34 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        result({ data }) {
-          console.log("result", data);
-          this.projects = data.projects;
+        result(data) {
+          console.log("result sub", data);
           this.mergeList();
+        },
+        updateQuery: (previousResult, { subscriptionData }) => {
+          if (subscriptionData.data) {
+            return { notes: subscriptionData.data.notes };
+          }
+          return previousResult;
         },
       },
-      notes: {
-        query: SUBSCRIBE_TRASH_NOTES,
+    },
+    projects: {
+      query: GET_TRASH_PROJECTS,
+      variables() {
+        return {
+          user_id: this.user.id,
+        };
+      },
+      skip() {
+        return !this.user.id;
+      },
+      result({ data }) {
+        console.log("result", data);
+        this.mergeList();
+      },
+      subscribeToMore: {
+        document: SUBSCRIBE_TRASH_PROJECTS,
         variables() {
           return {
             user_id: this.user.id,
@@ -68,10 +103,15 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        result({ data }) {
-          console.log("result", data);
-          this.notes = data.notes;
+        result(data) {
+          console.log("result sub", data);
           this.mergeList();
+        },
+        updateQuery: (previousResult, { subscriptionData }) => {
+          if (subscriptionData.data) {
+            return { projects: subscriptionData.data.projects };
+          }
+          return previousResult;
         },
       },
     },
