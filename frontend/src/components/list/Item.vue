@@ -103,7 +103,6 @@
 </template>
 
 <script>
-const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 import {
   formatDate,
   today,
@@ -271,22 +270,6 @@ export default {
         e.stopPropagation();
         this.edit = true;
       }
-    },
-    checkNote() {
-      const note = { ...this.modelValue, done: this.done };
-      this.$emit("update/modelValue", note);
-      if (this.checkNoteTimeout) {
-        clearTimeout(this.checkNoteTimeout);
-      }
-      this.checkNoteTimeout = setTimeout(() => {
-        this.$apollo.mutate({
-          mutation: CHECK_NOTE,
-          variables: {
-            id: note.id,
-            done: note.done,
-          },
-        });
-      }, 1000);
     },
     updateModelValue() {
       const note = {

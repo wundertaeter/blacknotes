@@ -22,6 +22,7 @@
           :sort-mode="sortMode"
           :sort="sort"
           :select="select"
+          :done="done"
         />
       </div>
     </q-scroll-area>
@@ -77,6 +78,11 @@ export default defineComponent({
       required: false,
       default: true,
     },
+    done: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
   },
   watch: {
     modelValue: {
@@ -110,28 +116,25 @@ export default defineComponent({
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
-        this.$apollo
-          .mutate({
-            mutation: CHECK_PROJECT,
-            variables: {
-              id: this.project.id,
-              done: this.project.done,
-            },
-          })
-          .then(() => {
-            const index = projects.findIndex((p) => p.id == this.project.id);
-            projects.splice(index, 1);
-            let next = projects[index];
-            if (!next) {
-              next = projects[projects.length - 1] || null;
-            }
-            console.log("next project", projects, next);
-            this.$store.commit("user/updateCurrentProject", next);
-            this.$store.commit("user/updateProjects", projects);
-            if (!next) {
-              this.$router.push("/today");
-            }
-          });
+        this.$apollo.mutate({
+          mutation: CHECK_PROJECT,
+          variables: {
+            id: this.project.id,
+            done: this.project.done,
+          },
+        });
+        const index = projects.findIndex((p) => p.id == this.project.id);
+        projects.splice(index, 1);
+        let next = projects[index];
+        if (!next) {
+          next = projects[projects.length - 1] || null;
+        }
+        console.log("next project", projects, next);
+        this.$store.commit("user/updateCurrentProject", next);
+        this.$store.commit("user/updateProjects", projects);
+        if (!next) {
+          this.$router.push("/today");
+        }
       }, 1000);
     },
     addNote() {

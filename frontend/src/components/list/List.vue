@@ -106,6 +106,11 @@ export default defineComponent({
       required: false,
       default: "",
     },
+    done: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
   },
   watch: {
     modelValue: {
@@ -256,7 +261,8 @@ export default defineComponent({
       item.done = !item.done;
       let p = new Promise((resolve) => {
         setTimeout(() => {
-          if (item.done) {
+          console.log('timeout', item.done);
+          if (item.done === this.done) {
             const index = this.items.findIndex(
               (it) => it.id == item.id && it.__typename == type
             );
@@ -269,7 +275,7 @@ export default defineComponent({
               done: item.done,
             },
           }).finally(() => this.$nextTick(resolve));
-        }, 1000);
+        }, 500);
       });
       this.promiseQueue.push(p);
     },
