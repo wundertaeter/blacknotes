@@ -6,5 +6,6 @@ query GetLogbookProjects($user_id: Int!) {
     done
     deleted
     updated_at
+    completed_at
   }
 }

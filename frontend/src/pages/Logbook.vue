@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" :done="false"/>
+  <timeline v-model="items" backwards :start="today" group-by="completed_at" skip-empty/>
 </template>
 
 <script>
@@ -8,29 +8,26 @@ const GET_LOGBOOK_NOTES = require("src/gql/queries/GetLogbookNotes.gql");
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
 const GET_LOGBOOK_PROJECTS = require("src/gql/queries/GetLogbookProjects.gql");
 const SUBSCRIBE_LOGBOOK_PROJECTS = require("src/gql/subscriptions/SubscribeLogbookProjects.gql");
-import Project from "src/components/Project.vue";
+import Timeline from "src/components/list/Timeline.vue";
+import { today, date } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Project,
+    Timeline,
   },
   data() {
     return {
-      project: {
-        title: "Logbook",
-        icon: "assignment_turned_in",
-        default: true,
-        notes: [],
-      },
+      items: [],
       projects: null,
       notes: null,
+      timeline: 7
     };
   },
   methods: {
     mergeList() {
       if(this.notes && this.projects){
-        this.project.notes = [...this.notes, ...this.projects].sort(
+        this.items = [...this.notes, ...this.projects].sort(
           (a, b) => new Date(a.deadline) - new Date(b.deadline)
         );
       }
@@ -40,6 +37,21 @@ export default defineComponent({
     user() {
       return this.$store.state.user;
     },
+    dates() {
+      const dates = [];
+      let nextDate;
+      for (let d = 0; d < this.timeline; d++) {
+        nextDate = date.subtractFromDate(this.today, { day: d });
+        dates.push({ title: this.formatDate(nextDate), date: nextDate });
+      }
+      return dates;
+    },
+    timelineEnd() {
+      return date.subtractFromDate(this.today, { day: this.timeline });
+    },
+    today(){
+      return today();
+    }
   },
   apollo: {
     notes: {
@@ -117,3 +129,4 @@ export default defineComponent({
   },
 });
 </script>
+

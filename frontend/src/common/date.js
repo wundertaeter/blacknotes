@@ -2,7 +2,7 @@ import { date as qdate } from "quasar";
 
 export const date = qdate;
 
-export function toDatabaseString(timestamp){
+export function toDatabaseString(timestamp) {
     return date.formatDate(timestamp, 'YYYY-MM-DD');
 }
 export function today() {
@@ -30,7 +30,10 @@ export function isTodayOrLess(timestamp) {
     return isToday(timestamp) || Date.parse(timestamp) - Date.parse(today()) < 0;
 }
 export function isTomorrow(timestamp) {
-    return date.isSameDate(timestamp, tomorrow(), "day");;
+    return date.isSameDate(timestamp, tomorrow(), "day");
+}
+export function isYesterday(timestamp) {
+    return date.isSameDate(timestamp, yesterday(), "day");
 }
 export function isCurrentWeek(timestamp) {
     return (

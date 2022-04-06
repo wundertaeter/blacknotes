@@ -9,5 +9,6 @@ query GetLogbookNotes($user_id: Int!) {
     project_id
     deleted
     updated_at
+    completed_at
   }
 }

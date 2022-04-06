@@ -4,7 +4,8 @@
     @add="updatePositions"
     @sort="updatePositions"
     :sort="sort"
-    :group="group"
+    :drop="drop"
+    :group="{ name: group, pull: drag, put: drop }"
     item-key="id"
   >
     <template #item="{ element }">
@@ -27,7 +28,7 @@ import { defineComponent } from "vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
-import { toDatabaseString } from "src/common/date.js";
+import { toDatabaseString, today } from "src/common/date.js";
 export const bus = mitt();
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
@@ -71,6 +72,7 @@ export default defineComponent({
       loading: false,
       promiseQueue: [],
       editNote: null,
+      checkTimeout: null
     };
   },
   props: {
@@ -101,6 +103,16 @@ export default defineComponent({
       required: false,
       default: true,
     },
+    drop: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    drag: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
     sortMode: {
       type: String,
       required: false,
@@ -109,7 +121,7 @@ export default defineComponent({
     done: {
       type: Boolean,
       required: false,
-      default: true
+      default: false
     }
   },
   watch: {
@@ -260,8 +272,9 @@ export default defineComponent({
       this.loading = true;
       item.done = !item.done;
       let p = new Promise((resolve) => {
-        setTimeout(() => {
-          console.log('timeout', item.done);
+        if(this.checkTimeout) clearTimeout(this.checkTimeout);
+        this.checkTimeout = setTimeout(() => {
+          console.log('timeout', this.done, item.done === this.done);
           if (item.done === this.done) {
             const index = this.items.findIndex(
               (it) => it.id == item.id && it.__typename == type
@@ -273,6 +286,7 @@ export default defineComponent({
             variables: {
               id: item.id,
               done: item.done,
+              completed_at: item.done ? toDatabaseString(today()) : null
             },
           }).finally(() => this.$nextTick(resolve));
         }, 500);

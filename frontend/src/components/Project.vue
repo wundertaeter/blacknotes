@@ -39,8 +39,7 @@ import { defineComponent } from "vue";
 import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
-const GET_PROJECTS = require("src/gql/queries/GetProjects.gql");
-import { toDatabaseString } from "src/common/date.js";
+import { toDatabaseString, today } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
@@ -121,6 +120,7 @@ export default defineComponent({
           variables: {
             id: this.project.id,
             done: this.project.done,
+            completed_at: this.project.done ? toDatabaseString(today()) : null
           },
         });
         const index = projects.findIndex((p) => p.id == this.project.id);
