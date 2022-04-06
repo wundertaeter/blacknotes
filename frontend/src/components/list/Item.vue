@@ -151,7 +151,6 @@ export default {
   },
   watch: {
     modelValue(value) {
-      console.log('watcher from note', value.deadline);
       if (this.content !== value.content) {
         this.content = value.content;
       }

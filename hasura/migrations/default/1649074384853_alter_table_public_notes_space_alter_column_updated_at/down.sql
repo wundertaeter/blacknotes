@@ -1,1 +1,1 @@
-ALTER TABLE "public"."notes_space" ALTER COLUMN "updated_at" drop default;
+ALTER TABLE "public"."notes_space" ALTER COLUMN "deleted_at" drop default;

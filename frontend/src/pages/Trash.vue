@@ -1,13 +1,12 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" />
+  <project v-if="project" v-model="project" :sort="false" keep/>
 </template>
 
 <script>
 import { defineComponent } from "vue";
 const SUBSCRIBE_TRASH_NOTES = require("src/gql/subscriptions/SubscribeTrashNotes.gql");
-const GET_TRASH_NOTES = require("src/gql/queries/GetTrashNotes.gql");
+const GET_TRASH = require("src/gql/queries/GetTrash.gql");
 const SUBSCRIBE_TRASH_PROJECTS = require("src/gql/subscriptions/SubscribeTrashProjects.gql");
-const GET_TRASH_PROJECTS = require("src/gql/queries/GetTrashProjects.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -22,18 +21,10 @@ export default defineComponent({
       notes: [],
     };
   },
-  watch: {
-    notes: {
-      handler(notes) {
-        this.project.notes = notes;
-      },
-      deep: true,
-    },
-  },
   methods: {
     mergeList() {
       this.project.notes = [...this.notes, ...this.projects].sort(
-        (a, b) => new Date(a.deadline) - new Date(b.deadline)
+        (a, b) => new Date(b.deleted_at) - new Date(a.deleted_at)
       );
     },
   },
@@ -43,8 +34,8 @@ export default defineComponent({
     },
   },
   apollo: {
-    notes: {
-      query: GET_TRASH_NOTES,
+    notes_note: {
+      query: GET_TRASH,
       variables() {
         return {
           user_id: this.user.id,
@@ -55,46 +46,14 @@ export default defineComponent({
       },
       result({ data }) {
         console.log("result", data);
+        this.notes = data.notes_note;
+        this.projects = data.notes_project;
         this.mergeList();
-      },
-      subscribeToMore: {
-        document: SUBSCRIBE_TRASH_NOTES,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id;
-        },
-        result(data) {
-          console.log("result sub", data);
-          this.mergeList();
-        },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { notes: subscriptionData.data.notes };
-          }
-          return previousResult;
-        },
       },
     },
-    projects: {
-      query: GET_TRASH_PROJECTS,
-      variables() {
-        return {
-          user_id: this.user.id,
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.mergeList();
-      },
-      subscribeToMore: {
-        document: SUBSCRIBE_TRASH_PROJECTS,
+    $subscribe: {
+      note_note: {
+        query: SUBSCRIBE_TRASH_NOTES,
         variables() {
           return {
             user_id: this.user.id,
@@ -103,15 +62,26 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        result(data) {
-          console.log("result sub", data);
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = data.notes_note;
           this.mergeList();
         },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { projects: subscriptionData.data.projects };
-          }
-          return previousResult;
+      },
+      notes_project: {
+        query: SUBSCRIBE_TRASH_PROJECTS,
+        variables() {
+          return {
+            user_id: this.user.id,
+          };
+        },
+        skip() {
+          return !this.user.id;
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = data.notes_project;
+          this.mergeList();
         },
       },
     },

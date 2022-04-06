@@ -1,14 +1,20 @@
 <template>
-  <timeline v-model="items" backwards :start="today" group-by="completed_at" skip-empty/>
+  <timeline
+    v-model="items"
+    backwards
+    :start="today"
+    group-by="completed_at"
+    icon="assignment_turned_in"
+    title="Upcoming"
+  />
 </template>
 
 <script>
 import { defineComponent } from "vue";
-const GET_LOGBOOK_NOTES = require("src/gql/queries/GetLogbookNotes.gql");
+const GET_LOGBOOK = require("src/gql/queries/GetLogbook.gql");
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
-const GET_LOGBOOK_PROJECTS = require("src/gql/queries/GetLogbookProjects.gql");
 const SUBSCRIBE_LOGBOOK_PROJECTS = require("src/gql/subscriptions/SubscribeLogbookProjects.gql");
-import Timeline from "src/components/list/Timeline.vue";
+import Timeline from "src/components/Timeline.vue";
 import { today, date } from "src/common/date.js";
 
 export default defineComponent({
@@ -21,12 +27,12 @@ export default defineComponent({
       items: [],
       projects: null,
       notes: null,
-      timeline: 7
+      timeline: 7,
     };
   },
   methods: {
     mergeList() {
-      if(this.notes && this.projects){
+      if (this.notes && this.projects) {
         this.items = [...this.notes, ...this.projects].sort(
           (a, b) => new Date(a.deadline) - new Date(b.deadline)
         );
@@ -49,13 +55,13 @@ export default defineComponent({
     timelineEnd() {
       return date.subtractFromDate(this.today, { day: this.timeline });
     },
-    today(){
+    today() {
       return today();
-    }
+    },
   },
   apollo: {
-    notes: {
-      query: GET_LOGBOOK_NOTES,
+    notes_note: {
+      query: GET_LOGBOOK,
       variables() {
         return {
           user_id: this.user.id,
@@ -66,46 +72,14 @@ export default defineComponent({
       },
       result({ data }) {
         console.log("result", data);
+        this.notes = data.notes_note;
+        this.projects = data.notes_project;
         this.mergeList();
-      },
-      subscribeToMore: {
-        document: SUBSCRIBE_LOGBOOK_NOTES,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id;
-        },
-        result(data) {
-          console.log("result sub", data);
-          this.mergeList();
-        },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { notes: subscriptionData.data.notes };
-          }
-          return previousResult;
-        },
       },
     },
-    projects: {
-      query: GET_LOGBOOK_PROJECTS,
-      variables() {
-        return {
-          user_id: this.user.id,
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.mergeList();
-      },
-      subscribeToMore: {
-        document: SUBSCRIBE_LOGBOOK_PROJECTS,
+    $subscribe: {
+      note_note: {
+        query: SUBSCRIBE_LOGBOOK_NOTES,
         variables() {
           return {
             user_id: this.user.id,
@@ -114,15 +88,26 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        result(data) {
-          console.log("result sub", data);
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = data.notes_note;
           this.mergeList();
         },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { projects: subscriptionData.data.projects };
-          }
-          return previousResult;
+      },
+      notes_project: {
+        query: SUBSCRIBE_LOGBOOK_PROJECTS,
+        variables() {
+          return {
+            user_id: this.user.id,
+          };
+        },
+        skip() {
+          return !this.user.id;
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = data.notes_project;
+          this.mergeList();
         },
       },
     },

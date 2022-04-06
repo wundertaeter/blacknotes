@@ -1,10 +1,10 @@
 subscription GetTrashProjects($user_id: Int!) {
-  projects: notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}, done: {_eq: false}}}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}, done: {_eq: false}}}) {
     title
     icon
     id
     done
     deleted
-    updated_at
+    deleted_at
   }
 }

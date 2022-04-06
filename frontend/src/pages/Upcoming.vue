@@ -1,42 +1,56 @@
 <template>
-  <timeline v-model="notes" :start="tomorrow" group-by="deadline" drop :timeline="7"/>
+  <timeline
+    v-model="items"
+    :start="tomorrow"
+    group-by="deadline"
+    drop
+    :timeline="7"
+    icon="date_range"
+    title="Upcoming"
+  />
 </template>
 
 <script>
 import { defineComponent } from "vue";
-const GET_UPCOMING_NOTES = require("src/gql/queries/GetUpcomingNotes.gql");
+const GET_UPCOMING = require("src/gql/queries/GetUpcoming.gql");
 const SUBSCRIBE_UPCOMING_NOTES = require("src/gql/subscriptions/SubscribeUpcomingNotes.gql");
-import Timeline from "src/components/list/Timeline.vue";
-import {
-  toDatabaseString,
-  today,
-  tomorrow
-} from "src/common/date.js";
+const SUBSCRIBE_UPCOMING_PROJECTS = require("src/gql/subscriptions/SubscribeUpcomingProjects.gql");
+import Timeline from "src/components/Timeline.vue";
+import { toDatabaseString, today, tomorrow } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Timeline
+    Timeline,
   },
-  data(){
+  data() {
     return {
-      notes: []
-    }
+      items: [],
+      notes: [],
+      projects: [],
+    };
   },
   computed: {
     user() {
-      return this.$store.state.user;;
+      return this.$store.state.user;
     },
     today() {
       return today();
     },
-    tomorrow(){
+    tomorrow() {
       return tomorrow();
-    }
+    },
+  },
+  methods: {
+    mergeList() {
+      this.items = [...this.notes, ...this.projects].sort(
+        (a, b) => new Date(a.deadline) - new Date(b.deadline)
+      );
+    },
   },
   apollo: {
-    notes: {
-      query: GET_UPCOMING_NOTES,
+    notes_note: {
+      query: GET_UPCOMING,
       variables() {
         return {
           user_id: this.user.id,
@@ -46,8 +60,16 @@ export default defineComponent({
       skip() {
         return !this.user.id;
       },
-      subscribeToMore: {
-        document: SUBSCRIBE_UPCOMING_NOTES,
+      result({ data }) {
+        console.log("result", data);
+        this.notes = data.notes_note;
+        this.projects = data.notes_project;
+        this.mergeList();
+      },
+    },
+    $subscribe: {
+      note_note: {
+        query: SUBSCRIBE_UPCOMING_NOTES,
         variables() {
           return {
             user_id: this.user.id,
@@ -57,11 +79,27 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { notes: subscriptionData.data.notes };
-          }
-          return previousResult;
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = data.notes_note;
+          this.mergeList();
+        },
+      },
+      notes_project: {
+        query: SUBSCRIBE_UPCOMING_PROJECTS,
+        variables() {
+          return {
+            user_id: this.user.id,
+            today: toDatabaseString(this.today),
+          };
+        },
+        skip() {
+          return !this.user.id;
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = data.notes_project;
+          this.mergeList();
         },
       },
     },

@@ -23,6 +23,7 @@
           :sort="sort"
           :select="select"
           :done="done"
+          :keep="keep"
         />
       </div>
     </q-scroll-area>
@@ -81,6 +82,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: true
+    },
+    keep: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   watch: {

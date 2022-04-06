@@ -122,6 +122,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false
+    },
+    keep: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   watch: {
@@ -275,7 +280,7 @@ export default defineComponent({
         if(this.checkTimeout) clearTimeout(this.checkTimeout);
         this.checkTimeout = setTimeout(() => {
           console.log('timeout', this.done, item.done === this.done);
-          if (item.done === this.done) {
+          if (item.done === this.done && !this.keep) {
             const index = this.items.findIndex(
               (it) => it.id == item.id && it.__typename == type
             );

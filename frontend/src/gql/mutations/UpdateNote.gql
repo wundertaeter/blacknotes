@@ -1,5 +1,5 @@
 mutation UpdateNote($id: bigint!, $title: String = "", $content: String = "", $deadline: date = "") {
-  update_notes_note_by_pk(pk_columns: {id: $id}, _set: {title: $title, content: $content, deadline: $deadline, updated_at: now}) {
+  update_notes_note_by_pk(pk_columns: {id: $id}, _set: {title: $title, content: $content, deadline: $deadline}) {
     content
     deadline
     title

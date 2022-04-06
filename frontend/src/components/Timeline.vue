@@ -1,9 +1,12 @@
 <template>
   <q-page>
     <q-scroll-area class="fill-window">
-      <div class="q-px-lg q-pb-md">
+     <div class="q-pa-md container">
+        <h4>
+          <q-icon :name="icon" />
+            {{ title }}
+        </h4>
         <q-timeline color="secondary">
-          <q-timeline-entry heading> Timeline heading </q-timeline-entry>
 
           <q-timeline-entry
             v-for="date in orderdDates"
@@ -102,6 +105,14 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    icon: {
+      type: String,
+      required: true,
     }
   },
   mounted() {
