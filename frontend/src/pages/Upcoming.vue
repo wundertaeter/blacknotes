@@ -26,8 +26,8 @@ export default defineComponent({
   data() {
     return {
       items: [],
-      notes: [],
-      projects: [],
+      notes: null,
+      projects: null,
     };
   },
   computed: {
@@ -43,9 +43,11 @@ export default defineComponent({
   },
   methods: {
     mergeList() {
-      this.items = [...this.notes, ...this.projects].sort(
-        (a, b) => new Date(a.deadline) - new Date(b.deadline)
-      );
+      if(this.notes && this.projects){
+        this.items = [...this.notes, ...this.projects].sort(
+          (a, b) => new Date(a.deadline) - new Date(b.deadline)
+        );
+      }
     },
   },
   apollo: {

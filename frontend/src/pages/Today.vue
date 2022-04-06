@@ -4,8 +4,9 @@
 
 <script>
 import { defineComponent } from "vue";
-const GET_TODAY_NOTES = require("src/gql/queries/GetTodayNotes.gql");
+const GET_TODAY = require("src/gql/queries/GetToday.gql");
 const SUBSCRIBE_TODAY_NOTES = require("src/gql/subscriptions/SubscribeTodayNotes.gql");
+const SUBSCRIBE_TODAY_PROJECTS = require("src/gql/subscriptions/SubscribeTodayProjects.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -16,17 +17,19 @@ export default defineComponent({
   data() {
     return {
       project: { title: "Today", icon: "star", default: true, notes: [] },
+      notes: null,
+      projects: null,
     };
   },
-  watch: {
-    notes: {
-      handler(notes) {
-        this.project.notes = notes;
-      },
-      deep: true,
+  methods: {
+    mergeList() {
+      if (this.notes && this.projects) {
+        this.project.notes = [...this.notes, ...this.projects].sort(
+          (a, b) => new Date(a.today_position) - new Date(b.today_position)
+        );
+      }
     },
   },
-  methods: {},
   computed: {
     user() {
       return this.$store.state.user;
@@ -36,8 +39,8 @@ export default defineComponent({
     },
   },
   apollo: {
-    notes: {
-      query: GET_TODAY_NOTES,
+    notes_note: {
+      query: GET_TODAY,
       variables() {
         return {
           user_id: this.user.id,
@@ -46,8 +49,16 @@ export default defineComponent({
       skip() {
         return !this.user.id;
       },
-      subscribeToMore: {
-        document: SUBSCRIBE_TODAY_NOTES,
+      result({ data }) {
+        console.log("result", data);
+        this.notes = data.notes_note;
+        this.projects = data.notes_project;
+        this.mergeList();
+      },
+    },
+    $subscribe: {
+      note_note: {
+        query: SUBSCRIBE_TODAY_NOTES,
         variables() {
           return {
             user_id: this.user.id,
@@ -56,11 +67,26 @@ export default defineComponent({
         skip() {
           return !this.user.id;
         },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { notes: subscriptionData.data.notes };
-          }
-          return previousResult;
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = data.notes_note;
+          this.mergeList();
+        },
+      },
+      notes_project: {
+        query: SUBSCRIBE_TODAY_PROJECTS,
+        variables() {
+          return {
+            user_id: this.user.id,
+          };
+        },
+        skip() {
+          return !this.user.id;
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = data.notes_project;
+          this.mergeList();
         },
       },
     },

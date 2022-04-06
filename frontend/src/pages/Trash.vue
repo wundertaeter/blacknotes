@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" keep/>
+  <project v-if="project" v-model="project" :sort="false" keep />
 </template>
 
 <script>
@@ -17,15 +17,17 @@ export default defineComponent({
   data() {
     return {
       project: { title: "Trash", icon: "delete", default: true, notes: [] },
-      projects: [],
-      notes: [],
+      projects: null,
+      notes: null,
     };
   },
   methods: {
     mergeList() {
-      this.project.notes = [...this.notes, ...this.projects].sort(
-        (a, b) => new Date(b.deleted_at) - new Date(a.deleted_at)
-      );
+      if (this.notes && this.projects) {
+        this.project.notes = [...this.notes, ...this.projects].sort(
+          (a, b) => new Date(b.deleted_at) - new Date(a.deleted_at)
+        );
+      }
     },
   },
   computed: {
