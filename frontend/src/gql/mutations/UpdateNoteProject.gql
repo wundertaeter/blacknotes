@@ -1,0 +1,5 @@
+mutation UpdateNoteProject($id: bigint!, $project_id: bigint!) {
+  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id}) {
+    project_id
+  }
+}

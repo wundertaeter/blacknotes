@@ -10,6 +10,7 @@
   >
     <template #item="{ element }">
       <item
+        @dragstart="(e) => dragStart(e, element)"
         @click.stop="setFocusNote(element)"
         :focused="focusedNote && focusedNote.id == element.id"
         class="note"
@@ -140,6 +141,13 @@ export default defineComponent({
     },
   },
   methods: {
+    dragStart(e, item){
+      if(item.__typename == 'notes_note'){
+        e.dataTransfer.setData("note", JSON.stringify(item));
+      }else{
+        e.dataTransfer.setData("project", JSON.stringify(item));
+      }
+    },
     setEditNote(note) {
       this.editNote = note;
       this.$emit("edit", note);

@@ -121,9 +121,12 @@
           >
             <template #item="{ element }">
               <q-item
-                class="item"
+                :class="{'item': true, focused: element.id == focusedProject?.id}"
                 clickable
                 @dblclick="element.edit = true"
+                @drop="onDrop"
+                @dragover="onDragover(element)"
+                @dragleave="onDragleave(element)"
                 @click="selectProject(element)"
                 active-class="text-orange"
                 :active="projectActive(element)"
@@ -187,6 +190,7 @@
 <script>
 import { defineComponent } from "vue";
 import CREATE_PROJECT from "src/gql/mutations/CreateProject.gql";
+import UPDATE_NOTE_PROJECT from "src/gql/mutations/UpdateNoteProject.gql";
 import draggable from "vuedraggable";
 const UPDATE_PROJECT_NAME_BY_PK = require("src/gql/mutations/UpdateProjectNameByPk.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
@@ -205,6 +209,7 @@ export default defineComponent({
       leftDrawerOpen: true,
       drag: false,
       projects: [],
+      focusedProject: null,
     };
   },
   mounted(){
@@ -218,6 +223,35 @@ export default defineComponent({
     },
   },
   methods: {
+    onDragover(project){
+      this.focusedProject = project;
+    },
+    onDragleave(project){
+      this.focusedProject = null;
+    },
+    onDrop(e){
+      console.log('onDrop', e);
+      let note = e.dataTransfer.getData('note');
+      if(note){
+        note = JSON.parse(note);
+        console.log('drop note: ', note);
+        this.$apollo.mutate({
+          mutation: UPDATE_NOTE_PROJECT,
+          variables: {
+            id: note.id,
+            project_id: this.focusedProject.id
+          }
+        })
+      }else{
+        let project = e.dataTransfer.getData('project');
+        if(project){
+          project = JSON.parse(project);
+          console.log('drop project: ', project);
+        }
+      }
+
+      this.onDragleave();
+    },
     projectActive(project) {
       if (this.currentProject && this.$route.name == "project") {
         if (typeof project != "object") return false;
@@ -226,7 +260,8 @@ export default defineComponent({
         return project == this.$route.name;
       }
     },
-    updatePositions(data) {
+    updatePositions(e) {
+      console.log('update position', e)
       for (let i = 0; i < this.projects.length; i++) {
         this.projects[i].position = i;
         delete this.projects[i].edit;
@@ -287,12 +322,15 @@ export default defineComponent({
   },
 });
 </script>
-<style scoped>
+<style scoped lang="scss">
 .menu-section {
   margin-top: 20px;
   margin-bottom: 20px;
 }
 .item {
   height: 50px;
+}
+.focused {
+  border: 3px solid $orange;
 }
 </style>
