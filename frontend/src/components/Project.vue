@@ -41,6 +41,7 @@ import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
+import { loading } from "src/common/system.js";
 
 export default defineComponent({
   name: "PageIndex",
@@ -51,7 +52,6 @@ export default defineComponent({
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
       timeout: null,
-      updateLoadingTimeout: null,
     };
   },
   props: {
@@ -116,18 +116,8 @@ export default defineComponent({
     },
   },
   methods: {
-    updateLoading(loading) {
-      if (this.updateLoadingTimeout) clearTimeout(this.updateLoadingTimeout);
-      if (loading) {
-        this.$store.commit("user/updateLoading", true);
-      } else {
-        this.updateLoadingTimeout = setTimeout(() => {
-          this.$store.commit("user/updateLoading", false);
-        }, 5000);
-      }
-    },
     checkProject() {
-      this.updateLoading(true);
+      loading(true);
       console.log("projects", this.projects);
       const projects = [...this.projects];
       if (this.timeout) clearTimeout(this.timeout);
@@ -140,7 +130,7 @@ export default defineComponent({
             done: this.project.done,
             completed_at: this.project.done ? toDatabaseString(today()) : null
           },
-        }).finally(() => this.updateLoading(false));
+        }).finally(() => loading(false));
         const index = projects.findIndex((p) => p.id == this.project.id);
         projects.splice(index, 1);
         let next = projects[index];
@@ -151,9 +141,9 @@ export default defineComponent({
         this.$store.commit("user/updateCurrentProject", next);
         this.$store.commit("user/updateProjects", projects);
         if (!next) {
-          this.$router.push("/today");
+          this.project = null;
         }
-      }, 1000);
+      }, 500);
     },
     addNote() {
       console.log("hallo?????", this.positionColumn);

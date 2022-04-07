@@ -29,6 +29,7 @@ import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
 import { toDatabaseString, today } from "src/common/date.js";
+import { loading } from "src/common/system.js";
 export const bus = mitt();
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
@@ -70,10 +71,8 @@ export default defineComponent({
       trashNoteTimeout: null,
       focusedNote: null,
       loading: false,
-      promiseQueue: [],
       editNote: null,
       checkTimeout: null,
-      updateLoadingTimeout: null,
     };
   },
   props: {
@@ -156,20 +155,10 @@ export default defineComponent({
         }
       }
     },
-    updateLoading(loading) {
-      if (this.updateLoadingTimeout) clearTimeout(this.updateLoadingTimeout);
-      if (loading) {
-        this.$store.commit("user/updateLoading", true);
-      } else {
-        this.updateLoadingTimeout = setTimeout(() => {
-          this.$store.commit("user/updateLoading", false);
-        }, 5000);
-      }
-    },
     mutateQueue(mutation) {
-      this.updateLoading(true);
+      loading(true);
       let p = this.$apollo.mutate(mutation);
-      p.finally(() => this.updateLoading(false));
+      p.finally(() => loading(false));
       //this.promiseQueue.push(p);
       return p;
     },
@@ -280,9 +269,8 @@ export default defineComponent({
       console.log("check note", item.__typename);
       const type = item.__typename;
       //this.loading = true;
-      this.updateLoading(true);
+      loading(true);
       item.done = !item.done;
-      let p = new Promise((resolve) => {
         if (this.checkTimeout) clearTimeout(this.checkTimeout);
         this.checkTimeout = setTimeout(() => {
           console.log("timeout", this.done, item.done === this.done);
@@ -299,10 +287,8 @@ export default defineComponent({
               done: item.done,
               completed_at: item.done ? toDatabaseString(today()) : null,
             },
-          }).finally(() => this.$nextTick(resolve));
+          });
         }, 500);
-      });
-      this.promiseQueue.push(p);
     },
     //removeToCache(store, { data: note }) {
     //  const query = {

@@ -47,6 +47,7 @@ const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 import List from "src/components/list/List.vue";
 import { bus } from "src/components/list/List.vue";
+import { loading } from "src/common/system.js";
 import {
   toDatabaseString,
   isToday,
@@ -75,7 +76,6 @@ export default defineComponent({
       loading: false,
       promiseQueue: [],
       dates: [],
-      updateLoadingTimeout: null,
     };
   },
   props: {
@@ -169,20 +169,10 @@ export default defineComponent({
       });
       console.log("this.sorted", this.items, this.dates);
     },
-    updateLoading(loading) {
-      if (this.updateLoadingTimeout) clearTimeout(this.updateLoadingTimeout);
-      if (loading) {
-        this.$store.commit("user/updateLoading", true);
-      } else {
-        this.updateLoadingTimeout = setTimeout(() => {
-          this.$store.commit("user/updateLoading", false);
-        }, 5000);
-      }
-    },
     mutateQueue(mutation) {
-      this.updateLoading(true);
+      loading(true);
       let p = this.$apollo.mutate(mutation);
-      p.finally(() => this.updateLoading(false));
+      p.finally(() => loading(false));
       //this.promiseQueue.push(p);
       return p;
     },

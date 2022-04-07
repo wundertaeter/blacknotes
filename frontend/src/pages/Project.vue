@@ -13,11 +13,6 @@ export default defineComponent({
   components: {
     Project,
   },
-  data() {
-    return {
-      projectCopy: null,
-    };
-  },
   computed: {
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
