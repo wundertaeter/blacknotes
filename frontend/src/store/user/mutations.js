@@ -30,5 +30,8 @@ export function updateCurrentProject(state, currentProject) {
     state.currentProject = JSON.parse(currentProject);
 }
 
+export function updateLoading(state, loading) {
+    state.loading = loading;
+}
 
 

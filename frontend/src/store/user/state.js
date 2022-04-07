@@ -10,5 +10,6 @@ export default function () {
     projects: [],
     //spaces: [],
     currentProject: currentProject,
+    loading: false
   }
 }

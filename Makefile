@@ -1,3 +1,5 @@
+include .env
+
 makemigrations:
 	docker-compose exec web /app/manage.py makemigrations
 
@@ -6,3 +8,6 @@ migrate:
 
 createsuperuser:
 	docker-compose exec web /app/manage.py createsuperuser
+
+console:
+	cd hasura; hasura console --admin-secret=${HASURA_SECRET};

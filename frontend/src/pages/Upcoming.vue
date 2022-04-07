@@ -7,7 +7,11 @@
     :timeline="7"
     icon="date_range"
     title="Upcoming"
-  />
+  >
+    <template v-slot:toolbar="{addNote}">
+      <q-btn icon="add" @click="addNote" />
+    </template>
+  </timeline>
 </template>
 
 <script>
@@ -43,7 +47,7 @@ export default defineComponent({
   },
   methods: {
     mergeList() {
-      if(this.notes && this.projects){
+      if (this.notes && this.projects) {
         this.items = [...this.notes, ...this.projects].sort(
           (a, b) => new Date(a.deadline) - new Date(b.deadline)
         );
@@ -67,6 +71,7 @@ export default defineComponent({
         this.notes = data.notes_note;
         this.projects = data.notes_project;
         this.mergeList();
+        this.$apollo.skipAllQueries = true;
       },
     },
     $subscribe: {
@@ -79,7 +84,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.user.id || this.user.loading;
         },
         result({ data }) {
           console.log("note sub", data);
@@ -96,7 +101,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.user.id || this.user.loading;
         },
         result({ data }) {
           console.log("project sub", data);

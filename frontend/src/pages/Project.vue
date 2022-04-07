@@ -22,6 +22,9 @@ export default defineComponent({
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
+    user(){
+      return this.$store.state.user
+    }
   },
   apollo: {
     project: {
@@ -41,11 +44,11 @@ export default defineComponent({
         document: SUBSCRIBE_PROJECT,
         variables() {
           return {
-            id: this.currentProject.id,
+            id: this.currentProject?.id,
           };
         },
         skip() {
-          return !this.currentProject;
+          return !this.currentProject || this.user.loading;
         },
         updateQuery: (previousResult, { subscriptionData }) => {
           if (subscriptionData.data) {

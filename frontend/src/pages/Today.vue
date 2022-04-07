@@ -54,6 +54,7 @@ export default defineComponent({
         this.notes = data.notes_note;
         this.projects = data.notes_project;
         this.mergeList();
+        this.$apollo.skipAllQueries = true;
       },
     },
     $subscribe: {
@@ -65,7 +66,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.user.id || this.user.loading;
         },
         result({ data }) {
           console.log("note sub", data);
@@ -81,7 +82,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.user.id || this.user.loading;
         },
         result({ data }) {
           console.log("project sub", data);

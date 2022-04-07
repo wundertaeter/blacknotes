@@ -72,7 +72,8 @@ export default defineComponent({
       loading: false,
       promiseQueue: [],
       editNote: null,
-      checkTimeout: null
+      checkTimeout: null,
+      updateLoadingTimeout: null,
     };
   },
   props: {
@@ -111,7 +112,7 @@ export default defineComponent({
     drag: {
       type: Boolean,
       required: false,
-      default: true
+      default: true,
     },
     sortMode: {
       type: String,
@@ -121,27 +122,20 @@ export default defineComponent({
     done: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     keep: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   watch: {
     modelValue: {
       handler(value) {
         console.log("update note list", value);
 
-        Promise.all(this.promiseQueue).finally(() => {
-          this.promiseQueue = [];
-          this.loading = false;
-        });
-
-        if (!this.loading) {
-          this.items = JSON.parse(JSON.stringify(value));
-        }
+        this.items = JSON.parse(JSON.stringify(value));
       },
       deep: true,
     },
@@ -162,10 +156,21 @@ export default defineComponent({
         }
       }
     },
+    updateLoading(loading) {
+      if (this.updateLoadingTimeout) clearTimeout(this.updateLoadingTimeout);
+      if (loading) {
+        this.$store.commit("user/updateLoading", true);
+      } else {
+        this.updateLoadingTimeout = setTimeout(() => {
+          this.$store.commit("user/updateLoading", false);
+        }, 5000);
+      }
+    },
     mutateQueue(mutation) {
-      this.loading = true;
+      this.updateLoading(true);
       let p = this.$apollo.mutate(mutation);
-      this.promiseQueue.push(p);
+      p.finally(() => this.updateLoading(false));
+      //this.promiseQueue.push(p);
       return p;
     },
     trashNote() {
@@ -274,12 +279,13 @@ export default defineComponent({
     check(item) {
       console.log("check note", item.__typename);
       const type = item.__typename;
-      this.loading = true;
+      //this.loading = true;
+      this.updateLoading(true);
       item.done = !item.done;
       let p = new Promise((resolve) => {
-        if(this.checkTimeout) clearTimeout(this.checkTimeout);
+        if (this.checkTimeout) clearTimeout(this.checkTimeout);
         this.checkTimeout = setTimeout(() => {
-          console.log('timeout', this.done, item.done === this.done);
+          console.log("timeout", this.done, item.done === this.done);
           if (item.done === this.done && !this.keep) {
             const index = this.items.findIndex(
               (it) => it.id == item.id && it.__typename == type
@@ -291,7 +297,7 @@ export default defineComponent({
             variables: {
               id: item.id,
               done: item.done,
-              completed_at: item.done ? toDatabaseString(today()) : null
+              completed_at: item.done ? toDatabaseString(today()) : null,
             },
           }).finally(() => this.$nextTick(resolve));
         }, 500);

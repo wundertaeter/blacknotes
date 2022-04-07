@@ -54,7 +54,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.user.id || this.user.loading;;
         },
         updateQuery: (previousResult, { subscriptionData }) => {
           if (subscriptionData.data) {

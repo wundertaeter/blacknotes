@@ -1,13 +1,12 @@
 <template>
   <q-page>
     <q-scroll-area class="fill-window">
-     <div class="q-pa-md container">
+      <div class="q-pa-md container">
         <h4>
           <q-icon :name="icon" />
-            {{ title }}
+          {{ title }}
         </h4>
         <q-timeline color="secondary">
-
           <q-timeline-entry
             v-for="date in orderdDates"
             :key="date.title"
@@ -36,7 +35,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn icon="add" @click="addNote" />
+        <slot name="toolbar" v-bind:addNote="addNote" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -76,6 +75,7 @@ export default defineComponent({
       loading: false,
       promiseQueue: [],
       dates: [],
+      updateLoadingTimeout: null,
     };
   },
   props: {
@@ -104,7 +104,7 @@ export default defineComponent({
     drop: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     title: {
       type: String,
@@ -113,7 +113,7 @@ export default defineComponent({
     icon: {
       type: String,
       required: true,
-    }
+    },
   },
   mounted() {
     let nextDate;
@@ -123,7 +123,7 @@ export default defineComponent({
       } else {
         nextDate = date.addToDate(this.start, { day: d });
       }
-      if(!this.dates.some(d => d.title == this.formatDate(nextDate))){
+      if (!this.dates.some((d) => d.title == this.formatDate(nextDate))) {
         this.dates.push({ title: this.formatDate(nextDate), date: nextDate });
       }
     }
@@ -151,40 +151,39 @@ export default defineComponent({
   },
   methods: {
     updateData() {
-      Promise.all(this.promiseQueue).finally(() => {
-        this.promiseQueue = [];
-        this.loading = false;
+      console.log("update!!!????????");
+      this.dates.forEach((date) => {
+        this.items[date.title] = [];
       });
-
-      if (Object.keys(this.items).length === 0 || !this.loading) {
-        console.log("update!!!????????");
-        this.dates.forEach((date) => {
-          this.items[date.title] = [];
-        });
-        this.modelValue.forEach((note) => {
-          let dateString = this.formatDate(note[this.groupBy]);
-          console.log(
-            "dateString",
-            dateString,
-            this.groupBy,
-            note[this.groupBy]
-          );
-          if (!this.items[dateString]) {
-            this.dates.push({
-              title: dateString,
-              date: new Date(note[this.groupBy]),
-            });
-            this.items[dateString] = [];
-          }
-          this.items[dateString].push(note);
-        });
-        console.log("this.sorted", this.items, this.dates);
+      this.modelValue.forEach((note) => {
+        let dateString = this.formatDate(note[this.groupBy]);
+        console.log("dateString", dateString, this.groupBy, note[this.groupBy]);
+        if (!this.items[dateString]) {
+          this.dates.push({
+            title: dateString,
+            date: new Date(note[this.groupBy]),
+          });
+          this.items[dateString] = [];
+        }
+        this.items[dateString].push(note);
+      });
+      console.log("this.sorted", this.items, this.dates);
+    },
+    updateLoading(loading) {
+      if (this.updateLoadingTimeout) clearTimeout(this.updateLoadingTimeout);
+      if (loading) {
+        this.$store.commit("user/updateLoading", true);
+      } else {
+        this.updateLoadingTimeout = setTimeout(() => {
+          this.$store.commit("user/updateLoading", false);
+        }, 5000);
       }
     },
     mutateQueue(mutation) {
-      this.loading = true;
+      this.updateLoading(true);
       let p = this.$apollo.mutate(mutation);
-      this.promiseQueue.push(p);
+      p.finally(() => this.updateLoading(false));
+      //this.promiseQueue.push(p);
       return p;
     },
     addNote() {
@@ -365,9 +364,11 @@ export default defineComponent({
       return Object.keys(this.items);
     },
     orderdDates() {
-      const dates = [...this.dates].filter(d => this.items[d.title].length);
+      const dates = [...this.dates]; //.filter(d => this.items[d.title].length);
       return this.backwards
-        ? dates.sort((a, b) => b.date - a.date)
+        ? dates
+            .filter((d) => this.items[d.title].length)
+            .sort((a, b) => b.date - a.date)
         : dates.sort((a, b) => a.date - b.date);
     },
     timelineEnd() {
