@@ -1,5 +1,5 @@
 query GetTrash($user_id: Int!) {
-  active_notes(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}) {
+  notes_note(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}) {
     id
     title
     content
@@ -11,7 +11,7 @@ query GetTrash($user_id: Int!) {
     deleted
   }
 
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}, done: {_eq: false}}}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}) {
     title
     icon
     id

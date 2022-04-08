@@ -36,7 +36,7 @@ export default defineComponent({
     },
   },
   apollo: {
-    active_notes: {
+    notes_note: {
       query: GET_TRASH,
       variables() {
         return {
@@ -48,7 +48,7 @@ export default defineComponent({
       },
       result({ data }) {
         console.log("result", data);
-        this.notes = data.active_notes;
+        this.notes = data.notes_note;
         this.projects = data.notes_project;
         this.mergeList();
         this.$apollo.skipAllQueries = true;
@@ -67,7 +67,7 @@ export default defineComponent({
         },
         result({ data }) {
           console.log("note sub", data);
-          this.notes = data.active_notes;
+          this.notes = data.notes_note;
           this.mergeList();
         },
       },
