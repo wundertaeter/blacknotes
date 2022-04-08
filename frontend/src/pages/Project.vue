@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" />
+  <project v-if="project" v-model="project" more/>
 </template>
 
 <script>

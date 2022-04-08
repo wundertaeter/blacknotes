@@ -7,6 +7,7 @@ import {
 } from "vue-router";
 import routes from "./routes";
 import { Store } from 'src/store';
+import axios from 'axios';
 
 /*
  * If not building with SSR mode, you can
@@ -37,7 +38,13 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach(async (to, from, next) => {
-    const user = Store.state.user;
+    let user = Store.state.user;
+    if (!user.id) {
+      try {
+        const resp = await axios.get("/get_user")
+        Store.commit("user/initUser", resp.data.user);
+      } catch { }
+    }
     if (!user.id && !to.matched.some(record => record.meta.public)) {
       next('/login');
     } else {

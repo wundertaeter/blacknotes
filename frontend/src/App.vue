@@ -14,11 +14,6 @@ export default defineComponent({
     const $q = useQuasar();
     $q.dark.set(true);
   },
-  created() {
-    this.$axios.get("/get_user").then((resp) => {
-      this.$store.commit("user/initUser", resp.data.user);
-    });
-  },
   apollo: {
     user: {
       query: GET_USER_DATA,

@@ -1,4 +1,4 @@
-mutation ProjectToTrash($id: bigint!) {
+mutation TrashProject($id: bigint!) {
   project: update_notes_project_by_pk(pk_columns: {id: $id}, _set: {deleted: true, deleted_at: now}) {
     deleted
   }
