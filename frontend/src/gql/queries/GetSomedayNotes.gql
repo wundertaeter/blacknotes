@@ -1,5 +1,5 @@
 query GetSomedayNotes($user_id: Int!) {
-  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deadline: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}) {
+  notes: active_notes(where: {_and: {user_id: {_eq: $user_id}, deadline: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc}) {
     id
     title
     content
@@ -8,5 +8,6 @@ query GetSomedayNotes($user_id: Int!) {
     user_id
     project_id
     deleted
+    someday_position
   }
 }

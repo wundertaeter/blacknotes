@@ -2,10 +2,7 @@
   <q-card
     style="cursor: grab"
     :class="{ focused: focused }"
-    @dblclick="
-      edit = true;
-      focusTitle();
-    "
+    @dblclick="open"
   >
      <q-checkbox
         v-if="modelValue.icon"
@@ -103,6 +100,9 @@
 </template>
 
 <script>
+import { loading } from "src/common/system.js";
+const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
+import { toDatabaseString } from "src/common/date.js";
 import {
   formatDate,
   today,
@@ -192,6 +192,7 @@ export default {
       title: this.modelValue.title,
       checkNoteTimeout: null,
       contentFocused: false,
+      updateId: null,
     };
   },
   computed: {
@@ -203,6 +204,37 @@ export default {
     },
   },
   methods: {
+    mutateQueue(mutation) {
+      loading(true);
+      let p = this.$apollo.mutate(mutation);
+      p.finally(() => loading(false));
+      //this.promiseQueue.push(p);
+      return p;
+    },
+    updateNote(note) {
+      loading(true);
+      if (this.updateId) clearTimeout(this.updateId);
+      this.updateId = setTimeout(() => {
+        this.mutateQueue({
+          mutation: UPDATE_NOTE,
+          variables: {
+            id: note.id,
+            title: note.title ?? "",
+            content: note.content ?? "",
+            deadline: note.deadline ? toDatabaseString(note.deadline) : null,
+          },
+        });
+      }, 500);
+    },
+    open(){
+      if(this.modelValue.__typename.includes('_note')){
+        this.edit = true;
+        this.focusTitle();
+      }else{
+        this.$store.commit('user/updateCurrentProject', this.modelValue);
+        this.$router.push('/');
+      }
+    },
     dateOptions(timestamp) {
       return isToday(timestamp) || isFuture(timestamp);
     },
@@ -278,6 +310,7 @@ export default {
         content: this.content,
       };
       this.$emit("update:modelValue", note);
+      this.updateNote(note)
     },
   },
 };

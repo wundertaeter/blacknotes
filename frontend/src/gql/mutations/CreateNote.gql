@@ -1,9 +1,11 @@
-mutation CreateNote($user_id: Int!, $content: String = "", $title: String = "", $position: Int = null, $upcoming_position: Int = null, $today_position: Int = null, $project_id: bigint = null, $deadline: date = null) {
-  note: insert_notes_note_one(object: {user_id: $user_id, content: $content, title: $title, position: $position, upcoming_position: $upcoming_position, today_position: $today_position, project_id: $project_id, deadline: $deadline}) {
+mutation CreateNote($user_id: Int!, $content: String = "", $title: String = "", $position: Int = null, $upcoming_position: Int = null, $today_position: Int = null, $someday_position: Int = null, $anytime_position: Int = null, $project_id: bigint = null, $deadline: date = null) {
+  note: insert_notes_note_one(object: {user_id: $user_id, content: $content, title: $title, position: $position, upcoming_position: $upcoming_position, today_position: $today_position, someday_position: $someday_position, anytime_position: $anytime_position, project_id: $project_id, deadline: $deadline}) {
     id
     position
     upcoming_position
     today_position
+    someday_position
+    anytime_position
     title
     deleted
     user_id

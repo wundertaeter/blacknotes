@@ -6,6 +6,8 @@
 import { defineComponent } from "vue";
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
+const GET_PROJECT_DONE = require("src/gql/queries/GetProjectDone.gql");
+const SUBSCRIBE_PROJECT_DONE = require("src/gql/subscriptions/SubscribeProjectDone.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -23,7 +25,9 @@ export default defineComponent({
   },
   apollo: {
     project: {
-      query: GET_PROJECT,
+      query() {
+        return this.currentProject.done ? GET_PROJECT_DONE : GET_PROJECT;
+      },
       variables() {
         return {
           id: this.currentProject.id,
@@ -36,7 +40,9 @@ export default defineComponent({
         if(!result.data.project) this.$router.push('today');
       },
       subscribeToMore: {
-        document: SUBSCRIBE_PROJECT,
+        document(){
+          return this.currentProject.done ? SUBSCRIBE_PROJECT_DONE : SUBSCRIBE_PROJECT
+        },
         variables() {
           return {
             id: this.currentProject?.id,

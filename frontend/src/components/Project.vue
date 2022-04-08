@@ -100,9 +100,10 @@ export default defineComponent({
   },
   computed: {
     maxPosition() {
-      const positions = this.modelValue.notes.map(
+      const positions = this.project.notes.map(
         (note) => note[this.positionColumn]
       );
+        console.log('maxPosition', this.project.notes, positions)
       return positions.length ? Math.max(...positions) : 0;
     },
     user() {
@@ -131,17 +132,21 @@ export default defineComponent({
             completed_at: this.project.done ? toDatabaseString(today()) : null
           },
         }).finally(() => loading(false));
-        const index = projects.findIndex((p) => p.id == this.project.id);
-        projects.splice(index, 1);
-        let next = projects[index];
-        if (!next) {
-          next = projects[projects.length - 1] || null;
-        }
-        console.log("next project", projects, next);
-        this.$store.commit("user/updateCurrentProject", next);
-        this.$store.commit("user/updateProjects", projects);
-        if (!next) {
-          this.project = null;
+        if(this.project.done){
+          const index = projects.findIndex((p) => p.id == this.project.id);
+          projects.splice(index, 1);
+          let next = projects[index];
+          if (!next) {
+            next = projects[projects.length - 1] || null;
+          }
+          console.log("next project", projects, next);
+          this.$store.commit("user/updateCurrentProject", next);
+          this.$store.commit("user/updateProjects", projects);
+          if (!next) {
+            this.project = null;
+          }
+        }else{
+          this.$store.commit("user/updateCurrentProject", this.project);
         }
       }, 500);
     },

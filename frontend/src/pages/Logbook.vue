@@ -63,7 +63,7 @@ export default defineComponent({
     },
   },
   apollo: {
-    notes_note: {
+    active_notes: {
       query: GET_LOGBOOK,
       variables() {
         return {
@@ -75,7 +75,7 @@ export default defineComponent({
       },
       result({ data }) {
         console.log("result", data);
-        this.notes = data.notes_note;
+        this.notes = data.active_notes;
         this.projects = data.notes_project;
         this.mergeList();
         this.$apollo.skipAllQueries = true;
@@ -94,7 +94,7 @@ export default defineComponent({
         },
         result({ data }) {
           console.log("note sub", data);
-          this.notes = data.notes_note;
+          this.notes = data.active_notes;
           this.mergeList();
         },
       },

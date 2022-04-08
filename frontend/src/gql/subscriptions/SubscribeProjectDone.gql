@@ -1,0 +1,22 @@
+subscription SubscribeProject($id: bigint!) {
+  project: notes_project_by_pk(id: $id) {
+    title
+    id
+    icon
+    deleted
+    position
+    done
+    notes(order_by: {position: asc}, where: {_and: {deleted: {_eq: false}}}) {
+      id
+      position
+      title
+      deleted
+      user_id
+      content
+      deadline
+      project_id
+      done
+      deadline
+    }
+  }
+}

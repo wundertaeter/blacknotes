@@ -1,5 +1,5 @@
 subscription SubscribeNotes($user_id: Int!, $project_id: bigint!) {
-  notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, project_id: {_eq: $project_id}, deleted: {_eq: false}}}) {
+  notes: active_notes(where: {_and: {user_id: {_eq: $user_id}, project_id: {_eq: $project_id}, deleted: {_eq: false}}}) {
     id
     title
     content

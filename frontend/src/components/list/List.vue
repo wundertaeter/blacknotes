@@ -15,7 +15,6 @@
         :focused="focusedNote && focusedNote.id == element.id"
         class="note"
         v-model="items[items.indexOf(element)]"
-        @update:modelValue="updateNote"
         @check="check"
         @edit="setEditNote"
         :date-preview="datePreview"
@@ -32,7 +31,6 @@ import mitt from "mitt";
 import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
 export const bus = mitt();
-const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
@@ -74,6 +72,7 @@ export default defineComponent({
       loading: false,
       editNote: null,
       checkTimeout: null,
+      recBlocker: false
     };
   },
   props: {
@@ -142,7 +141,7 @@ export default defineComponent({
   },
   methods: {
     dragStart(e, item){
-      if(item.__typename == 'notes_note'){
+      if(item.__typename.includes('_note')){
         e.dataTransfer.setData("note", JSON.stringify(item));
       }else{
         e.dataTransfer.setData("project", JSON.stringify(item));
@@ -289,7 +288,7 @@ export default defineComponent({
             this.items.splice(index, 1);
           }
           this.mutateQueue({
-            mutation: type == "notes_note" ? CHECK_NOTE : CHECK_PROJECT,
+            mutation: type.includes('_note') ? CHECK_NOTE : CHECK_PROJECT,
             variables: {
               id: item.id,
               done: item.done,
@@ -329,21 +328,7 @@ export default defineComponent({
     //    data,
     //  });
     //},
-    updateNote(note) {
-      console.log("update note!! with throttle 1000", note);
-      if (this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(() => {
-        this.mutateQueue({
-          mutation: UPDATE_NOTE,
-          variables: {
-            id: note.id,
-            title: note.title ?? "",
-            content: note.content ?? "",
-            deadline: note.deadline ? toDatabaseString(note.deadline) : null,
-          },
-        });
-      }, 500);
-    },
+    
   },
   computed: {
     user() {
