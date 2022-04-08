@@ -17,7 +17,7 @@
       <div>
         <q-list class="menu-section">
           <q-item
-            v-if="user.active"
+            v-if="user.id"
             clickable
             to="profile"
             active-class="text-orange"
@@ -39,7 +39,7 @@
             :active="projectActive('login')"
           >
             <q-item-section avatar>
-              <q-icon name="logout" />
+              <q-icon name="login" />
             </q-item-section>
 
             <q-item-section>

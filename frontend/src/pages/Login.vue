@@ -1,12 +1,22 @@
 <template>
-  <q-page class="flex flex-center">
-    <div class="q-pa-md" style="width: 50%">
-      
+  <q-page>
+    <q-scroll-area class="fill-window">
+      <div class="q-pa-md container">
+        <h4>
+          <q-icon name="login" />
+          Login
+        </h4>
+
         <q-input v-model="username" type="username" label="username" />
         <q-input v-model="password" type="password" label="password" />
         <q-btn label="login" v-on:click="login" />
-    
-    </div>
+      </div>
+    </q-scroll-area>
+    <q-footer class="fixed-bottom footer">
+      <q-toolbar>
+       
+      </q-toolbar>
+    </q-footer>
   </q-page>
 </template>
 
@@ -33,8 +43,8 @@ export default defineComponent({
         })
         .then((resp) => {
           console.log("login_view", resp);
-          this.$store.commit('user/initUser', resp.data.user);
-          this.$router.push('/')
+          this.$store.commit("user/initUser", resp.data.user);
+          this.$router.push("/");
         });
     },
   },

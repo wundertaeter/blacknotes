@@ -1,7 +1,20 @@
 <template>
   <q-page>
-    <h1>Profile</h1>
-    <q-btn icon="logout" label="Logout" @click="logout" />
+    <q-scroll-area class="fill-window">
+      <div class="q-pa-md container">
+        <h4>
+          <q-icon name="account_circle" />
+          Profile
+        </h4>
+
+        
+      </div>
+    </q-scroll-area>
+    <q-footer class="fixed-bottom footer">
+      <q-toolbar>
+        <q-btn icon="logout" label="Logout" @click="logout" />
+      </q-toolbar>
+    </q-footer>
   </q-page>
 </template>
 
@@ -13,7 +26,7 @@ export default {
         console.log("logout", resp);
         this.$store.commit("user/initUser", {});
         this.$store.commit("user/updateProjects", []);
-        this.$router.push('/login');
+        this.$router.push("/login");
       });
     },
   },
