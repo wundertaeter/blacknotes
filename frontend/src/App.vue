@@ -16,7 +16,7 @@ export default defineComponent({
   },
   created() {
     this.$axios.get("/get_user").then((resp) => {
-      this.$store.commit("user/initUser", resp.data);
+      this.$store.commit("user/initUser", resp.data.user);
     });
   },
   apollo: {

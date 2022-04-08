@@ -17,6 +17,41 @@
       <div>
         <q-list class="menu-section">
           <q-item
+            v-if="user.active"
+            clickable
+            to="profile"
+            active-class="text-orange"
+            :active="projectActive('profile')"
+          >
+            <q-item-section avatar>
+              <q-icon name="account_circle" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label> {{ user.username }} </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-else
+            clickable
+            to="login"
+            active-class="text-orange"
+            :active="projectActive('login')"
+          >
+            <q-item-section avatar>
+              <q-icon name="logout" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label> Login </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+
+        <q-separator />
+
+        <q-list class="menu-section">
+          <q-item
             clickable
             to="today"
             active-class="text-orange"

@@ -13,3 +13,18 @@ array_relationships:
       table:
         name: notes_project
         schema: public
+select_permissions:
+- permission:
+    allow_aggregations: true
+    columns:
+    - id
+    - deleted
+    - icon
+    - title
+    - position
+    - user_id
+    - deleted_at
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user

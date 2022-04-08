@@ -1,3 +1,26 @@
 table:
   name: active_notes
   schema: public
+select_permissions:
+- permission:
+    allow_aggregations: true
+    columns:
+    - id
+    - project_id
+    - deleted
+    - done
+    - title
+    - completed_at
+    - deadline
+    - anytime_position
+    - position
+    - someday_position
+    - today_position
+    - upcoming_position
+    - user_id
+    - content
+    - deleted_at
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user

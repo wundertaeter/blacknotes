@@ -34,7 +34,7 @@ export default defineComponent({
         };
       },
       skip() {
-        return !this.currentProject;
+        return !this.user.id || !this.currentProject;
       },
       result(result){
         if(!result.data.project) this.$router.push('today');
@@ -45,7 +45,7 @@ export default defineComponent({
         },
         variables() {
           return {
-            id: this.currentProject?.id,
+            id: !this.user.id || this.currentProject?.id,
           };
         },
         skip() {

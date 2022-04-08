@@ -3,6 +3,7 @@ export function initUser(state, data) {
     state.id = data.id;
     state.username = data.username;
     state.admin = data.admin;
+    state.active = data.active;
 }
 
 export function updateUser(state, data) {
