@@ -1,9 +1,8 @@
 mutation CreateProject($user_id: Int!, $space_id: bigint = null, $position: Int!) {
   insert_notes_project_one(object: {user_id: $user_id, space_id: $space_id, icon: "radio_button_unchecked", position: $position}) {
     id
-    name
+    title
     space_id
     icon
-    default
   }
 }

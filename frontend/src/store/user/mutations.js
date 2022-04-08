@@ -25,7 +25,6 @@ export function updateProjects(state, projects) {
 
 export function updateCurrentProject(state, currentProject) {
     currentProject = JSON.stringify(currentProject);
-    console.log('string', currentProject);
     localStorage.setItem('currentProject', currentProject);
     state.currentProject = JSON.parse(currentProject);
 }

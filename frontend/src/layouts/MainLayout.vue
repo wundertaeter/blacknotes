@@ -121,13 +121,17 @@
           >
             <template #item="{ element }">
               <q-item
-                :class="{'item': true, focused: element.id == focusedProject?.id}"
+                :class="{
+                  item: true,
+                  focused: element.id == focusedProject?.id,
+                }"
                 clickable
                 @dblclick="element.edit = true"
                 @drop="onDrop"
                 @dragover="onDragover(element)"
                 @dragleave="onDragleave(element)"
                 @click="selectProject(element)"
+                @keydown.enter="element.edit = true"
                 active-class="text-orange"
                 :active="projectActive(element)"
               >
@@ -156,8 +160,8 @@
       <q-footer>
         <q-toolbar class="fixed-bottom footer">
           <q-toolbar-title>
-            <q-btn icon="add" label="New List">
-              <q-menu>
+            <q-btn icon="add" label="New List" @click="createProject">
+              <!--q-menu>
                 <q-list style="min-width: 100px">
                   <q-item clickable v-close-popup @click="createProject">
                     <q-item-section avatar>
@@ -174,7 +178,7 @@
                     <q-item-section> New Space </q-item-section>
                   </q-item>
                 </q-list>
-              </q-menu>
+              </q-menu-->
             </q-btn>
           </q-toolbar-title>
         </q-toolbar>
@@ -212,8 +216,8 @@ export default defineComponent({
       focusedProject: null,
     };
   },
-  mounted(){
-    this.projects = JSON.parse(JSON.stringify(this.userProjects));;
+  mounted() {
+    this.projects = JSON.parse(JSON.stringify(this.userProjects));
   },
   watch: {
     userProjects: {
@@ -223,30 +227,30 @@ export default defineComponent({
     },
   },
   methods: {
-    onDragover(project){
+    onDragover(project) {
       this.focusedProject = project;
     },
-    onDragleave(project){
+    onDragleave(project) {
       this.focusedProject = null;
     },
-    onDrop(e){
-      console.log('onDrop', e);
-      let note = e.dataTransfer.getData('note');
-      if(note){
+    onDrop(e) {
+      console.log("onDrop", e);
+      let note = e.dataTransfer.getData("note");
+      if (note) {
         note = JSON.parse(note);
-        console.log('drop note: ', note);
+        console.log("drop note: ", note);
         this.$apollo.mutate({
           mutation: UPDATE_NOTE_PROJECT,
           variables: {
             id: note.id,
-            project_id: this.focusedProject.id
-          }
-        })
-      }else{
-        let project = e.dataTransfer.getData('project');
-        if(project){
+            project_id: this.focusedProject.id,
+          },
+        });
+      } else {
+        let project = e.dataTransfer.getData("project");
+        if (project) {
           project = JSON.parse(project);
-          console.log('drop project: ', project);
+          console.log("drop project: ", project);
         }
       }
 
@@ -261,7 +265,7 @@ export default defineComponent({
       }
     },
     updatePositions(e) {
-      console.log('update position', e)
+      console.log("update position", e);
       for (let i = 0; i < this.projects.length; i++) {
         this.projects[i].position = i;
         delete this.projects[i].edit;
@@ -279,32 +283,27 @@ export default defineComponent({
       this.$router.push("/");
     },
     updateProjectName(project) {
-      project.edit = false;
       if (!project.title) return;
       console.log("updateProjectName", project);
-      this.$apollo.mutate({
-        mutation: UPDATE_PROJECT_NAME_BY_PK,
-        variables: {
-          id: project.id,
-          title: project.title,
-        },
-      });
+      this.$apollo
+        .mutate({
+          mutation: UPDATE_PROJECT_NAME_BY_PK,
+          variables: {
+            id: project.id,
+            title: project.title,
+          },
+        })
+        .then(() => (project.edit = false));
     },
     toggleLeftDrawer() {
       this.leftDrawerOpen = !this.leftDrawerOpen;
     },
-    maxPosition() {
-      return this.projects.length > 0
-        ? this.projects[this.projects.length - 1].position
-        : 0;
-    },
     createProject() {
-      const maxPosition = this.maxPosition();
       this.$apollo.mutate({
         mutation: CREATE_PROJECT,
         variables: {
           user_id: this.user.id,
-          position: maxPosition + 1,
+          position: this.maxPosition + 1,
         },
       });
     },
@@ -318,6 +317,10 @@ export default defineComponent({
     },
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
+    },
+    maxPosition() {
+      const positions = this.projects.map((project) => project.position);
+      return positions.length ? Math.max(...positions) : 0;
     },
   },
 });

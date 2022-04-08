@@ -47,7 +47,7 @@ export default defineComponent({
         },
         result(result) {
           let projects = result.data.projects.map((p) => {
-            return { ...p, edit: false };
+            return { ...p, edit: !p.title };
           });
           this.$store.commit('user/updateProjects', projects);
         },
