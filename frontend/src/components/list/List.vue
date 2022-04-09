@@ -14,6 +14,7 @@
         @click.stop="setFocusNote(element)"
         :focused="focusedNote && focusedNote.id == element.id"
         class="note"
+        :ref="`item-${element.id}`"
         v-model="items[items.indexOf(element)]"
         @check="check"
         @edit="setEditNote"
@@ -30,10 +31,14 @@ import draggable from "vuedraggable";
 import mitt from "mitt";
 import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
+import { scroll } from "quasar";
+const { getScrollTarget, setVerticalScrollPosition } = scroll;
 export const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
+const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
+const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
@@ -43,24 +48,30 @@ export default defineComponent({
     Item,
     draggable,
   },
+  created(){
+    console.log('created')
+    this.updatePositions();
+  },
   mounted() {
+    bus.on("revert", this.revert);
     if (this.select) {
       document.addEventListener("click", this.resetFocusedNote);
       document.addEventListener("keydown", this.onKeydown);
     } else {
       bus.on("focusNote", this.focusNote);
       bus.on("resetFocusedNote", this.resetFocusedNote);
-      //bus.on("trashNote", this.trashNote);
+      bus.on("trash", this.trashNote);
     }
   },
   unmounted() {
+    bus.off("revert", this.revert);
     if (this.select) {
       document.removeEventListener("click", this.resetFocusedNote);
       document.removeEventListener("keydown", this.onKeydown);
     } else {
       bus.off("focusNote", this.focusNote);
       bus.off("resetFocusedNote", this.resetFocusedNote);
-      //bus.off("trashNote", this.trashNote);
+      bus.off("trash", this.trashNote);
     }
   },
   data() {
@@ -72,7 +83,7 @@ export default defineComponent({
       loading: false,
       editNote: null,
       checkTimeout: null,
-      recBlocker: false
+      recBlocker: false,
     };
   },
   props: {
@@ -140,10 +151,10 @@ export default defineComponent({
     },
   },
   methods: {
-    dragStart(e, item){
-      if(item.__typename.includes('_note')){
+    dragStart(e, item) {
+      if (item.__typename.includes("_note")) {
         e.dataTransfer.setData("note", JSON.stringify(item));
-      }else{
+      } else {
         e.dataTransfer.setData("project", JSON.stringify(item));
       }
     },
@@ -151,14 +162,28 @@ export default defineComponent({
       this.editNote = note;
       this.$emit("edit", note);
     },
+    scrollToElement(el) {
+      console.log(window.innerHeight, el.offsetTop - 200);
+      const target = getScrollTarget(el);
+      const offset = el.offsetTop - window.innerHeight / 3;
+      const duration = 500;
+      setVerticalScrollPosition(target, offset, duration);
+    },
+    scrollToItem() {
+      this.scrollToElement(this.$refs[`item-${this.focusedNote.id}`].$el);
+    },
     onKeydown(e) {
       if (!this.editNote && this.focusedNote) {
         if (e.keyCode === 8) {
           this.trashNote();
         } else if (e.keyCode == 38) {
+          e.preventDefault();
           this.selectionUp();
+          this.scrollToItem();
         } else if (e.keyCode == 40) {
+          e.preventDefault();
           this.selectionDown();
+          this.scrollToItem();
         }
       }
     },
@@ -169,12 +194,29 @@ export default defineComponent({
       //this.promiseQueue.push(p);
       return p;
     },
-    trashNote() {
-      console.log("trashNote!!!");
-      const note = this.focusedNote;
+    revert() {
+      const item = this.focusedNote;
+      console.log('list revert item', item);
+      if (!item) return;
+      this.removeItem(item);
+      if (item.deleted) {
+        console.log("revert", item);
+        this.mutateQueue({
+          mutation: item.__typename.includes("_note")
+            ? TRASH_NOTE
+            : TRASH_PROJECT,
+          variables: {
+            id: item.id,
+            deleted: false,
+          },
+        });
+      }
+    },
+    removeItem(item) {
       const index = this.items.findIndex(
-        (it) => it.id == note.id && it.__typename == note.__typename
+        (it) => it.id == item.id && it.__typename == item.__typename
       );
+      console.log("index", index);
       this.items.splice(index, 1);
       let next = this.items[index];
       if (!next) {
@@ -182,21 +224,31 @@ export default defineComponent({
         next = this.items[length - 1];
       }
       this.focusedNote = next;
+    },
+    trashNote() {
+      console.log("trashNote!!!");
+      const item = this.focusedNote;
+      if (!item) return;
+      this.removeItem(item);
 
-      if (note.deleted) {
+      if (item.deleted) {
         console.log("delete note!!");
         this.mutateQueue({
-          mutation: DELETE_NOTE,
+          mutation: item.__typename.includes("_note")
+            ? DELETE_NOTE
+            : DELETE_PROJECT,
           variables: {
-            id: note.id,
+            id: item.id,
           },
         });
       } else {
         console.log("trash note!!");
         this.mutateQueue({
-          mutation: TRASH_NOTE,
+          mutation: item.__typename.includes("_note")
+            ? TRASH_NOTE
+            : TRASH_PROJECT,
           variables: {
-            id: note.id,
+            id: item.id,
             deleted: true,
           },
         });
@@ -278,24 +330,24 @@ export default defineComponent({
       //this.loading = true;
       loading(true);
       item.done = !item.done;
-        if (this.checkTimeout) clearTimeout(this.checkTimeout);
-        this.checkTimeout = setTimeout(() => {
-          console.log("timeout", this.done, item.done === this.done);
-          if (item.done === this.done && !this.keep) {
-            const index = this.items.findIndex(
-              (it) => it.id == item.id && it.__typename == type
-            );
-            this.items.splice(index, 1);
-          }
-          this.mutateQueue({
-            mutation: type.includes('_note') ? CHECK_NOTE : CHECK_PROJECT,
-            variables: {
-              id: item.id,
-              done: item.done,
-              completed_at: item.done ? toDatabaseString(today()) : null,
-            },
-          });
-        }, 500);
+      if (this.checkTimeout) clearTimeout(this.checkTimeout);
+      this.checkTimeout = setTimeout(() => {
+        console.log("timeout", this.done, item.done === this.done);
+        if (item.done === this.done && !this.keep) {
+          const index = this.items.findIndex(
+            (it) => it.id == item.id && it.__typename == type
+          );
+          this.items.splice(index, 1);
+        }
+        this.mutateQueue({
+          mutation: type.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
+          variables: {
+            id: item.id,
+            done: item.done,
+            completed_at: item.done ? toDatabaseString(today()) : null,
+          },
+        });
+      }, 500);
     },
     //removeToCache(store, { data: note }) {
     //  const query = {
@@ -328,7 +380,6 @@ export default defineComponent({
     //    data,
     //  });
     //},
-    
   },
   computed: {
     user() {

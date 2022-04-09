@@ -52,6 +52,7 @@
         </h4>
 
         <list
+          v-if="project.notes.length"
           v-model="project.notes"
           :sort-mode="sortMode"
           :sort="sort"
@@ -63,7 +64,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn icon="add" @click="addNote" />
+        <slot name="toolbar" v-bind="{addNote, revert}" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -72,6 +73,7 @@
 <script>
 import { defineComponent } from "vue";
 import List from "src/components/list/List.vue";
+import { bus } from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
@@ -158,6 +160,12 @@ export default defineComponent({
     },
   },
   methods: {
+    revert(e){
+      // e.preventDefault();
+      e.stopPropagation();
+      console.log('revert')
+      bus.emit('revert');
+    },
     trashProject() {
       this.$apollo
         .mutate({
@@ -215,7 +223,7 @@ export default defineComponent({
           mutation: CREATE_NOTE,
           variables: {
             user_id: this.user.id,
-            [this.positionColumn]: this.maxPosition + 1,
+            [this.positionColumn]: this.maxPosition + 1, // We need all positions
             project_id: this.project.id,
             deadline: this.deadline ? toDatabaseString(this.deadline) : null,
           },

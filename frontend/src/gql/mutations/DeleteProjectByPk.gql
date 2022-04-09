@@ -1,0 +1,5 @@
+mutation DeleteProjectByPk($id: bigint!) {
+  note: delete_notes_project_by_pk(id: $id) {
+    deleted
+  }
+}

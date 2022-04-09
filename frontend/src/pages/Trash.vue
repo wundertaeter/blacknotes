@@ -1,5 +1,9 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" keep />
+  <project v-if="project" v-model="project" :sort="false" keep >
+    <template v-slot:toolbar="{revert}">
+      <q-btn icon="replay" @click="revert" />
+    </template>
+  </project>
 </template>
 
 <script>

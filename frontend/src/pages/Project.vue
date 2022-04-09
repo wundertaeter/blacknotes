@@ -1,5 +1,9 @@
 <template>
-  <project v-if="project" v-model="project" more/>
+  <project v-if="project" v-model="project" more>
+    <template v-slot:toolbar="{addNote}">
+      <q-btn icon="add" @click="addNote" />
+    </template>
+  </project>
 </template>
 
 <script>

@@ -25,7 +25,7 @@ export default defineComponent({
     mergeList() {
       if (this.notes && this.projects) {
         this.project.notes = [...this.notes, ...this.projects].sort(
-          (a, b) => new Date(a.today_position) - new Date(b.today_position)
+          (a, b) => a.today_position - b.today_position
         );
       }
     },
