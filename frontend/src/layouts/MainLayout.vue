@@ -150,7 +150,7 @@
         <q-list class="menu-section">
           <draggable
             v-model="projects"
-            group="people"
+            :group="{name: 'people', put: false}"
             @end="updatePositions"
             item-key="id"
           >

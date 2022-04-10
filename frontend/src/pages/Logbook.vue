@@ -6,6 +6,7 @@
     group-by="completed_at"
     icon="assignment_turned_in"
     title="Logbook"
+    :drop="false"
   />
 </template>
 
@@ -36,8 +37,8 @@ export default defineComponent({
         this.items = [...this.notes, ...this.projects].sort(
           (a, b) => new Date(a.deadline) - new Date(b.deadline)
         );
-        this.notes = null;
-        this.projects = null;
+        //this.notes = null;
+        //this.projects = null;
         console.log('new items', this.items);
       }
     },

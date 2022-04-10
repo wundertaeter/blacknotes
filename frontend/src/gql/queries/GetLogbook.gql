@@ -17,6 +17,7 @@ query GetLogbook($user_id: Int!) {
     id
     done
     deleted
+    user_id
     completed_at
   }
 }

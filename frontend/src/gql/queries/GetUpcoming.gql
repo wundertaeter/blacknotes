@@ -18,5 +18,6 @@ query GetUpcoming($user_id: Int!, $today: date!) {
     user_id
     deleted
     upcoming_position
+    user_id
   }
 }

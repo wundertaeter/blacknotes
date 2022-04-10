@@ -1,5 +1,9 @@
 mutation UpdateNoteProject($id: bigint!, $project_id: bigint!) {
-  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id}) {
+  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id, deleted: false, deleted_at: null, done: false, completed_at: null}) {
+    done
+    completed_at
+    deleted
+    deleted_at
     project_id
   }
 }

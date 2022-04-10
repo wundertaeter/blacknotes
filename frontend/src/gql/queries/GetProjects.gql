@@ -6,6 +6,7 @@ query GetProjects($user_id: Int!) {
     user_id
     position
     deleted
+    user_id
     done
   }
 }

@@ -35,6 +35,7 @@ import { scroll } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
 export const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
+const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
@@ -288,7 +289,8 @@ export default defineComponent({
       this.editNote = null;
     },
     updatePositions() {
-      const objs = [];
+      const notes = [];
+      const projects = [];
       const update_columns = ["deadline", this.positionColumn];
       for (let i = 0; i < this.items.length; i++) {
         this.items[i][this.positionColumn] = i;
@@ -297,13 +299,24 @@ export default defineComponent({
           obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
           this.items[i].deadline = this.deadline;
         }
-        this.$emit("update:modelValue", this.items);
-        objs.push(obj);
+        if(__typename.includes("_note")){
+          notes.push(obj);
+        }else{
+          projects.push(obj);
+        }
       }
+      this.$emit("update:modelValue", this.items);
       this.mutateQueue({
         mutation: SORT_NOTES,
         variables: {
-          objects: objs,
+          objects: notes,
+          update_columns: update_columns,
+        },
+      });
+      this.mutateQueue({
+        mutation: SORT_PROJECTS,
+        variables: {
+          objects: projects,
           update_columns: update_columns,
         },
       });

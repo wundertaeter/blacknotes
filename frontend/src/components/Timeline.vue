@@ -18,12 +18,13 @@
               @select="setFocusNote"
               @edit="setEditNote"
               :select="false"
-              sort-mode="upcoming"
+              :sort-mode="sortMode"
               group="people"
               v-model="items[date.title]"
               :deadline="date.date"
               :date-preview="false"
               :drop="drop"
+              :sort="sort"
             />
           </q-timeline-entry>
 
@@ -106,6 +107,11 @@ export default defineComponent({
       required: false,
       default: false,
     },
+    sort: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     title: {
       type: String,
       required: true,
@@ -113,6 +119,11 @@ export default defineComponent({
     icon: {
       type: String,
       required: true,
+    },
+    sortMode: {
+      type: String,
+      required: false,
+      default: "",
     },
   },
   mounted() {

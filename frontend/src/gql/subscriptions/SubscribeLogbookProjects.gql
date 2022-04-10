@@ -6,5 +6,6 @@ subscription SubscribeLogbookProjects($user_id: Int!) {
     done
     deleted
     completed_at
+    user_id
   }
 }

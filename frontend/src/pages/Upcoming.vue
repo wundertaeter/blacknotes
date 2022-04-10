@@ -4,9 +4,11 @@
     :start="tomorrow"
     group-by="deadline"
     drop
+    sort
     :timeline="7"
     icon="date_range"
     title="Upcoming"
+    sort-mode="upcoming"
   >
     <template v-slot:toolbar="{addNote}">
       <q-btn icon="add" @click="addNote" />

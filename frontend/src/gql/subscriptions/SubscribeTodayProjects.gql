@@ -6,5 +6,6 @@ subscription SubscribeTodayNotes($user_id: Int!) {
     done
     deleted
     today_position
+    user_id
   }
 }
