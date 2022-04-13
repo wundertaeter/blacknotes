@@ -150,7 +150,7 @@
         <q-list class="menu-section">
           <draggable
             v-model="projects"
-            :group="{name: 'people', put: false}"
+            :group="{ name: 'people', put: false }"
             @end="updatePositions"
             item-key="id"
           >
@@ -233,6 +233,7 @@ import UPDATE_NOTE_PROJECT from "src/gql/mutations/UpdateNoteProject.gql";
 import draggable from "vuedraggable";
 const UPDATE_PROJECT_NAME_BY_PK = require("src/gql/mutations/UpdateProjectNameByPk.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
+import { uuidv4 } from "src/common/utils.js";
 export default defineComponent({
   name: "MainLayout",
   components: {
@@ -334,12 +335,16 @@ export default defineComponent({
       this.leftDrawerOpen = !this.leftDrawerOpen;
     },
     createProject() {
+      const project = {
+        id: uuidv4(),
+        user_id: this.user.id,
+        position: this.maxPosition + 1,
+        icon: "radio_button_unchecked"
+      };
+      this.$store.commit('user/updateProjects', [...this.userProjects, project]);
       this.$apollo.mutate({
         mutation: CREATE_PROJECT,
-        variables: {
-          user_id: this.user.id,
-          position: this.maxPosition + 1,
-        },
+        variables: project,
       });
     },
   },

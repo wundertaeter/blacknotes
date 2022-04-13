@@ -1,4 +1,4 @@
-subscription SubscribeProject($id: bigint!) {
+subscription SubscribeProject($id: uuid!) {
   project: notes_project_by_pk(id: $id) {
     title
     id

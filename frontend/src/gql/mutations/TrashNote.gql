@@ -1,5 +1,5 @@
-mutation TrashNote($id: bigint!, $deleted: Boolean = true) {
-  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {deleted: $deleted, deleted_at: now}) {
+mutation TrashNote($id: uuid!, $deleted: Boolean = true, $deleted_at: timestamptz!) {
+  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {deleted: $deleted, deleted_at: $deleted_at}) {
     deleted
   }
 }

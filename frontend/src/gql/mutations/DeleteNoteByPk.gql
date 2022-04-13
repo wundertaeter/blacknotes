@@ -1,4 +1,4 @@
-mutation DeleteNoteByPk($id: bigint!) {
+mutation DeleteNoteByPk($id: uuid!) {
   note: delete_notes_note_by_pk(id: $id) {
     deleted
   }

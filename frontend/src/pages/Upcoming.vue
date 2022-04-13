@@ -1,6 +1,6 @@
 <template>
   <timeline
-    v-model="items"
+    :config="config"
     :start="tomorrow"
     group-by="deadline"
     drop
@@ -9,8 +9,9 @@
     icon="date_range"
     title="Upcoming"
     sort-mode="upcoming"
+    update-deadline
   >
-    <template v-slot:toolbar="{addNote}">
+    <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
     </template>
   </timeline>
@@ -31,86 +32,20 @@ export default defineComponent({
   },
   data() {
     return {
-      items: [],
-      notes: null,
-      projects: null,
+      config: {
+        query: GET_UPCOMING,
+        notes_subscription: SUBSCRIBE_UPCOMING_NOTES,
+        projects_subscription: SUBSCRIBE_UPCOMING_PROJECTS,
+        variables: {
+          user_id: this.$store.state.user.id,
+          today: toDatabaseString(today()),
+        },
+      },
     };
   },
   computed: {
-    user() {
-      return this.$store.state.user;
-    },
-    today() {
-      return today();
-    },
     tomorrow() {
       return tomorrow();
-    },
-  },
-  methods: {
-    mergeList() {
-      if (this.notes && this.projects) {
-        this.items = [...this.notes, ...this.projects].sort(
-          (a, b) => new Date(a.deadline) - new Date(b.deadline)
-        );
-      }
-    },
-  },
-  apollo: {
-    active_notes: {
-      query: GET_UPCOMING,
-      variables() {
-        return {
-          user_id: this.user.id,
-          today: toDatabaseString(this.today),
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.notes = data.active_notes;
-        this.projects = data.notes_project;
-        this.mergeList();
-        this.$apollo.skipAllQueries = true;
-      },
-    },
-    $subscribe: {
-      note_note: {
-        query: SUBSCRIBE_UPCOMING_NOTES,
-        variables() {
-          return {
-            user_id: this.user.id,
-            today: toDatabaseString(this.today),
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = data.active_notes;
-          this.mergeList();
-        },
-      },
-      notes_project: {
-        query: SUBSCRIBE_UPCOMING_PROJECTS,
-        variables() {
-          return {
-            user_id: this.user.id,
-            today: toDatabaseString(this.today),
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = data.notes_project;
-          this.mergeList();
-        },
-      },
     },
   },
 });

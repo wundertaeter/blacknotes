@@ -32,6 +32,7 @@ export default defineComponent({
       query() {
         return this.currentProject.done ? GET_PROJECT_DONE : GET_PROJECT;
       },
+      fetchPolicy: "cache-and-network",
       variables() {
         return {
           id: this.currentProject.id,

@@ -20,11 +20,13 @@
               :select="false"
               :sort-mode="sortMode"
               group="people"
-              v-model="items[date.title]"
-              :deadline="date.date"
+              :projects="items[date.title].projects"
+              :notes="items[date.title].notes"
+              :deadline="updateDeadline ? date.date : undefined"
               :date-preview="false"
               :drop="drop"
               :sort="sort"
+              :sortMethod="sortMethod"
             />
           </q-timeline-entry>
 
@@ -70,6 +72,8 @@ export default defineComponent({
   data() {
     return {
       items: {},
+      projects: [],
+      notes: [],
       deadlines: [],
       watchers: [],
       focusNote: null,
@@ -80,10 +84,6 @@ export default defineComponent({
     };
   },
   props: {
-    modelValue: {
-      type: Array,
-      required: true,
-    },
     timeline: {
       type: Number,
       required: false,
@@ -125,6 +125,15 @@ export default defineComponent({
       required: false,
       default: "",
     },
+    updateDeadline: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    config: {
+      type: Object,
+      required: false,
+    },
   },
   mounted() {
     let nextDate;
@@ -147,12 +156,6 @@ export default defineComponent({
     document.removeEventListener("keydown", this.onKeydown);
   },
   watch: {
-    modelValue: {
-      handler() {
-        this.updateData();
-      },
-      deep: true,
-    },
     focusNote: {
       handler(value) {
         console.log("emit focus note");
@@ -161,22 +164,35 @@ export default defineComponent({
     },
   },
   methods: {
+    sortMethod(a, b){
+      return a[this.positionColumn] - b[this.positionColumn]
+    },
     updateData() {
       console.log("update!!!????????");
       this.dates.forEach((date) => {
-        this.items[date.title] = [];
+        this.items[date.title] = {notes: [], projects: []};
       });
-      this.modelValue.forEach((note) => {
+      this.notes.forEach((note) => {
         let dateString = this.formatDate(note[this.groupBy]);
-        console.log("dateString", dateString, this.groupBy, note[this.groupBy]);
         if (!this.items[dateString]) {
           this.dates.push({
             title: dateString,
             date: new Date(note[this.groupBy]),
           });
-          this.items[dateString] = [];
+          this.items[dateString] = {notes: [], projects: []};
         }
-        this.items[dateString].push(note);
+        this.items[dateString].notes.push(note);
+      });
+      this.projects.forEach((note) => {
+        let dateString = this.formatDate(note[this.groupBy]);
+        if (!this.items[dateString]) {
+          this.dates.push({
+            title: dateString,
+            date: new Date(note[this.groupBy]),
+          });
+          this.items[dateString] = {notes: [], projects: []};
+        }
+        this.items[dateString].projects.push(note);
       });
       console.log("this.sorted", this.items, this.dates);
     },
@@ -356,6 +372,18 @@ export default defineComponent({
         ? this.formatDateBackwards(timestamp)
         : this.formatDateForward(timestamp);
     },
+    updateCache() {
+      if(!this.config?.query) return;
+      const apolloClient = this.$apollo.provider.defaultClient;
+      apolloClient.writeQuery({
+        query: this.config?.query,
+        data: {
+          active_notes: this.notes,
+          notes_project: this.projects,
+        },
+        variables: this.config?.variables,
+      });
+    },
   },
   computed: {
     user() {
@@ -368,7 +396,7 @@ export default defineComponent({
       const dates = [...this.dates]; //.filter(d => this.items[d.title].length);
       return this.backwards
         ? dates
-            .filter((d) => this.items[d.title].length)
+            .filter((d) => this.items[d.title].projects.length || this.items[d.title].notes.length)
             .sort((a, b) => b.date - a.date)
         : dates.sort((a, b) => a.date - b.date);
     },
@@ -379,6 +407,66 @@ export default defineComponent({
     },
     today() {
       return today();
+    },
+    positionColumn() {
+      return this.sortMode ? `${this.sortMode}_position` : "position";
+    },
+  },
+  apollo: {
+    active_notes: {
+      query() {
+        return this.config?.query;
+      },
+      fetchPolicy: "cache-first",
+      variables() {
+        return this.config?.variables;
+      },
+      skip() {
+        return !this.config?.query || !this.user.id;
+      },
+      result({ data }) {
+        console.log("result", data);
+        this.notes = data.active_notes ? JSON.parse(JSON.stringify(data.active_notes)) : [];
+        this.projects = data.notes_project ? JSON.parse(JSON.stringify(data.notes_project)) : [];
+        this.$apollo.skipAllQueries = true;
+        this.updateData();
+      },
+    },
+    $subscribe: {
+      active_notes: {
+        query() {
+          return this.config?.notes_subscription;
+        },
+        variables() {
+          return this.config?.variables;
+        },
+        skip() {
+          return !this.config?.notes_subscription || !this.user.id || this.user.loading;
+        },
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = JSON.parse(JSON.stringify(data.active_notes));
+          this.updateData();
+          this.updateCache();
+        },
+      },
+      notes_project: {
+        query() {
+          return this.config?.projects_subscription;
+        },
+        variables() {
+          return this.config?.variables;
+        },
+        skip() {
+          return !this.config?.projects_subscription || !this.user.id || this.user.loading;
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = JSON.parse(JSON.stringify(data.notes_project));
+          this.updateData();
+          this.updateCache();
+        },
+      },
     },
   },
 });

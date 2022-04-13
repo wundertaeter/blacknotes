@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+import uuid
 
 class Space(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='spaces')
     title = models.CharField(max_length=128, null=True, blank=True)
     icon = models.CharField(max_length=64, default="view_in_ar")
@@ -11,6 +12,7 @@ class Space(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
 class Project(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
     title = models.CharField(max_length=128, null=True, blank=True)
     icon = models.CharField(max_length=64, default="radio_button_unchecked")
@@ -27,6 +29,7 @@ class Project(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
 class Note(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')
     content = models.TextField()
     title = models.CharField(max_length=256)

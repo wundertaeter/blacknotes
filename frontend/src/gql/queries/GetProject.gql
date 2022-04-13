@@ -1,4 +1,4 @@
-query GetProject($id: bigint!) {
+query GetProject($id: uuid!) {
   project: notes_project_by_pk(id: $id) {
     title
     id

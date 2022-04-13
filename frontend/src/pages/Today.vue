@@ -1,5 +1,15 @@
 <template>
-  <project v-if="project" v-model="project" :deadline="today" sort-mode="today"/>
+  <project
+    v-if="project"
+    v-model="project"
+    :config="config"
+    :deadline="today"
+    sort-mode="today"
+  >
+    <template v-slot:toolbar="{ addNote }">
+      <q-btn icon="add" @click="addNote" />
+    </template>
+  </project>
 </template>
 
 <script>
@@ -16,80 +26,20 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Today", icon: "star", default: true, notes: [] },
-      notes: null,
-      projects: null,
+      project: { title: "Today", icon: "star", default: true },
+      config: {
+        query: GET_TODAY,
+        notes_subscription: SUBSCRIBE_TODAY_NOTES,
+        projects_subscription: SUBSCRIBE_TODAY_PROJECTS,
+        variables: {
+          user_id: this.$store.state.user.id,
+        },
+      },
     };
   },
-  methods: {
-    mergeList() {
-      if (this.notes && this.projects) {
-        this.project.notes = [...this.notes, ...this.projects].sort(
-          (a, b) => a.today_position - b.today_position
-        );
-      }
-    },
-  },
   computed: {
-    user() {
-      return this.$store.state.user;
-    },
     today() {
       return new Date();
-    },
-  },
-  apollo: {
-    active_notes: {
-      query: GET_TODAY,
-      variables() {
-        return {
-          user_id: this.user.id,
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.notes = data.active_notes;
-        this.projects = data.notes_project;
-        this.mergeList();
-        this.$apollo.skipAllQueries = true;
-      },
-    },
-    $subscribe: {
-      note_note: {
-        query: SUBSCRIBE_TODAY_NOTES,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = data.active_notes;
-          this.mergeList();
-        },
-      },
-      notes_project: {
-        query: SUBSCRIBE_TODAY_PROJECTS,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = data.notes_project;
-          this.mergeList();
-        },
-      },
     },
   },
 });

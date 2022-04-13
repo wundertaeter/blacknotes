@@ -1,21 +1,39 @@
 <template>
   <draggable
     v-model="items"
-    @add="updatePositions"
-    @sort="updatePositions"
     :sort="sort"
     :drop="drop"
+    @add="addEvent"
+    @remove="removeEvent"
+    @sort="sortEvent"
     :group="{ name: group, pull: drag, put: drop }"
     item-key="id"
   >
     <template #item="{ element }">
       <item
+        data-type="note"
+        :id="element.id"
+        v-if="element.__typename.includes('_note')"
         @dragstart="(e) => dragStart(e, element)"
         @click.stop="setFocusNote(element)"
         :focused="focusedNote && focusedNote.id == element.id"
         class="note"
         :ref="`item-${element.id}`"
-        v-model="items[items.indexOf(element)]"
+        v-model="notesCopy[notesCopy.indexOf(element)]"
+        @check="check"
+        @edit="setEditNote"
+        :date-preview="datePreview"
+      />
+      <item
+        v-else
+        data-type="project"
+        :id="element.id"
+        @dragstart="(e) => dragStart(e, element)"
+        @click.stop="setFocusNote(element)"
+        :focused="focusedNote && focusedNote.id == element.id"
+        class="note"
+        :ref="`item-${element.id}`"
+        v-model="projectsCopy[projectsCopy.indexOf(element)]"
         @check="check"
         @edit="setEditNote"
         :date-preview="datePreview"
@@ -29,7 +47,7 @@ import { defineComponent } from "vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
-import { toDatabaseString, today } from "src/common/date.js";
+import { toDatabaseString, today, formatDate } from "src/common/date.js";
 import { loading } from "src/common/system.js";
 import { scroll } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
@@ -43,17 +61,15 @@ const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
+import {getQueries} from "src/gql/queries";
 export default defineComponent({
   name: "NoteList",
   components: {
     Item,
     draggable,
   },
-  created(){
-    console.log('created')
-    this.updatePositions();
-  },
   mounted() {
+    console.log("items", this.items);
     bus.on("revert", this.revert);
     if (this.select) {
       document.addEventListener("click", this.resetFocusedNote);
@@ -77,21 +93,30 @@ export default defineComponent({
   },
   data() {
     return {
-      items: JSON.parse(JSON.stringify(this.modelValue)),
+      notesCopy: JSON.parse(JSON.stringify(this.notes)),
+      projectsCopy: JSON.parse(JSON.stringify(this.projects)),
       updateId: null,
       trashNoteTimeout: null,
       focusedNote: null,
       loading: false,
       editNote: null,
       checkTimeout: null,
-      recBlocker: false,
+      newItems: null,
     };
   },
-  props: {
-    modelValue: {
-      type: Object,
-      required: true,
+  watch: {
+    notes: {
+      handler(value) {
+        this.notesCopy = JSON.parse(JSON.stringify(value));
+      },
     },
+    projects: {
+      handler(value) {
+        this.projectsCopy = JSON.parse(JSON.stringify(value));
+      },
+    },
+  },
+  props: {
     group: {
       type: String,
       required: false,
@@ -140,15 +165,23 @@ export default defineComponent({
       required: false,
       default: false,
     },
-  },
-  watch: {
-    modelValue: {
-      handler(value) {
-        console.log("update note list", value);
-
-        this.items = JSON.parse(JSON.stringify(value));
+    notes: {
+      type: Array,
+      required: false,
+      default() {
+        return [];
       },
-      deep: true,
+    },
+    projects: {
+      type: Array,
+      required: false,
+      default() {
+        return [];
+      },
+    },
+    sortMethod: {
+      type: Function,
+      required: true,
     },
   },
   methods: {
@@ -192,24 +225,27 @@ export default defineComponent({
       loading(true);
       let p = this.$apollo.mutate(mutation);
       p.finally(() => loading(false));
-      //this.promiseQueue.push(p);
+      getQueries(mutation.variables).forEach(query => {
+        console.log('mutateQueue query', query);
+        this.addToCache(mutation.variables, query);
+      })
+
       return p;
     },
     revert() {
       const item = this.focusedNote;
-      console.log('list revert item', item);
+      console.log("list revert item", item);
       if (!item) return;
       this.removeItem(item);
       if (item.deleted) {
         console.log("revert", item);
+        item.deleted = false;
+        item.deleted_at = null;
         this.mutateQueue({
           mutation: item.__typename.includes("_note")
             ? TRASH_NOTE
             : TRASH_PROJECT,
-          variables: {
-            id: item.id,
-            deleted: false,
-          },
+          variables: item,
         });
       }
     },
@@ -225,6 +261,7 @@ export default defineComponent({
         next = this.items[length - 1];
       }
       this.focusedNote = next;
+      console.log("remove item", item);
     },
     trashNote() {
       console.log("trashNote!!!");
@@ -244,15 +281,31 @@ export default defineComponent({
         });
       } else {
         console.log("trash note!!");
+        item.deleted = true;
+        item.deleted_at = new Date();
         this.mutateQueue({
           mutation: item.__typename.includes("_note")
             ? TRASH_NOTE
             : TRASH_PROJECT,
-          variables: {
-            id: item.id,
-            deleted: true,
-          },
+          variables: item,
         });
+      }
+    },
+    // removeFromCache(item, query) {
+    //   const apolloClient = this.$apollo.provider.defaultClient;
+    //   const cacheData = apolloClient.readQuery(query);
+    //   console.log("removeFromCache data", cacheData);
+    // },
+    addToCache(item, query) {
+      const apolloClient = this.$apollo.provider.defaultClient;
+      const cacheData = apolloClient.readQuery(query);
+      console.log("addToCache data", cacheData);
+      if (cacheData) {
+        const data = {
+          ...cacheData,
+          [item.__typename]: [...cacheData[item.__typename], item],
+        };
+        apolloClient.writeQuery({ ...query, data });
       }
     },
     focusNote(note) {
@@ -288,55 +341,79 @@ export default defineComponent({
       this.focusedNote = null;
       this.editNote = null;
     },
-    updatePositions() {
+    removeEvent(e) {
+      console.log("removeEvent", e);
+      if (e.item.dataset.type == "note") {
+        this.notesCopy.splice(e.oldIndex, 1);
+      } else {
+        this.projectsCopy.splice(e.oldIndex, 1);
+      }
+    },
+    addEvent(e) {
+      console.log("addEvent", e);
+      if (e.item.dataset.type == "note") {
+        this.notesCopy.splice(
+          e.newIndex,
+          0,
+          this.newItems.find((item) => item.id == e.item.id)
+        );
+      } else {
+        this.projectsCopy.splice(
+          e.newIndex,
+          0,
+          this.newItems.find((item) => item.id == e.item.id)
+        );
+      }
+    },
+    sortEvent(e) {
+      this.updatePositions(this.newItems);
+    },
+    updatePositions(items) {
+      console.log("update positions", items);
+      if (!items) return;
       const notes = [];
       const projects = [];
       const update_columns = ["deadline", this.positionColumn];
-      for (let i = 0; i < this.items.length; i++) {
-        this.items[i][this.positionColumn] = i;
-        const { __typename, ...obj } = this.items[i];
+      let item;
+      for (let i = 0; i < items.length; i++) {
+        item = items[i];
+        console.log("note", item);
+        item[this.positionColumn] = i;
+
+        const { __typename, ...obj } = item;
         if (this.deadline) {
           obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
-          this.items[i].deadline = this.deadline;
+          item.deadline = this.deadline;
         }
-        if(__typename.includes("_note")){
+
+        if (item.__typename.includes("_note")) {
           notes.push(obj);
-        }else{
+        } else {
           projects.push(obj);
         }
       }
-      this.$emit("update:modelValue", this.items);
-      this.mutateQueue({
-        mutation: SORT_NOTES,
-        variables: {
-          objects: notes,
-          update_columns: update_columns,
-        },
-      });
-      this.mutateQueue({
-        mutation: SORT_PROJECTS,
-        variables: {
-          objects: projects,
-          update_columns: update_columns,
-        },
-      });
-    },
-    //updateCache(store, { data: { note } }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.currentProject.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //  data.notes = this.items;
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
 
+      if (notes.length) {
+        this.mutateQueue({
+          mutation: SORT_NOTES,
+          variables: {
+            objects: notes,
+            update_columns: update_columns,
+          },
+        });
+      }
+      if (projects.length) {
+        this.mutateQueue({
+          mutation: SORT_PROJECTS,
+          variables: {
+            objects: projects,
+            update_columns: update_columns,
+          },
+        });
+      }
+
+      this.newItems = null;
+    },
     check(item) {
       console.log("check note", item.__typename);
       const type = item.__typename;
@@ -362,37 +439,6 @@ export default defineComponent({
         });
       }, 500);
     },
-    //removeToCache(store, { data: note }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.project.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //
-    //  data.notes = data.notes.filter((n) => n.id != note.id);
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
-    //addToCache(store, { data: { note } }) {
-    //  const query = {
-    //    query: GET_PROJECT,
-    //    variables: {
-    //      id: this.project.id,
-    //    },
-    //  };
-    //  const data = JSON.parse(JSON.stringify(store.readQuery(query)));
-    //  data.notes = [...data.notes, note];
-    //  // Write back to the cache
-    //  store.writeQuery({
-    //    ...query,
-    //    data,
-    //  });
-    //},
   },
   computed: {
     user() {
@@ -400,6 +446,16 @@ export default defineComponent({
     },
     positionColumn() {
       return this.sortMode ? `${this.sortMode}_position` : "position";
+    },
+    items: {
+      get() {
+        return [...this.notesCopy, ...this.projectsCopy].sort(this.sortMethod);
+      },
+      set(newItems) {
+        console.log("set new value", newItems);
+        this.newItems = newItems;
+        // this.updatePositions(newValue);
+      },
     },
   },
 });

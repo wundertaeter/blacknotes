@@ -1,4 +1,4 @@
-mutation UpdateNoteProject($id: bigint!, $project_id: bigint!) {
+mutation UpdateNoteProject($id: uuid!, $project_id: uuid!) {
   note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id, deleted: false, deleted_at: null, done: false, completed_at: null}) {
     done
     completed_at

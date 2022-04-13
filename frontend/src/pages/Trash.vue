@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" keep >
+  <project v-if="project" v-model="project" :sort="false" keep :config="config">
     <template v-slot:toolbar="{revert}">
       <q-btn icon="replay" @click="revert" />
     </template>
@@ -8,8 +8,8 @@
 
 <script>
 import { defineComponent } from "vue";
-const SUBSCRIBE_TRASH_NOTES = require("src/gql/subscriptions/SubscribeTrashNotes.gql");
 const GET_TRASH = require("src/gql/queries/GetTrash.gql");
+const SUBSCRIBE_TRASH_NOTES = require("src/gql/subscriptions/SubscribeTrashNotes.gql");
 const SUBSCRIBE_TRASH_PROJECTS = require("src/gql/subscriptions/SubscribeTrashProjects.gql");
 import Project from "src/components/Project.vue";
 
@@ -20,78 +20,16 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Trash", icon: "delete", default: true, notes: [] },
-      projects: null,
-      notes: null,
+      project: { title: "Trash", icon: "delete", default: true },
+      config: {
+        query: GET_TRASH,
+        notes_subscription: SUBSCRIBE_TRASH_NOTES,
+        projects_subscription: SUBSCRIBE_TRASH_PROJECTS,
+        variables: {
+          user_id: this.$store.state.user.id,
+        },
+      },
     };
-  },
-  methods: {
-    mergeList() {
-      if (this.notes && this.projects) {
-        this.project.notes = [...this.notes, ...this.projects].sort(
-          (a, b) => new Date(b.deleted_at) - new Date(a.deleted_at)
-        );
-      }
-    },
-  },
-  computed: {
-    user() {
-      return this.$store.state.user;
-    },
-  },
-  apollo: {
-    notes_note: {
-      query: GET_TRASH,
-      variables() {
-        return {
-          user_id: this.user.id,
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.notes = data.notes_note;
-        this.projects = data.notes_project;
-        this.mergeList();
-        this.$apollo.skipAllQueries = true;
-      },
-    },
-    $subscribe: {
-      note_note: {
-        query: SUBSCRIBE_TRASH_NOTES,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = data.notes_note;
-          this.mergeList();
-        },
-      },
-      notes_project: {
-        query: SUBSCRIBE_TRASH_PROJECTS,
-        variables() {
-          return {
-            user_id: this.user.id,
-          };
-        },
-        skip() {
-          return !this.user.id || this.user.loading;
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = data.notes_project;
-          this.mergeList();
-        },
-      },
-    },
   },
 });
 </script>

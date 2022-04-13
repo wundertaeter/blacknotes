@@ -52,19 +52,21 @@
         </h4>
 
         <list
-          v-if="project.notes.length"
-          v-model="project.notes"
           :sort-mode="sortMode"
           :sort="sort"
           :select="select"
           :done="done"
           :keep="keep"
+          :config="config"
+          :notes="project.notes ? project.notes : notes"
+          :projects="projects"
+          :sortMethod="sortMethod"
         />
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <slot name="toolbar" v-bind="{addNote, revert}" />
+        <slot name="toolbar" v-bind="{ addNote, revert }" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -79,6 +81,8 @@ const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
+import { uuidv4 } from "src/common/utils.js";
+
 
 export default defineComponent({
   name: "PageIndex",
@@ -88,6 +92,8 @@ export default defineComponent({
   data() {
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
+      projects: [],
+      notes: [],
       timeout: null,
       moreShowing: false,
     };
@@ -131,7 +137,11 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false,
-    }
+    },
+    config: {
+      type: Object,
+      required: false,
+    },
   },
   watch: {
     modelValue: {
@@ -143,28 +153,27 @@ export default defineComponent({
   },
   computed: {
     maxPosition() {
-      const positions = this.project.notes.map(
+      const positions = (this.project.notes || this.notes).map(
         (note) => note[this.positionColumn]
       );
-      console.log("maxPosition", this.project.notes, positions);
       return positions.length ? Math.max(...positions) : 0;
     },
     user() {
       return this.$store.state.user;
-    },
-    projects() {
-      return this.user.projects;
     },
     positionColumn() {
       return this.sortMode ? `${this.sortMode}_position` : "position";
     },
   },
   methods: {
-    revert(e){
+    sortMethod(a, b) {
+      return a[this.positionColumn] - b[this.positionColumn];
+    },
+    revert(e) {
       // e.preventDefault();
       e.stopPropagation();
-      console.log('revert')
-      bus.emit('revert');
+      console.log("revert");
+      bus.emit("revert");
     },
     trashProject() {
       this.$apollo
@@ -177,7 +186,7 @@ export default defineComponent({
         .then((resp) => this.nextProject());
     },
     nextProject() {
-      const projects = [...this.projects];
+      const projects = [...this.user.projects];
       const index = projects.findIndex((p) => p.id == this.project.id);
       projects.splice(index, 1);
       let next = projects[index];
@@ -193,7 +202,7 @@ export default defineComponent({
     },
     checkProject() {
       loading(true);
-      console.log("projects", this.projects);
+      console.log("projects", this.user.projects);
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
@@ -217,20 +226,109 @@ export default defineComponent({
       }, 500);
     },
     addNote() {
-      console.log("hallo?????", this.positionColumn);
+      const note = {
+        __typename: "notes_note",
+        id: uuidv4(),
+        title: "",
+        content: "",
+        done: false,
+        deleted: false,
+        user_id: this.user.id,
+        [this.positionColumn]: this.maxPosition + 1,
+        project_id: this.project.id || null,
+        deadline: this.deadline ? toDatabaseString(this.deadline) : null,
+      };
+
+      if(this.project.notes){
+        this.project.notes = [...this.project.notes, note];
+      }else{
+        this.notes = [...this.notes, note];
+      }
+
       this.$apollo
         .mutate({
           mutation: CREATE_NOTE,
-          variables: {
-            user_id: this.user.id,
-            [this.positionColumn]: this.maxPosition + 1, // We need all positions
-            project_id: this.project.id,
-            deadline: this.deadline ? toDatabaseString(this.deadline) : null,
-          },
+          variables: note,
         })
-        .then((result) => {
-          this.project.notes.push(result.data.note);
-        });
+        .then(() => this.updateCache());
+    },
+    updateCache() {
+      if (!this.config?.query) return;
+      const apolloClient = this.$apollo.provider.defaultClient;
+      apolloClient.writeQuery({
+        query: this.config?.query,
+        data: {
+          active_notes: this.notes,
+          notes_project: this.projects,
+        },
+        variables: this.config?.variables,
+      });
+    },
+  },
+  apollo: {
+    active_notes: {
+      query() {
+        return this.config?.query;
+      },
+      fetchPolicy: "cache-first",
+      variables() {
+        return this.config?.variables;
+      },
+      skip() {
+        return !this.config?.query || !this.user.id;
+      },
+      result({ data }) {
+        console.log("result", data);
+        this.notes = data.active_notes
+          ? JSON.parse(JSON.stringify(data.active_notes))
+          : [];
+        this.projects = data.notes_project
+          ? JSON.parse(JSON.stringify(data.notes_project))
+          : [];
+        this.$apollo.skipAllQueries = true;
+      },
+    },
+    $subscribe: {
+      active_notes: {
+        query() {
+          return this.config?.notes_subscription;
+        },
+        variables() {
+          return this.config?.variables;
+        },
+        skip() {
+          return (
+            !this.config?.notes_subscription ||
+            !this.user.id ||
+            this.user.loading
+          );
+        },
+        result({ data }) {
+          console.log("note sub", data);
+          this.notes = JSON.parse(JSON.stringify(data.active_notes));
+          this.updateCache();
+        },
+      },
+      notes_project: {
+        query() {
+          return this.config?.projects_subscription;
+        },
+        variables() {
+          return this.config?.variables;
+        },
+        skip() {
+          return (
+            !this.config?.projects_subscription ||
+            !this.user.id ||
+            this.user.loading
+          );
+        },
+        result({ data }) {
+          console.log("project sub", data);
+          this.projects = JSON.parse(JSON.stringify(data.notes_project));
+          this.updateCache();
+        },
+      },
     },
   },
 });

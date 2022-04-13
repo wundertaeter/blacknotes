@@ -1,5 +1,5 @@
-mutation TrashProject($id: bigint!, $deleted: Boolean = true) {
-  project: update_notes_project_by_pk(pk_columns: {id: $id}, _set: {deleted: $deleted, deleted_at: now}) {
+mutation TrashProject($id: uuid!, $deleted: Boolean = true, $deleted_at: timestamptz!) {
+  project: update_notes_project_by_pk(pk_columns: {id: $id}, _set: {deleted: $deleted, deleted_at: $deleted_at}) {
     deleted
   }
 }
