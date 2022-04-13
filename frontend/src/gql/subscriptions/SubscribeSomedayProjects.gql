@@ -5,7 +5,9 @@ subscription SubscribeSomedayProjects($user_id: Int!) {
     id
     done
     deleted
+    today_position
     someday_position
+    anytime_position
     user_id
   }
 }

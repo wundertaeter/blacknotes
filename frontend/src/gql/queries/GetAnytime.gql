@@ -8,6 +8,8 @@ query GetAnytimeNotes($user_id: Int!) {
     user_id
     project_id
     deleted
+    today_position
+    someday_position
     anytime_position
   }
 }

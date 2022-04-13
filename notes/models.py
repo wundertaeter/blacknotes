@@ -24,7 +24,7 @@ class Project(models.Model):
     anytime_position = models.IntegerField(null=True, blank=True)
     done = models.BooleanField(default=False)
     deadline = models.DateField(null=True, blank=True)
-    completed_at = models.DateField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
@@ -41,6 +41,6 @@ class Note(models.Model):
     project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name='notes')
     deleted = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
-    completed_at = models.DateField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
     deleted_at = models.DateTimeField(null=True, blank=True)

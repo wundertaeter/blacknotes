@@ -5,6 +5,7 @@ const GET_SOMEDAY = require("src/gql/queries/GetSomeday.gql");
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const GET_ANYTIME = require("src/gql/queries/GetAnytime.gql");
 import { Store } from "src/store";
+import { toDatabaseString, today, formatDate } from "src/common/date";
 
 
 export function getQueries(item) {
@@ -31,7 +32,7 @@ export function getQueries(item) {
         if (dateString == "Today") {
             queries.push({
                 query: GET_TODAY,
-                variables: { user_id: user.id },
+                variables: { user_id: user.id, today: toDatabaseString(today()) },
             });
         } else if (dateString == "Someday") {
             queries.push({
@@ -40,7 +41,10 @@ export function getQueries(item) {
             });
         }
     } else {
-        queries.push(GET_ANYTIME);
+        queries.push({
+            query: GET_ANYTIME,
+            variables: { id: item.project_id },
+        });
     }
 
     if (item.project_id) {

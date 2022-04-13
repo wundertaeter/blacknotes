@@ -8,7 +8,7 @@
     :timeline="7"
     icon="date_range"
     title="Upcoming"
-    sort-mode="upcoming"
+    position-column="upcoming_position"
     update-deadline
   >
     <template v-slot:toolbar="{ addNote }">

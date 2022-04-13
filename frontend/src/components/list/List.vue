@@ -47,7 +47,8 @@ import { defineComponent } from "vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
-import { toDatabaseString, today, formatDate } from "src/common/date.js";
+import { toDatabaseString } from "src/common/date.js";
+import { getQueries } from "src/common/queries";
 import { loading } from "src/common/system.js";
 import { scroll } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
@@ -61,7 +62,6 @@ const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
-import {getQueries} from "src/gql/queries";
 export default defineComponent({
   name: "NoteList",
   components: {
@@ -150,10 +150,9 @@ export default defineComponent({
       required: false,
       default: true,
     },
-    sortMode: {
+    positionColumn: {
       type: String,
       required: false,
-      default: "",
     },
     done: {
       type: Boolean,
@@ -197,7 +196,6 @@ export default defineComponent({
       this.$emit("edit", note);
     },
     scrollToElement(el) {
-      console.log(window.innerHeight, el.offsetTop - 200);
       const target = getScrollTarget(el);
       const offset = el.offsetTop - window.innerHeight / 3;
       const duration = 500;
@@ -225,10 +223,10 @@ export default defineComponent({
       loading(true);
       let p = this.$apollo.mutate(mutation);
       p.finally(() => loading(false));
-      getQueries(mutation.variables).forEach(query => {
-        console.log('mutateQueue query', query);
+      getQueries(mutation.variables).forEach((query) => {
+        console.log("mutateQueue query", query);
         this.addToCache(mutation.variables, query);
-      })
+      });
 
       return p;
     },
@@ -271,7 +269,7 @@ export default defineComponent({
 
       if (item.deleted) {
         console.log("delete note!!");
-        this.mutateQueue({
+        this.$apollo.mutate({
           mutation: item.__typename.includes("_note")
             ? DELETE_NOTE
             : DELETE_PROJECT,
@@ -299,7 +297,7 @@ export default defineComponent({
     addToCache(item, query) {
       const apolloClient = this.$apollo.provider.defaultClient;
       const cacheData = apolloClient.readQuery(query);
-      console.log("addToCache data", cacheData);
+      console.log("addToCache data", cacheData, item.__typename);
       if (cacheData) {
         const data = {
           ...cacheData,
@@ -415,11 +413,12 @@ export default defineComponent({
       this.newItems = null;
     },
     check(item) {
-      console.log("check note", item.__typename);
+      console.log("check note", item);
       const type = item.__typename;
       //this.loading = true;
       loading(true);
       item.done = !item.done;
+      item.completed_at = new Date();
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         console.log("timeout", this.done, item.done === this.done);
@@ -431,11 +430,7 @@ export default defineComponent({
         }
         this.mutateQueue({
           mutation: type.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
-          variables: {
-            id: item.id,
-            done: item.done,
-            completed_at: item.done ? toDatabaseString(today()) : null,
-          },
+          variables: item,
         });
       }, 500);
     },
@@ -443,9 +438,6 @@ export default defineComponent({
   computed: {
     user() {
       return this.$store.state.user;
-    },
-    positionColumn() {
-      return this.sortMode ? `${this.sortMode}_position` : "position";
     },
     items: {
       get() {

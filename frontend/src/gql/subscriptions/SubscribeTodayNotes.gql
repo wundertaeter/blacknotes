@@ -1,5 +1,5 @@
-subscription SubscribeTodayNotes($user_id: Int!) {
-  active_notes(where: {_and: {user_id: {_eq: $user_id}, deadline: {_lte: Today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc}) {
+subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
+  active_notes(where: {_and: {user_id: {_eq: $user_id}, deadline: {_lte: $today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc}) {
     id
     title
     content
@@ -8,6 +8,8 @@ subscription SubscribeTodayNotes($user_id: Int!) {
     user_id
     project_id
     today_position
+    someday_position
+    anytime_position
     deleted
   }
 }

@@ -4,7 +4,7 @@
     v-model="project"
     :config="config"
     :deadline="today"
-    sort-mode="today"
+    position-column="today_position"
   >
     <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
@@ -18,7 +18,7 @@ const GET_TODAY = require("src/gql/queries/GetToday.gql");
 const SUBSCRIBE_TODAY_NOTES = require("src/gql/subscriptions/SubscribeTodayNotes.gql");
 const SUBSCRIBE_TODAY_PROJECTS = require("src/gql/subscriptions/SubscribeTodayProjects.gql");
 import Project from "src/components/Project.vue";
-
+import { toDatabaseString, today } from "src/common/date";
 export default defineComponent({
   name: "PageIndex",
   components: {
@@ -33,13 +33,14 @@ export default defineComponent({
         projects_subscription: SUBSCRIBE_TODAY_PROJECTS,
         variables: {
           user_id: this.$store.state.user.id,
+          today: toDatabaseString(today()),
         },
       },
     };
   },
   computed: {
     today() {
-      return new Date();
+      return today();
     },
   },
 });

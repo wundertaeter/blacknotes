@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" sort-mode="anytime" :config="config">
+  <project v-if="project" v-model="project" position-column="anytime_position" :config="config">
     <template v-slot:toolbar="{addNote}">
       <q-btn icon="add" @click="addNote" />
     </template>

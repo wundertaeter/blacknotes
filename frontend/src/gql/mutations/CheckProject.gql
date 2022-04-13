@@ -1,4 +1,4 @@
-mutation CheckProject($id: uuid!, $done: Boolean = true, $completed_at: date = null) {
+mutation CheckProject($id: uuid!, $done: Boolean = true, $completed_at: timestamptz = null) {
   project: update_notes_project_by_pk(pk_columns: {id: $id}, _set: {done: $done, completed_at: $completed_at}) {
     done
   }

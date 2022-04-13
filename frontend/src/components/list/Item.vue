@@ -1,7 +1,7 @@
 <template>
   <q-card
     style="cursor: grab"
-    :class="{ focused: focused }"
+    :class="{ focused: focused, item: true }"
     @dblclick="open"
   >
      <q-checkbox
@@ -316,7 +316,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .ProseMirror:focus {
   outline: none;
 }
@@ -335,5 +335,8 @@ export default {
 }
 .deadline {
   min-width: 100px;
+}
+.item {
+  border-radius: 5px;
 }
 </style>

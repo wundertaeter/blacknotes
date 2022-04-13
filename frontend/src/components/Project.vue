@@ -52,7 +52,7 @@
         </h4>
 
         <list
-          :sort-mode="sortMode"
+          :position-column="positionColumn"
           :sort="sort"
           :select="select"
           :done="done"
@@ -108,10 +108,9 @@ export default defineComponent({
       required: false,
       default: null,
     },
-    sortMode: {
+    positionColumn: {
       type: String,
-      required: false,
-      default: "",
+      required: false
     },
     select: {
       type: Boolean,
@@ -160,9 +159,6 @@ export default defineComponent({
     },
     user() {
       return this.$store.state.user;
-    },
-    positionColumn() {
-      return this.sortMode ? `${this.sortMode}_position` : "position";
     },
   },
   methods: {
@@ -227,13 +223,16 @@ export default defineComponent({
     },
     addNote() {
       const note = {
-        __typename: "notes_note",
+        __typename: "active_notes",
         id: uuidv4(),
         title: "",
         content: "",
         done: false,
         deleted: false,
         user_id: this.user.id,
+        today_position: null,
+        someday_position: null,
+        anytime_position: null,
         [this.positionColumn]: this.maxPosition + 1,
         project_id: this.project.id || null,
         deadline: this.deadline ? toDatabaseString(this.deadline) : null,

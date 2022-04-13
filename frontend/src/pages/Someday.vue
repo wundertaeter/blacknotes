@@ -4,7 +4,7 @@
     v-model="project"
     :deadline="someday"
     :config="config"
-    sort-mode="someday"
+    position-column="someday_position"
   >
     <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
