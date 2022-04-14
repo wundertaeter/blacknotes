@@ -5,9 +5,11 @@ subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
     id
     done
     deleted
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
     user_id
   }
 }

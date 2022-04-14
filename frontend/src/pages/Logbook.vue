@@ -25,6 +25,9 @@ export default defineComponent({
   },
   data() {
     return {
+      // const user_id = this.$store.state.user.id;
+      // const where = {_and: {user_id: {_eq: user_id}, deleted: {_eq: false}, done: {_eq: true}}};
+      // const group_by = {completed_at: desc};
       config: {
         query: GET_LOGBOOK,
         notes_subscription: SUBSCRIBE_LOGBOOK_NOTES,

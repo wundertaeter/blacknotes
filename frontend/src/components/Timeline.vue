@@ -142,10 +142,12 @@ export default defineComponent({
       } else {
         nextDate = date.addToDate(this.start, { day: d });
       }
+      console.log("nextDate", this.formatDate(nextDate));
       if (!this.dates.some((d) => d.title == this.formatDate(nextDate))) {
         this.dates.push({ title: this.formatDate(nextDate), date: nextDate });
       }
     }
+    console.log("dates", this.dates);
     this.updateData();
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
@@ -237,15 +239,17 @@ export default defineComponent({
       }
     },
     trashNote() {
-      const note = this.focusNote;
-      const groupBy = this.formatDate(note[this.groupBy]);
-      const index = this.items[groupBy].findIndex((n) => n.id == note.id);
+      const item = this.focusNote;
+      const groupBy = this.formatDate(item[this.groupBy]);
+      const type = item.__typename.includes("_note") ? 'notes' : 'projects'; 
+      const index = this.items[groupBy][type].findIndex((it) => it.id == item.id);
 
-      this.items[groupBy].splice(index, 1);
-      let next = this.items[groupBy][index];
+      this.items[groupBy][type].splice(index, 1);
+      this.items[groupBy][type] = [...this.items[groupBy][type]];
+      let next = this.items[groupBy][type][index];
       if (!next) {
-        const length = this.items[groupBy].length;
-        next = this.items[groupBy][length - 1];
+        const length = this.items[groupBy][type].length;
+        next = this.items[groupBy][type][length - 1];
       }
       const dates = [...this.dates];
       while (dates[0].title != groupBy) {
@@ -258,13 +262,11 @@ export default defineComponent({
         }
       }
       this.focusNote = next;
-
+      item.deleted = true;
+      item.deleted_at = new Date();
       this.mutateQueue({
         mutation: TRASH_NOTE,
-        variables: {
-          id: note.id,
-          deleted: true,
-        },
+        variables: item,
       });
     },
     resetFocusedNote() {
@@ -349,16 +351,13 @@ export default defineComponent({
     toDate(string) {
       return new Date(string);
     },
-    updatePositions(notes) {
-      console.log("upcoming updatePositions", dateString, notes);
-      console.log(this.items);
-      console.log("this.watchers", this.watchers);
-    },
     formatDateForward(timestamp) {
       if (isTomorrow(timestamp)) {
         return "Tomorrow";
-      } else if (isCurrentWeek(timestamp)) {
-        return date.formatDate(timestamp, "dddd");
+      }
+      let dateString = date.formatDate(timestamp, "dddd");
+      if (this.timelineDates.includes(dateString)) {
+        return dateString;
       }
       return date.formatDate(timestamp, "MMMM");
     },
@@ -408,6 +407,15 @@ export default defineComponent({
             )
             .sort((a, b) => b.date - a.date)
         : dates.sort((a, b) => a.date - b.date);
+    },
+    timelineDates() {
+      const dates = [];
+      for (let i = 0; i <= this.timeline; i++) {
+        dates.push(
+          date.formatDate(date.addToDate(this.today, { day: i }), "dddd")
+        );
+      }
+      return dates;
     },
     timelineEnd() {
       return this.backwards

@@ -9,8 +9,11 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     project_id
     deleted
     deleted_at
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
+    completed_at
   }
 }

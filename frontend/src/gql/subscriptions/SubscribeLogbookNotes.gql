@@ -9,8 +9,10 @@ subscription SubscribeLogbookNotes($user_id: Int!) {
     project_id
     deleted
     completed_at
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
   }
 }

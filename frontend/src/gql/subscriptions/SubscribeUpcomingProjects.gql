@@ -6,6 +6,10 @@ subscription SubscribeUpcomingNotes($user_id: Int!, $today: date!) {
     deadline
     user_id
     deleted
+    anytime_position
+    today_position
+    someday_position
+    anytime_position
     upcoming_position
     user_id
   }

@@ -6,9 +6,12 @@ subscription GetTrashProjects($user_id: Int!) {
     done
     deleted
     deleted_at
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
     user_id
+    completed_at
   }
 }

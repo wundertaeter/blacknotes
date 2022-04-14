@@ -7,9 +7,11 @@ subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
     deadline
     user_id
     project_id
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
     deleted
   }
 }

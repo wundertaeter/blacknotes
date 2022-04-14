@@ -298,11 +298,28 @@ export default defineComponent({
       const apolloClient = this.$apollo.provider.defaultClient;
       const cacheData = apolloClient.readQuery(query);
       console.log("addToCache data", cacheData, item.__typename);
+
       if (cacheData) {
-        const data = {
-          ...cacheData,
-          [item.__typename]: [...cacheData[item.__typename], item],
-        };
+        let type;
+        let data;
+        if (cacheData["project"]) {
+          data = {
+            project: {
+              ...cacheData.project,
+              notes: [...cacheData.project.notes, item],
+            },
+          };
+        } else {
+          if (item.__typename.includes("_note")) {
+            type = cacheData["active_notes"] ? "active_notes" : "notes_note";
+          } else {
+            type = "notes_project";
+          }
+          data = {
+            ...cacheData,
+            [type]: [...cacheData[type], item],
+          };
+        }
         apolloClient.writeQuery({ ...query, data });
       }
     },

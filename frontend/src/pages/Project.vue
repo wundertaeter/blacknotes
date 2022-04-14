@@ -10,8 +10,6 @@
 import { defineComponent } from "vue";
 const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
-const GET_PROJECT_DONE = require("src/gql/queries/GetProjectDone.gql");
-const SUBSCRIBE_PROJECT_DONE = require("src/gql/subscriptions/SubscribeProjectDone.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -30,12 +28,13 @@ export default defineComponent({
   apollo: {
     project: {
       query() {
-        return this.currentProject.done ? GET_PROJECT_DONE : GET_PROJECT;
+        return GET_PROJECT;
       },
       fetchPolicy: "cache-and-network",
       variables() {
         return {
           id: this.currentProject.id,
+          done: this.currentProject.done ? {} : {_eq: false}
         };
       },
       skip() {
@@ -46,11 +45,12 @@ export default defineComponent({
       },
       subscribeToMore: {
         document(){
-          return this.currentProject.done ? SUBSCRIBE_PROJECT_DONE : SUBSCRIBE_PROJECT
+          return SUBSCRIBE_PROJECT
         },
         variables() {
           return {
-            id: !this.user.id || this.currentProject?.id,
+            id: this.currentProject.id,
+            done: this.currentProject.done ? {} : {_eq: false}
           };
         },
         skip() {

@@ -8,8 +8,10 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     user_id
     project_id
     deleted
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
   }
 }

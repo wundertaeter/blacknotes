@@ -1,4 +1,4 @@
-query GetProject($id: uuid!) {
+query GetProject($id: uuid!, $done: Boolean_comparison_exp = {_eq: false}) {
   project: notes_project_by_pk(id: $id) {
     title
     id
@@ -6,17 +6,20 @@ query GetProject($id: uuid!) {
     deleted
     position
     done
-    notes(order_by: {position: asc}, where: {_and: {deleted: {_eq: false}, done: {_eq: false}}}) {
+    notes(order_by: {position: asc}, where: {_and: {deleted: {_eq: false}, done: $done}}) {
       id
-      position
       title
-      deleted
+      content
+      done
       deadline
       user_id
-      content
-      deadline
       project_id
-      done
+      deleted
+      anytime_position
+      today_position
+      someday_position
+      anytime_position
+      upcoming_position
     }
   }
 }

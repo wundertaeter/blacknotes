@@ -7,8 +7,10 @@ subscription SubscribeLogbookProjects($user_id: Int!) {
     deleted
     completed_at
     user_id
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
   }
 }

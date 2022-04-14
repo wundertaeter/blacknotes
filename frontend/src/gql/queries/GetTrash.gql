@@ -8,9 +8,12 @@ query GetTrash($user_id: Int!) {
     user_id
     project_id
     deleted_at
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
+    completed_at
     deleted
   }
 
@@ -21,9 +24,12 @@ query GetTrash($user_id: Int!) {
     done
     deleted
     deleted_at
+    anytime_position
     today_position
     someday_position
     anytime_position
+    upcoming_position
+    completed_at
     user_id
   }
 }
