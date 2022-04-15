@@ -228,6 +228,7 @@
 
 <script>
 import { defineComponent } from "vue";
+import { useQuasar, QSpinnerFacebook } from "quasar";
 import CREATE_PROJECT from "src/gql/mutations/CreateProject.gql";
 import UPDATE_NOTE_PROJECT from "src/gql/mutations/UpdateNoteProject.gql";
 import draggable from "vuedraggable";
@@ -239,11 +240,12 @@ export default defineComponent({
   components: {
     draggable,
   },
-  mounted() {
-    if (this.$route.name == "project" && !this.currentProject) {
-      this.$router.push("/today");
-    }
-  },
+  // mounted() {
+  //   console.log('Layout.vue mounted');
+  //   if (this.$route.name == "project" && !this.currentProject) {
+  //     this.$router.push("/today");
+  //   }
+  // },
   data() {
     return {
       leftDrawerOpen: true,
@@ -253,7 +255,10 @@ export default defineComponent({
     };
   },
   mounted() {
+    console.log('Layout.vue mounted');
     this.projects = JSON.parse(JSON.stringify(this.userProjects));
+    const $q = useQuasar();
+    $q.loading.hide();
   },
   watch: {
     userProjects: {

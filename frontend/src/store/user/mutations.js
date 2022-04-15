@@ -22,12 +22,13 @@ export function updateUser(state, data) {
 
 export function updateProjects(state, projects) {
     state.projects = projects;
+    const id = localStorage.getItem("currentProjectId");
+    state.currentProject = projects.find(p => p.id == id);
 }
 
 export function updateCurrentProject(state, currentProject) {
-    currentProject = JSON.stringify(currentProject);
-    localStorage.setItem('currentProject', currentProject);
-    state.currentProject = JSON.parse(currentProject);
+    localStorage.setItem('currentProjectId', currentProject.id);
+    state.currentProject = state.projects.find(p => p.id == currentProject.id);
 }
 
 export function updateLoading(state, loading) {

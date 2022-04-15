@@ -38,11 +38,13 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach(async (to, from, next) => {
+    console.log('before each')
     let user = Store.state.user;
     if (!user.id) {
       try {
         const resp = await axios.get("/get_user")
         Store.commit("user/initUser", resp.data.user);
+        console.log(resp.data.user)
       } catch { }
     }
     if (!user.id && !to.matched.some(record => record.meta.public)) {

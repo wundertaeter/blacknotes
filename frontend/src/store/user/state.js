@@ -1,8 +1,4 @@
 export default function () {
-  let currentProject = localStorage.getItem("currentProject");
-  if(currentProject){
-    currentProject = JSON.parse(currentProject);
-  }
   return {
     id: null,
     username: null,
@@ -10,7 +6,7 @@ export default function () {
     active: null,
     projects: [],
     //spaces: [],
-    currentProject: currentProject,
+    currentProject: null,
     loading: false
   }
 }
