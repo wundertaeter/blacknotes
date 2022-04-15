@@ -1,5 +1,5 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" keep :config="config">
+  <project v-if="project" v-model="project" :sort="false" keep :config="config" :sort-by="sortBy">
     <template v-slot:toolbar="{revert}">
       <q-btn icon="replay" @click="revert" />
     </template>
@@ -29,6 +29,11 @@ export default defineComponent({
           user_id: this.$store.state.user.id,
         },
       },
+      sortBy: {
+        column: 'deleted_at',
+        desc: true,
+        date: true,
+      }
     };
   },
 });

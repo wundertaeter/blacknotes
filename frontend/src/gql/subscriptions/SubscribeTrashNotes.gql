@@ -14,7 +14,6 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
-    completed_at
     project {
       title
     }

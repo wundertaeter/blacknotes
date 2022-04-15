@@ -23,7 +23,7 @@
         <div
           :class="{
             'col-6 text-left self-center ellipsis title': true,
-            'mrt-5': renderProjectTitle,
+            'display-project': renderProjectTitle,
           }"
         >
           {{ title ? title : "New To-Do" }}
@@ -353,8 +353,9 @@ export default {
   color: $grey;
   font-size: 70%;
 }
-.mrt-5 {
+.display-project {
   margin-top: 7.5px;
+  line-height: 80%;
 }
 .list-view {
   height: 55px;
@@ -372,6 +373,5 @@ export default {
 }
 .title {
   font-size: 20px;
-  line-height: 80%;
 }
 </style>

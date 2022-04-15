@@ -58,7 +58,7 @@
           :done="done"
           :keep="keep"
           :config="config"
-          :notes="project.notes ? project.notes : notes"
+          :notes="notes"
           :projects="projects"
           :sortMethod="sortMethod"
         />
@@ -89,10 +89,11 @@ export default defineComponent({
     List,
   },
   data() {
+    const project = JSON.parse(JSON.stringify(this.modelValue));
     return {
-      project: JSON.parse(JSON.stringify(this.modelValue)),
+      project: project,
       projects: [],
-      notes: [],
+      notes: project.notes ? project.notes : [],
       timeout: null,
       moreShowing: false,
     };
@@ -110,6 +111,16 @@ export default defineComponent({
     positionColumn: {
       type: String,
       required: false,
+    },
+    sortBy: {
+      type: Object,
+      required: false,
+      default(props) {
+        return {
+          column: props.positionColumn,
+          date: false,
+        };
+      },
     },
     select: {
       type: Boolean,
@@ -138,16 +149,23 @@ export default defineComponent({
     },
     config: {
       type: Object,
-      required: false,
+      required: true,
     },
   },
   watch: {
     modelValue: {
       handler(value) {
         this.project = JSON.parse(JSON.stringify(value));
+        this.notes = this.project.notes
       },
       deep: true,
     },
+    config: {
+      handler(){
+        this.$apollo.skipAllQueries = false;
+      },
+      deep: true
+    }
   },
   computed: {
     maxPosition() {
@@ -165,7 +183,15 @@ export default defineComponent({
   },
   methods: {
     sortMethod(a, b) {
-      return a[this.positionColumn] - b[this.positionColumn];
+      if (this.sortBy.date) {
+        return this.sortBy.desc
+          ? new Date(b[this.sortBy.column]) - new Date(a[this.sortBy.column])
+          : new Date(a[this.sortBy.column]) - new Date(b[this.sortBy.column]);
+      }else{
+        return this.sortBy.desc
+          ? b[this.sortBy.column] - a[this.sortBy.column]
+          : a[this.sortBy.column] - b[this.sortBy.column];
+      }
     },
     revert(e) {
       // e.preventDefault();
@@ -179,6 +205,7 @@ export default defineComponent({
           mutation: TRASH_PROJECT,
           variables: {
             id: this.project.id,
+            deleted_at: new Date(),
           },
         })
         .then((resp) => this.nextProject());
@@ -257,29 +284,29 @@ export default defineComponent({
         .then(() => this.updateCache());
     },
     updateCache() {
-      if (!this.config?.query) return;
+      if (!this.config.query) return;
       const apolloClient = this.$apollo.provider.defaultClient;
       apolloClient.writeQuery({
-        query: this.config?.query,
+        query: this.config.query,
         data: {
           active_notes: this.notes,
           notes_project: this.projects,
         },
-        variables: this.config?.variables,
+        variables: this.config.variables,
       });
     },
   },
   apollo: {
     active_notes: {
       query() {
-        return this.config?.query;
+        return this.config.query;
       },
       fetchPolicy: "cache-first",
       variables() {
-        return this.config?.variables;
+        return this.config.variables;
       },
       skip() {
-        return !this.config?.query || !this.user.id;
+        return !this.user.id;
       },
       result({ data }) {
         console.log("result", data);
@@ -295,14 +322,14 @@ export default defineComponent({
     $subscribe: {
       active_notes: {
         query() {
-          return this.config?.notes_subscription;
+          return this.config.notes_subscription;
         },
         variables() {
-          return this.config?.variables;
+          return this.config.variables;
         },
         skip() {
           return (
-            !this.config?.notes_subscription ||
+            !this.config.notes_subscription ||
             !this.user.id ||
             this.user.loading
           );
@@ -315,14 +342,14 @@ export default defineComponent({
       },
       notes_project: {
         query() {
-          return this.config?.projects_subscription;
+          return this.config.projects_subscription;
         },
         variables() {
-          return this.config?.variables;
+          return this.config.variables;
         },
         skip() {
           return (
-            !this.config?.projects_subscription ||
+            !this.config.projects_subscription ||
             !this.user.id ||
             this.user.loading
           );

@@ -1,6 +1,19 @@
 <template>
-  <project v-if="project" v-model="project" more  position-column="position">
-    <template v-slot:toolbar="{addNote}">
+  <project
+    v-if="currentProject"
+    v-model="currentProject"
+    more
+    :config="{
+        query: GET_PROJECT,
+        notes_subscription: SUBSCRIBE_PROJECT,
+        variables: {
+          project_id: currentProject.id,
+          done: currentProject.done ? {} : { _eq: false },
+        },
+      }"
+    position-column="position"
+  >
+    <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
     </template>
   </project>
@@ -17,52 +30,23 @@ export default defineComponent({
   components: {
     Project,
   },
+  data() {
+    return {
+      config: null,
+      GET_PROJECT,
+      SUBSCRIBE_PROJECT
+    };
+  },
+  created(){
+    if(!this.currentProject) this.$router.push('/today');
+
+  },
   computed: {
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
-    user(){
-      return this.$store.state.user
-    }
-  },
-  apollo: {
-    project: {
-      query() {
-        return GET_PROJECT;
-      },
-      fetchPolicy: "cache-and-network",
-      variables() {
-        return {
-          id: this.currentProject.id,
-          done: this.currentProject.done ? {} : {_eq: false}
-        };
-      },
-      skip() {
-        return !this.user.id || !this.currentProject;
-      },
-      result(result){
-        if(!result.data.project) this.$router.push('today');
-      },
-      subscribeToMore: {
-        document(){
-          return SUBSCRIBE_PROJECT
-        },
-        variables() {
-          return {
-            id: this.currentProject.id,
-            done: this.currentProject.done ? {} : {_eq: false}
-          };
-        },
-        skip() {
-          return !this.currentProject || this.user.loading;
-        },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (subscriptionData.data) {
-            return { project: subscriptionData.data.project };
-          }
-          return previousResult;
-        },
-      },
+    user() {
+      return this.$store.state.user;
     },
   },
 });

@@ -13,7 +13,6 @@ query GetTrash($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
-    completed_at
     deleted
     project {
       title
@@ -31,7 +30,6 @@ query GetTrash($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
-    completed_at
     user_id
   }
 }

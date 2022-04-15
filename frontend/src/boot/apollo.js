@@ -59,6 +59,31 @@ export default boot(
     // Default client.
     app.provide(ApolloClients, apolloClients);
     app.use(apolloProvider);
+
+
+
+    app.config.globalProperties.$addToCache = (item, query) => {
+      if (!item.__typename) return;
+      const cacheData = apolloClient.readQuery(query);
+      console.log("addToCache data", cacheData, item);
+
+      if (cacheData) {
+        let type;
+        let data;
+
+        if (item.__typename.includes("_note")) {
+          type = cacheData["active_notes"] ? "active_notes" : "notes_note";
+        } else {
+          type = "notes_project";
+        }
+        data = {
+          ...cacheData,
+          [type]: [...cacheData[type], item],
+        };
+
+        apolloClient.writeQuery({ ...query, data });
+      }
+    }
   }
 );
 

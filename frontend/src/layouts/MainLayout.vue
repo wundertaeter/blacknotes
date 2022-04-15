@@ -315,6 +315,7 @@ export default defineComponent({
       });
     },
     selectProject(project) {
+      console.log('selectProject', project);
       this.$store.commit("user/updateCurrentProject", project);
       this.$router.push("/");
     },

@@ -12,6 +12,5 @@ subscription GetTrashProjects($user_id: Int!) {
     anytime_position
     upcoming_position
     user_id
-    completed_at
   }
 }

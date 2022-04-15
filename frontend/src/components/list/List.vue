@@ -102,6 +102,7 @@ export default defineComponent({
       editNote: null,
       checkTimeout: null,
       newItems: null,
+      trigger: 0,
     };
   },
   watch: {
@@ -225,7 +226,7 @@ export default defineComponent({
       p.finally(() => loading(false));
       getQueries(mutation.variables).forEach((query) => {
         console.log("mutateQueue query", query);
-        this.addToCache(mutation.variables, query);
+        this.$addToCache(mutation.variables, query);
       });
 
       return p;
@@ -248,22 +249,42 @@ export default defineComponent({
       }
     },
     removeItem(item) {
-      const index = this.items.findIndex(
-        (it) => it.id == item.id && it.__typename == item.__typename
-      );
-      console.log("index", index);
-      this.items.splice(index, 1);
-      let next = this.items[index];
-      if (!next) {
-        const length = this.items.length;
-        next = this.items[length - 1];
+      let next;
+      if (item.__typename.includes("_note")) {
+        const index = this.notesCopy.findIndex(
+          (it) => it.id == item.id && it.__typename == item.__typename
+        );
+        console.log("note index", index);
+        console.log(this.items);
+        this.items = {
+          notes: this.notesCopy.filter(n => n.id != item.id),
+          projects: this.projectsCopy
+        }
+        console.log(this.items);
+        next = this.notesCopy[index];
+        if (!next) {
+          const length = this.notesCopy.length;
+          next = this.notesCopy[length - 1];
+        }
+      } else {
+        const index = this.projectsCopy.findIndex(
+          (it) => it.id == item.id && it.__typename == item.__typename
+        );
+        console.log("project index", index);
+        this.projectsCopy.splice(index, 1);
+        this.projectsCopy = [...this.projectsCopy];
+        next = this.projectsCopy[index];
+        if (!next) {
+          const length = this.projectsCopy.length;
+          next = this.projectsCopy[length - 1];
+        }
       }
       this.focusedNote = next;
       console.log("remove item", item);
     },
     trashNote() {
-      console.log("trashNote!!!");
       const item = this.focusedNote;
+      console.log("trashNote!!!", item);
       if (!item) return;
       this.removeItem(item);
 
@@ -294,36 +315,6 @@ export default defineComponent({
     //   const cacheData = apolloClient.readQuery(query);
     //   console.log("removeFromCache data", cacheData);
     // },
-    addToCache(item, query) {
-      if (!item.__typename) return;
-      const apolloClient = this.$apollo.provider.defaultClient;
-      const cacheData = apolloClient.readQuery(query);
-      console.log("addToCache data", cacheData, item);
-
-      if (cacheData) {
-        let type;
-        let data;
-        if (cacheData["project"]) {
-          data = {
-            project: {
-              ...cacheData.project,
-              notes: [...cacheData.project.notes, item],
-            },
-          };
-        } else {
-          if (item.__typename.includes("_note")) {
-            type = cacheData["active_notes"] ? "active_notes" : "notes_note";
-          } else {
-            type = "notes_project";
-          }
-          data = {
-            ...cacheData,
-            [type]: [...cacheData[type], item],
-          };
-        }
-        apolloClient.writeQuery({ ...query, data });
-      }
-    },
     focusNote(note) {
       this.focusedNote = note;
     },
@@ -463,7 +454,12 @@ export default defineComponent({
       },
       set(newItems) {
         console.log("set new value", newItems);
-        this.newItems = newItems;
+        if(newItems.notes && newItems.projects){
+          this.notesCopy = newItems.notes;
+          this.projectsCopy = newItems.projects;
+        }else{
+          this.newItems = newItems;
+        }
         // this.updatePositions(newValue);
       },
     },
