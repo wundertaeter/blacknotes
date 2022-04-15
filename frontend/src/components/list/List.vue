@@ -427,7 +427,9 @@ export default defineComponent({
       //this.loading = true;
       loading(true);
       item.done = !item.done;
-      item.completed_at = new Date();
+      if(item.done){
+        item.completed_at = new Date();
+      }
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         console.log("timeout", this.done, item.done === this.done);

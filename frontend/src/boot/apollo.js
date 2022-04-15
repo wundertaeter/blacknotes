@@ -75,6 +75,7 @@ export default boot(
           type = cacheData["active_notes"] ? "active_notes" : "notes_note";
         } else {
           type = "notes_project";
+          if(!cacheData.notes_project) return;
         }
         data = {
           ...cacheData,

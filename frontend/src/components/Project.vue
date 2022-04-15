@@ -27,7 +27,14 @@
                     <q-item-label> Delete </q-item-label>
                   </q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="
+                    project.done = true;
+                    checkProject();
+                  "
+                >
                   <q-item-section avatar>
                     <q-icon name="done" />
                   </q-item-section>
@@ -81,6 +88,7 @@ const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
+import { getQueries } from "src/common/queries";
 import { uuidv4 } from "src/common/utils.js";
 
 export default defineComponent({
@@ -156,16 +164,16 @@ export default defineComponent({
     modelValue: {
       handler(value) {
         this.project = JSON.parse(JSON.stringify(value));
-        this.notes = this.project.notes
+        this.notes = this.project.notes;
       },
       deep: true,
     },
     config: {
-      handler(){
+      handler() {
         this.$apollo.skipAllQueries = false;
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   computed: {
     maxPosition() {
@@ -180,14 +188,42 @@ export default defineComponent({
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
+    newNote(){
+      return {
+        __typename: "active_notes",
+        id: uuidv4(),
+        title: "",
+        content: "",
+        done: false,
+        deleted: false,
+        user_id: this.user.id,
+        upcoming_position: null,
+        today_position: null,
+        someday_position: null,
+        anytime_position: null,
+        [this.positionColumn]: this.maxPosition + 1,
+        project_id: this.project.id || null,
+        deadline: this.deadline ? toDatabaseString(this.deadline) : null,
+      };
+    }
   },
   methods: {
+    mutateQueue(mutation) {
+      loading(true);
+      let p = this.$apollo.mutate(mutation);
+      p.finally(() => loading(false));
+      getQueries(mutation.variables).forEach((query) => {
+        console.log("mutateQueue query", query);
+        this.$addToCache(mutation.variables, query);
+      });
+      return p;
+    },
     sortMethod(a, b) {
       if (this.sortBy.date) {
         return this.sortBy.desc
           ? new Date(b[this.sortBy.column]) - new Date(a[this.sortBy.column])
           : new Date(a[this.sortBy.column]) - new Date(b[this.sortBy.column]);
-      }else{
+      } else {
         return this.sortBy.desc
           ? b[this.sortBy.column] - a[this.sortBy.column]
           : a[this.sortBy.column] - b[this.sortBy.column];
@@ -231,18 +267,14 @@ export default defineComponent({
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
-        this.$apollo
-          .mutate({
-            mutation: CHECK_PROJECT,
-            variables: {
-              id: this.project.id,
-              done: this.project.done,
-              completed_at: this.project.done
-                ? toDatabaseString(today())
-                : null,
-            },
-          })
-          .finally(() => loading(false));
+
+        this.project.completed_at = this.project.done
+          ? toDatabaseString(today())
+          : null;
+        this.mutateQueue({
+          mutation: CHECK_PROJECT,
+          variables: this.project,
+        });
         if (this.project.done) {
           this.nextProject();
         } else {
@@ -251,30 +283,12 @@ export default defineComponent({
       }, 500);
     },
     addNote() {
-      const note = {
-        __typename: "active_notes",
-        id: uuidv4(),
-        title: "",
-        content: "",
-        done: false,
-        deleted: false,
-        user_id: this.user.id,
-        today_position: null,
-        someday_position: null,
-        anytime_position: null,
-        [this.positionColumn]: this.maxPosition + 1,
-        project_id: this.project.id || null,
-        deadline: this.deadline ? toDatabaseString(this.deadline) : null,
-      };
+      const note = this.newNote;
       if (this.$route.name == "project" && this.currentProject) {
         note.project = this.currentProject;
       }
 
-      if (this.project.notes) {
-        this.project.notes = [...this.project.notes, note];
-      } else {
-        this.notes = [...this.notes, note];
-      }
+      this.notes = [...this.notes, note];
 
       this.$apollo
         .mutate({

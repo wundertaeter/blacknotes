@@ -5,12 +5,17 @@ query GetUserData($id: Int!) {
     admin: is_superuser
   }
   projects: notes_project(order_by: {position: asc}, where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
-    id
     title
     icon
-    user_id
-    position
-    deleted
+    id
     done
+    deleted
+    user_id
+    completed_at
+    anytime_position
+    today_position
+    someday_position
+    anytime_position
+    upcoming_position
   }
 }

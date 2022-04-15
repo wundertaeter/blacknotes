@@ -38,7 +38,6 @@ export default defineComponent({
     };
   },
   created(){
-    console.log('id ', this.id)
     if(!this.currentProject) this.$router.push('/today');
   },
   computed: {

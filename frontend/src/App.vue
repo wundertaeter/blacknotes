@@ -55,6 +55,12 @@ export default defineComponent({
         result(data) {
           this.$store.commit("user/updateProjects", data.projects);
         },
+        updateQuery: (previousResult, { subscriptionData }) => {
+          return {
+            ...previousResult,
+            projects: subscriptionData.data.projects
+          }
+        },
       },
     },
   },

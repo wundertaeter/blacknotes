@@ -51,6 +51,8 @@ const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 import List from "src/components/list/List.vue";
 import { bus } from "src/components/list/List.vue";
 import { loading } from "src/common/system.js";
+import { getQueries } from "src/common/queries";
+import { uuidv4 } from "src/common/utils.js";
 import {
   toDatabaseString,
   isToday,
@@ -165,10 +167,20 @@ export default defineComponent({
     },
   },
   methods: {
+    mutateQueue(mutation) {
+      loading(true);
+      let p = this.$apollo.mutate(mutation);
+      p.finally(() => loading(false));
+      getQueries(mutation.variables).forEach((query) => {
+        console.log("mutateQueue query", query);
+        this.$addToCache(mutation.variables, query);
+      });
+      return p;
+    },
     sortMethod(a, b) {
       return this.positionColumn
         ? a[this.positionColumn] - b[this.positionColumn]
-        : new Date(b[this.groupBy]) - new Date(a[this.groupBy]);
+        : new Date(a[this.groupBy]) - new Date(b[this.groupBy]);
     },
     updateData() {
       console.log("update!!!????????");
@@ -199,30 +211,14 @@ export default defineComponent({
       });
       console.log("this.sorted", this.items, this.dates);
     },
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      //this.promiseQueue.push(p);
-      return p;
-    },
     addNote() {
-      const deadline = this.focusNote
-        ? this.focusNote.deadline
-        : this.editNote
-        ? this.editNote.deadline
-        : this.start;
-      this.mutateQueue({
+      const note = this.newNote;
+      const dateString = this.formatDate(this.selectedDeadline);
+      this.items[dateString].notes = [...this.items[dateString].notes, note];
+      this.$apollo.mutate({
         mutation: CREATE_NOTE,
-        variables: {
-          user_id: this.user.id,
-          position: 0,
-          project_id: null,
-          deadline: toDatabaseString(deadline),
-        },
-      }).then((result) => {
-        this.items[this.formatDate(deadline)].push(result.data.note);
-      });
+        variables: note,
+      })
     },
     onKeydown(e) {
       console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
@@ -425,6 +421,35 @@ export default defineComponent({
     today() {
       return today();
     },
+    selectedDeadline(){
+      return this.focusNote
+        ? this.focusNote.deadline
+        : this.editNote
+        ? this.editNote.deadline
+        : this.start;
+    },
+    newNote(){
+      const deadline = this.selectedDeadline;
+      const items = this.items[this.formatDate(deadline)];
+      const positions = [...items.notes, ...items.projects].map(it => it[this.positionColumn])
+      const maxPosition = positions.length ? Math.max(...positions) : 0;
+      return {
+        __typename: "active_notes",
+        id: uuidv4(),
+        title: "",
+        content: "",
+        done: false,
+        deleted: false,
+        user_id: this.user.id,
+        upcoming_position: null,
+        today_position: null,
+        someday_position: null,
+        anytime_position: null,
+        [this.positionColumn]: maxPosition + 1,
+        project_id: null,
+        deadline: toDatabaseString(deadline),
+      };
+    }
   },
   apollo: {
     active_notes: {

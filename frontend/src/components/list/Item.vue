@@ -22,7 +22,7 @@
       <div class="row justify-center list-view" v-if="!edit">
         <div
           :class="{
-            'col-6 text-left self-center ellipsis title': true,
+            'col-6 text-left self-center ellipsis': true,
             'display-project': renderProjectTitle,
           }"
         >
@@ -370,8 +370,5 @@ export default {
   position: absolute;
   top: 24px;
   z-index: 999;
-}
-.title {
-  font-size: 20px;
 }
 </style>
