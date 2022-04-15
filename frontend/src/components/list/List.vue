@@ -396,7 +396,7 @@ export default defineComponent({
         console.log("note", item);
         item[this.positionColumn] = i;
 
-        const { __typename, ...obj } = item;
+        const { __typename, project, ...obj } = item;
         if (this.deadline) {
           obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
           item.deadline = this.deadline;

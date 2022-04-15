@@ -19,7 +19,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { name: "Anytime", icon: "reorder", default: true },
+      project: { title: "Anytime", icon: "reorder", default: true },
       config: {
         query: GET_ANYTIME_NOTES,
         notes_subscription: SUBSCRIBE_ANYTIME_NOTES,

@@ -1,9 +1,5 @@
 <template>
-  <q-card
-    style="cursor: grab"
-    :class="{ focused: focused, item: true }"
-    @dblclick="open"
-  >
+  <q-card flat :class="{ focused: focused, item: true }" @dblclick="open">
     <q-checkbox
       v-if="modelValue.icon"
       v-model="done"
@@ -211,9 +207,9 @@ export default {
     someday() {
       return someday();
     },
-    renderProjectTitle(){
+    renderProjectTitle() {
       return this.$route.name != "project" && this.modelValue.project;
-    }
+    },
   },
   methods: {
     mutateQueue(mutation) {
@@ -350,13 +346,15 @@ export default {
 }
 .item {
   border-radius: 5px;
+  cursor: grab;
+  /*background-color: transparent;*/
 }
 .project-title {
   color: $grey;
   font-size: 70%;
 }
 .mrt-5 {
-  margin-top: 5px;
+  margin-top: 7.5px;
 }
 .list-view {
   height: 55px;
@@ -372,8 +370,8 @@ export default {
   top: 24px;
   z-index: 999;
 }
-.title{
+.title {
   font-size: 20px;
-  line-height: 70%;
+  line-height: 80%;
 }
 </style>
