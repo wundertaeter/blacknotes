@@ -7,11 +7,11 @@ import { useQuasar, QSpinnerFacebook } from "quasar";
 import { useStore } from "vuex";
 const GET_USER_DATA = require("src/gql/queries/GetUserData.gql");
 const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
-const GET_PROJECTS = require("src/gql/queries/GetProjects.gql");
 
 export default defineComponent({
   name: "App",
   setup() {
+    console.log("App setup");
     const $q = useQuasar();
     $q.loading.show({
       spinner: QSpinnerFacebook,
@@ -23,10 +23,8 @@ export default defineComponent({
     });
     $q.dark.set(true);
     const store = useStore();
-    const user = computed(() => store.state.user);
-    // watch(() => user.value.projects, $q.loading.hide);
     return {
-      user,
+      user: computed(() => store.state.user),
     };
   },
   apollo: {
@@ -44,24 +42,6 @@ export default defineComponent({
       skip() {
         return !this.user.id;
       },
-    },
-    projects: {
-      query: GET_PROJECTS,
-      fetchPolicy: "cache-first",
-      variables() {
-        return {
-          user_id: this.user.id,
-        };
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result(result) {
-        let projects = result.data.projects.map((p) => {
-          return { ...p, edit: !p.title };
-        });
-        this.$store.commit("user/updateProjects", projects);
-      },
       subscribeToMore: {
         document: SUBSCRIBE_PROJECTS,
         variables() {
@@ -73,10 +53,7 @@ export default defineComponent({
           return !this.user.id;
         },
         result(data) {
-          let projects = data.projects.map((p) => {
-            return { ...p, edit: !p.title };
-          });
-          this.$store.commit("user/updateProjects", projects);
+          this.$store.commit("user/updateProjects", data.projects);
         },
       },
     },

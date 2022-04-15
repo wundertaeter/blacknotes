@@ -4,13 +4,13 @@ query GetUserData($id: Int!) {
     username
     admin: is_superuser
   }
-  #spaces: notes_space(where: {user_id: {_eq: $id}}) {
-  #  id
-  #  title
-  #}
-  #projects: notes_project(where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}}) {
-  #  id
-  #  title
-  #  icon
-  #}
+  projects: notes_project(order_by: {position: asc}, where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
+    id
+    title
+    icon
+    user_id
+    position
+    deleted
+    done
+  }
 }
