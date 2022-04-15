@@ -13,5 +13,8 @@ subscription SubscribeUpcomingNotes($user_id: Int!, $today: date!) {
     anytime_position
     upcoming_position
     deleted
+    project {
+      title
+    }
   }
 }

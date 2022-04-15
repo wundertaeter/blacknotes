@@ -13,5 +13,8 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
+    project {
+      title
+    }
   }
 }

@@ -13,6 +13,9 @@ query GetUpcoming($user_id: Int!, $today: date!) {
     anytime_position
     upcoming_position
     deleted
+    project {
+      title
+    }
   }
   notes_project(where: {_and: {user_id: {_eq: $user_id}, deadline: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc}) {
     id

@@ -20,6 +20,9 @@ query GetProject($id: uuid!, $done: Boolean_comparison_exp = {_eq: false}) {
       someday_position
       anytime_position
       upcoming_position
+      project {
+        title
+      }
     }
   }
 }

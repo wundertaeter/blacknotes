@@ -339,9 +339,12 @@ export default defineComponent({
         id: uuidv4(),
         user_id: this.user.id,
         position: this.maxPosition + 1,
-        icon: "radio_button_unchecked"
+        icon: "radio_button_unchecked",
       };
-      this.$store.commit('user/updateProjects', [...this.userProjects, project]);
+      this.$store.commit("user/updateProjects", [
+        ...this.userProjects,
+        project,
+      ]);
       this.$apollo.mutate({
         mutation: CREATE_PROJECT,
         variables: project,

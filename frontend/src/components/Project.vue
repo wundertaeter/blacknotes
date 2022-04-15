@@ -83,7 +83,6 @@ import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
 import { uuidv4 } from "src/common/utils.js";
 
-
 export default defineComponent({
   name: "PageIndex",
   components: {
@@ -110,7 +109,7 @@ export default defineComponent({
     },
     positionColumn: {
       type: String,
-      required: false
+      required: false,
     },
     select: {
       type: Boolean,
@@ -159,6 +158,9 @@ export default defineComponent({
     },
     user() {
       return this.$store.state.user;
+    },
+    currentProject() {
+      return this.$store.getters["user/getCurrentProject"];
     },
   },
   methods: {
@@ -237,10 +239,13 @@ export default defineComponent({
         project_id: this.project.id || null,
         deadline: this.deadline ? toDatabaseString(this.deadline) : null,
       };
+      if (this.$route.name == "project" && this.currentProject) {
+        note.project = this.currentProject;
+      }
 
-      if(this.project.notes){
+      if (this.project.notes) {
         this.project.notes = [...this.project.notes, note];
-      }else{
+      } else {
         this.notes = [...this.notes, note];
       }
 

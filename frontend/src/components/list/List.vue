@@ -295,9 +295,10 @@ export default defineComponent({
     //   console.log("removeFromCache data", cacheData);
     // },
     addToCache(item, query) {
+      if (!item.__typename) return;
       const apolloClient = this.$apollo.provider.defaultClient;
       const cacheData = apolloClient.readQuery(query);
-      console.log("addToCache data", cacheData, item.__typename);
+      console.log("addToCache data", cacheData, item);
 
       if (cacheData) {
         let type;

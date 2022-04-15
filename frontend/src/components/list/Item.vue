@@ -4,28 +4,37 @@
     :class="{ focused: focused, item: true }"
     @dblclick="open"
   >
-     <q-checkbox
-        v-if="modelValue.icon"
-        v-model="done"
-        size="lg"
-        color="orange"
-        checked-icon="radio_button_checked"
-        :unchecked-icon="modelValue.icon"
-        indeterminate-icon="help"
-        style="position: absolute; top: 19px; left: -5px; z-index: 999"
-        @update:modelValue="$emit('check', modelValue)"
-      />   
+    <q-checkbox
+      v-if="modelValue.icon"
+      v-model="done"
+      size="lg"
+      color="orange"
+      checked-icon="radio_button_checked"
+      :unchecked-icon="modelValue.icon"
+      indeterminate-icon="help"
+      class="icon-checkbox"
+      @update:modelValue="$emit('check', modelValue)"
+    />
     <q-checkbox
       v-else
       v-model="done"
       @update:modelValue="$emit('check', modelValue)"
-      style="position: absolute; top: 24px; z-index: 999"
+      class="checkbox"
       color="orange"
     />
     <q-card-section class="text-white editor">
-      <div class="row justify-center" style="height: 55px" v-if="!edit">
-        <div class="col-6 text-left self-center ellipsis">
+      <div class="row justify-center list-view" v-if="!edit">
+        <div
+          :class="{
+            'col-6 text-left self-center ellipsis title': true,
+            'mrt-5': renderProjectTitle,
+          }"
+        >
           {{ title ? title : "New To-Do" }}
+          <br />
+          <span v-if="renderProjectTitle" class="project-title">
+            {{ modelValue.project.title }}
+          </span>
         </div>
         <div class="col-6 text-right self-center ellipsis">
           <span class="deadline" v-if="deadline && datePreview">
@@ -34,28 +43,28 @@
           </span>
         </div>
       </div>
-      <q-input
-        v-if="edit"
-        :readonly="readonly"
-        borderless
-        ref="title"
-        :autofocus="autofocus"
-        v-model="title"
-        @update:modelValue="updateModelValue"
-        placeholder="New To-Do"
-      />
-      <q-input
-        v-if="edit && focused"
-        v-model="content"
-        borderless
-        @focus="onContentFocus"
-        @blur="onContentBlur"
-        ref="content"
-        class="content-area"
-        type="textarea"
-        placeholder="Notes"
-        @update:modelValue="updateModelValue"
-      />
+      <div v-else>
+        <q-input
+          :readonly="readonly"
+          borderless
+          ref="title"
+          :autofocus="autofocus"
+          v-model="title"
+          @update:modelValue="updateModelValue"
+          placeholder="New To-Do"
+        />
+        <q-input
+          v-model="content"
+          borderless
+          @focus="onContentFocus"
+          @blur="onContentBlur"
+          ref="content"
+          class="content-area"
+          type="textarea"
+          placeholder="Notes"
+          @update:modelValue="updateModelValue"
+        />
+      </div>
       <!--editor
         :readonly="readonly"
         v-model="content"
@@ -140,8 +149,8 @@ export default {
     datePreview: {
       type: Boolean,
       required: false,
-      default: true
-    }
+      default: true,
+    },
   },
   mounted() {
     document.addEventListener("keydown", this.onKeydown);
@@ -202,6 +211,9 @@ export default {
     someday() {
       return someday();
     },
+    renderProjectTitle(){
+      return this.$route.name != "project" && this.modelValue.project;
+    }
   },
   methods: {
     mutateQueue(mutation) {
@@ -226,13 +238,13 @@ export default {
         });
       }, 500);
     },
-    open(){
-      if(this.modelValue.__typename.includes('_note')){
+    open() {
+      if (this.modelValue.__typename.includes("_note")) {
         this.edit = true;
         this.focusTitle();
-      }else{
-        this.$store.commit('user/updateCurrentProject', this.modelValue);
-        this.$router.push('/');
+      } else {
+        this.$store.commit("user/updateCurrentProject", this.modelValue);
+        this.$router.push("/");
       }
     },
     dateOptions(timestamp) {
@@ -310,7 +322,7 @@ export default {
         content: this.content,
       };
       this.$emit("update:modelValue", note);
-      this.updateNote(note)
+      this.updateNote(note);
     },
   },
 };
@@ -338,5 +350,30 @@ export default {
 }
 .item {
   border-radius: 5px;
+}
+.project-title {
+  color: $grey;
+  font-size: 70%;
+}
+.mrt-5 {
+  margin-top: 5px;
+}
+.list-view {
+  height: 55px;
+}
+.icon-checkbox {
+  position: absolute;
+  top: 19px;
+  left: -5px;
+  z-index: 999;
+}
+.checkbox {
+  position: absolute;
+  top: 24px;
+  z-index: 999;
+}
+.title{
+  font-size: 20px;
+  line-height: 70%;
 }
 </style>

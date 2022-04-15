@@ -1,5 +1,5 @@
 query GetTrash($user_id: Int!) {
-  active_notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}) {
+  active_notes: notes_note(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}, order_by: {deleted_at: desc}) {
     id
     title
     content
@@ -15,9 +15,11 @@ query GetTrash($user_id: Int!) {
     upcoming_position
     completed_at
     deleted
+    project {
+      title
+    }
   }
-
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, deleted: {_eq: true}}}, order_by: {deleted_at: desc}) {
     title
     icon
     id

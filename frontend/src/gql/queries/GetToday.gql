@@ -27,5 +27,8 @@ query GetTodayNotes($user_id: Int!, $today: date!) {
     anytime_position
     upcoming_position
     user_id
+    project {
+      title
+    }
   }
 }
