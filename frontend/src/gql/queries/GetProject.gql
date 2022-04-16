@@ -4,7 +4,7 @@ query GetProjectNotes($project_id: uuid!, $done: Boolean_comparison_exp = {_eq: 
     title
     content
     done
-    deadline
+    when
     user_id
     project_id
     deleted

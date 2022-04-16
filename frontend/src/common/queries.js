@@ -79,8 +79,8 @@ export function getQueries(item) {
         return queries;
     }
 
-    if (item.deadline) {
-        const dateString = formatDate(item.deadline);
+    if (item.when) {
+        const dateString = formatDate(item.when);
         if (dateString == "Today") {
             queries.push(getLogbook());
         } else if (dateString == "Someday") {

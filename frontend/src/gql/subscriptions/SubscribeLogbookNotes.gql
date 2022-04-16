@@ -4,7 +4,7 @@ subscription SubscribeLogbookNotes($user_id: Int!) {
     title
     content
     done
-    deadline
+    when
     user_id
     project_id
     deleted

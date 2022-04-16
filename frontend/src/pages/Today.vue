@@ -3,7 +3,7 @@
     v-if="project"
     v-model="project"
     :config="config"
-    :deadline="today"
+    :when="today"
     position-column="today_position"
   >
     <template v-slot:toolbar="{ addNote }">

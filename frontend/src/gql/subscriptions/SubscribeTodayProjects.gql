@@ -1,5 +1,5 @@
 subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, deadline: {_lte: $today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_lte: $today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc}) {
     title
     icon
     id

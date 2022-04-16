@@ -111,7 +111,7 @@ export default defineComponent({
       type: Object,
       required: true,
     },
-    deadline: {
+    when: {
       type: Object,
       required: false,
       default: null,
@@ -203,7 +203,7 @@ export default defineComponent({
         anytime_position: null,
         [this.positionColumn]: this.maxPosition + 1,
         project_id: this.project.id || null,
-        deadline: this.deadline ? toDatabaseString(this.deadline) : null,
+        when: this.when ? toDatabaseString(this.when) : null,
       };
     }
   },

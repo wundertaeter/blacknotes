@@ -2,14 +2,14 @@
   <timeline
     :config="config"
     :start="tomorrow"
-    group-by="deadline"
+    group-by="when"
     drop
     sort
     :timeline="7"
     icon="date_range"
     title="Upcoming"
     position-column="upcoming_position"
-    update-deadline
+    update-when
   >
     <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />

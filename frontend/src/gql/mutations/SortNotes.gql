@@ -2,7 +2,7 @@ mutation SortNotes($objects: [notes_note_insert_input!] = [], $update_columns: [
   insert_notes_note(objects: $objects, on_conflict: {constraint: notes_note_pkey, update_columns: $update_columns}) {
     returning {
       position
-      deadline
+      when
     }
   }
 }

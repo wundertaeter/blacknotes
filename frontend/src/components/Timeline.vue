@@ -22,7 +22,7 @@
               group="people"
               :projects="items[date.title].projects"
               :notes="items[date.title].notes"
-              :deadline="updateDeadline ? date.date : undefined"
+              :when="updatewhen ? date.date : undefined"
               :date-preview="false"
               :drop="drop"
               :sort="sort"
@@ -76,7 +76,7 @@ export default defineComponent({
       items: {},
       projects: [],
       notes: [],
-      deadlines: [],
+      whens: [],
       watchers: [],
       focusNote: null,
       editNote: null,
@@ -126,7 +126,7 @@ export default defineComponent({
       type: String,
       required: false,
     },
-    updateDeadline: {
+    updatewhen: {
       type: Boolean,
       required: false,
       default: false,
@@ -213,7 +213,7 @@ export default defineComponent({
     },
     addNote() {
       const note = this.newNote;
-      const dateString = this.formatDate(this.selectedDeadline);
+      const dateString = this.formatDate(this.selectedwhen);
       this.items[dateString].notes = [...this.items[dateString].notes, note];
       this.$apollo.mutate({
         mutation: CREATE_NOTE,
@@ -421,16 +421,16 @@ export default defineComponent({
     today() {
       return today();
     },
-    selectedDeadline(){
+    selectedwhen(){
       return this.focusNote
-        ? this.focusNote.deadline
+        ? this.focusNote.when
         : this.editNote
-        ? this.editNote.deadline
+        ? this.editNote.when
         : this.start;
     },
     newNote(){
-      const deadline = this.selectedDeadline;
-      const items = this.items[this.formatDate(deadline)];
+      const when = this.selectedwhen;
+      const items = this.items[this.formatDate(when)];
       const positions = [...items.notes, ...items.projects].map(it => it[this.positionColumn])
       const maxPosition = positions.length ? Math.max(...positions) : 0;
       return {
@@ -447,7 +447,7 @@ export default defineComponent({
         anytime_position: null,
         [this.positionColumn]: maxPosition + 1,
         project_id: null,
-        deadline: toDatabaseString(deadline),
+        when: toDatabaseString(when),
       };
     }
   },

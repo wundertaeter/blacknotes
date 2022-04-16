@@ -3,7 +3,7 @@ query GetLogbook($user_id: Int!) {
     id
     title
     content
-    deadline
+    when
     done
     user_id
     project_id

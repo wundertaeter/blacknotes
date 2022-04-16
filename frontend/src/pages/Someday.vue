@@ -2,7 +2,7 @@
   <project
     v-if="project"
     v-model="project"
-    :deadline="someday"
+    :when="someday"
     :config="config"
     position-column="someday_position"
   >

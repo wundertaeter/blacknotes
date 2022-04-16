@@ -122,7 +122,7 @@ export default defineComponent({
       type: String,
       required: false,
     },
-    deadline: {
+    when: {
       type: Object,
       required: false,
     },
@@ -380,7 +380,7 @@ export default defineComponent({
       if (!items) return;
       const notes = [];
       const projects = [];
-      const update_columns = ["deadline", this.positionColumn];
+      const update_columns = ["when", this.positionColumn];
       let item;
       for (let i = 0; i < items.length; i++) {
         item = items[i];
@@ -388,9 +388,9 @@ export default defineComponent({
         item[this.positionColumn] = i;
 
         const { __typename, project, ...obj } = item;
-        if (this.deadline) {
-          obj.deadline = this.deadline ? toDatabaseString(this.deadline) : null;
-          item.deadline = this.deadline;
+        if (this.when) {
+          obj.when = this.when ? toDatabaseString(this.when) : null;
+          item.when = this.when;
         }
 
         if (item.__typename.includes("_note")) {

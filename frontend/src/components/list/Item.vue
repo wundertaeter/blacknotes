@@ -33,9 +33,9 @@
           </span>
         </div>
         <div class="col-6 text-right self-center ellipsis">
-          <span class="deadline" v-if="deadline && datePreview">
+          <span class="when" v-if="when && datePreview">
             <q-icon name="today" />
-            {{ formatDate(deadline, "D. MMM") }}
+            {{ formatDate(when, "D. MMM") }}
           </span>
         </div>
       </div>
@@ -76,11 +76,11 @@
           :flat="!btnHover"
           @mouseleave="btnHover = false"
           @mouseover="btnHover = true"
-          @click="removeDeadline"
-          v-if="deadline"
+          @click="removewhen"
+          v-if="when"
         >
           <q-icon name="today" />
-          {{ formatDate(deadline, "ddd D. MMM") }}
+          {{ formatDate(when, "ddd D. MMM") }}
           <q-icon name="close" v-if="btnHover" style="margin-left: 10px" />
         </q-btn>
 
@@ -92,10 +92,10 @@
         >
           <q-menu v-model="showMenu">
             <q-date
-              v-model="deadline"
+              v-model="when"
               :options="dateOptions"
               minimal
-              @update:modelValue="updateDeadline"
+              @update:modelValue="updatewhen"
             />
           </q-menu>
         </q-btn>
@@ -168,8 +168,8 @@ export default {
         this.done = value.done;
       }
 
-      if (this.deadline !== value.deadline) {
-        this.deadline = value.deadline;
+      if (this.when !== value.when) {
+        this.when = value.when;
       }
     },
     focused: {
@@ -189,7 +189,7 @@ export default {
   data() {
     return {
       edit: false,
-      deadline: this.modelValue.deadline,
+      when: this.modelValue.when,
       done: this.modelValue.done,
       showMenu: false,
       btnHover: false,
@@ -229,7 +229,7 @@ export default {
             id: note.id,
             title: note.title ?? "",
             content: note.content ?? "",
-            deadline: note.deadline ? toDatabaseString(note.deadline) : null,
+            when: note.when ? toDatabaseString(note.when) : null,
           },
         });
       }, 500);
@@ -249,11 +249,11 @@ export default {
     formatDate(timestamp, format) {
       return formatDate(timestamp, format);
     },
-    removeDeadline() {
-      this.deadline = null;
+    removewhen() {
+      this.when = null;
       this.updateModelValue();
     },
-    updateDeadline() {
+    updatewhen() {
       this.showMenu = false;
       this.updateModelValue();
     },
@@ -313,7 +313,7 @@ export default {
     updateModelValue() {
       const note = {
         ...this.modelValue,
-        deadline: this.deadline,
+        when: this.when,
         title: this.title,
         content: this.content,
       };
@@ -341,7 +341,7 @@ export default {
 .focused {
   border: 3px solid $orange;
 }
-.deadline {
+.when {
   min-width: 100px;
 }
 .item {
