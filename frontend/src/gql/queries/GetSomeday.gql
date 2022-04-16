@@ -13,6 +13,9 @@ query GetSomedayNotes($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
+    project {
+      title
+    }
   }
 
   notes_project(where: {_and: {user_id: {_eq: $user_id}, deadline: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc}) {
@@ -27,8 +30,5 @@ query GetSomedayNotes($user_id: Int!) {
     anytime_position
     upcoming_position
     user_id
-    project {
-      title
-    }
   }
 }

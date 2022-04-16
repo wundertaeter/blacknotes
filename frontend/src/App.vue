@@ -1,19 +1,16 @@
 <template>
-  <router-view v-if="user.projects" />
+  <router-view v-if="userProjects" />
 </template>
 <script>
-import { defineComponent, computed } from "vue";
-import { useQuasar, QSpinnerFacebook } from "quasar";
-import { useStore } from "vuex";
+import { defineComponent } from "vue";
+import { QSpinnerFacebook } from "quasar";
 const GET_USER_DATA = require("src/gql/queries/GetUserData.gql");
 const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
 
 export default defineComponent({
   name: "App",
-  setup() {
-    console.log("App setup");
-    const $q = useQuasar();
-    $q.loading.show({
+  created() {
+    this.$q.loading.show({
       spinner: QSpinnerFacebook,
       spinnerColor: "orange",
       spinnerSize: 140,
@@ -21,11 +18,15 @@ export default defineComponent({
       // message: 'Some important process is in progress. Hang on...',
       // messageColor: 'black'
     });
-    $q.dark.set(true);
-    const store = useStore();
-    return {
-      user: computed(() => store.state.user),
-    };
+    this.$q.dark.set(true);
+  },
+  computed: {
+    userId() {
+      return this.$store.state.user.id;
+    },
+    userProjects() {
+      return this.$store.state.user.projects;
+    },
   },
   apollo: {
     user: {
@@ -33,32 +34,36 @@ export default defineComponent({
       fetchPolicy: "cache-first",
       variables() {
         return {
-          id: this.user.id,
+          id: this.userId,
         };
       },
       result(result) {
         this.$store.commit("user/updateUser", result.data);
       },
       skip() {
-        return !this.user.id;
+        return !this.userId;
       },
       subscribeToMore: {
         document: SUBSCRIBE_PROJECTS,
         variables() {
           return {
-            user_id: this.user.id,
+            user_id: this.userId,
           };
         },
         skip() {
-          return !this.user.id;
+          return !this.userId || !this.user;
         },
         result(data) {
-          this.$store.commit("user/updateProjects", data.projects);
+          if (data.projects) {
+            this.$store.commit("user/updateProjects", data.projects);
+          }
         },
         updateQuery: (previousResult, { subscriptionData }) => {
-          return {
-            ...previousResult,
-            projects: subscriptionData.data.projects
+          if (previousResult.projects && previousResult.user) {
+            return {
+              ...previousResult,
+              projects: subscriptionData.data.projects,
+            };
           }
         },
       },
