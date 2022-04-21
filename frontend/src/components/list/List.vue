@@ -142,6 +142,10 @@ export default defineComponent({
       type: Object,
       required: false,
     },
+    project: {
+      type: Object,
+      required: false,
+    },
     datePreview: {
       type: Boolean,
       required: false,
@@ -423,7 +427,7 @@ export default defineComponent({
       if (!items) return;
       const notes = [];
       const projects = [];
-      const update_columns = ["when", this.positionColumn];
+      const update_columns = [this.positionColumn];
       let item;
       for (let i = 0; i < items.length; i++) {
         item = items[i];
@@ -434,6 +438,13 @@ export default defineComponent({
         if (this.when) {
           obj.when = this.when ? toDatabaseString(this.when) : null;
           item.when = this.when;
+          update_columns.push("when");
+        }
+
+        if(this.project){
+          obj.project_id = this.project.id;
+          item.project = this.project;
+          update_columns.push("project_id");
         }
 
         if (item.__typename.includes("_note")) {

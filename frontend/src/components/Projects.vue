@@ -15,7 +15,6 @@
           group="people"
           :notes="notes"
           :date-preview="false"
-          drop
           sort
           :focused="focusNote"
           :edited="editNote"
@@ -32,12 +31,12 @@
           <list
             @select="setFocusNote"
             @edit="setEditNote"
+            :project="project"
             :select="false"
             :position-column="positionColumn"
             group="people"
             :notes="project.notes"
             :date-preview="false"
-            drop
             sort
             :focused="focusNote"
             :edited="editNote"
