@@ -97,11 +97,10 @@ export default defineComponent({
     List,
   },
   data() {
-    const project = JSON.parse(JSON.stringify(this.modelValue));
     return {
-      project: project,
+      project: JSON.parse(JSON.stringify(this.modelValue)),
       projects: [],
-      notes: project.notes ? project.notes : [],
+      notes: [],
       timeout: null,
       moreShowing: false,
     };
@@ -164,7 +163,6 @@ export default defineComponent({
     modelValue: {
       handler(value) {
         this.project = JSON.parse(JSON.stringify(value));
-        this.notes = this.project.notes;
       },
       deep: true,
     },

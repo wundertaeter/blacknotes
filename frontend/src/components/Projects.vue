@@ -12,10 +12,10 @@
           @edit="setEditNote"
           :select="false"
           :position-column="positionColumn"
+          :sortMethod="sortMethod"
           group="people"
           :notes="notes"
           :date-preview="false"
-          sort
           :focused="focusNote"
           :edited="editNote"
         />
@@ -34,10 +34,10 @@
             :project="project"
             :select="false"
             :position-column="positionColumn"
+            :sortMethod="sortMethod"
             group="people"
             :notes="project.notes"
             :date-preview="false"
-            sort
             :focused="focusNote"
             :edited="editNote"
           />
@@ -109,19 +109,22 @@ export default defineComponent({
   mounted() {
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
-    const notes = [...this.notes];
-    this.projectsCopy.forEach((p) => notes.push(...p.notes));
-    console.log('emit sort');
-    bus.emit(
-      "sort",
-      notes.sort((a, b) => a[this.positionColumn] - b[this.positionColumn])
-    );
+    // const notes = [...this.notes];
+    // this.projectsCopy.forEach((p) => notes.push(...p.notes));
+    // console.log('emit sort');
+    // bus.emit(
+    //   "sort",
+    //   notes.sort((a, b) => a[this.positionColumn] - b[this.positionColumn])
+    // );
   },
   unmounted() {
     document.removeEventListener("click", this.resetFocusedNote);
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
+    sortMethod(a, b) {
+      return a[this.positionColumn] - b[this.positionColumn];
+    },
     appendNote(note) {
       const project = this.selectedProject;
       if (project) {

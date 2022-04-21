@@ -428,23 +428,24 @@ export default defineComponent({
       const notes = [];
       const projects = [];
       const update_columns = [this.positionColumn];
+      if(this.when) update_columns.push("when");
+      if(this.project) update_columns.push("project_id");
       let item;
       for (let i = 0; i < items.length; i++) {
         item = items[i];
         // console.log("note", item);
+        // item = JSON.parse(JSON.stringify(item));
         item[this.positionColumn] = i;
 
         const { __typename, project, ...obj } = item;
         if (this.when) {
           obj.when = this.when ? toDatabaseString(this.when) : null;
           item.when = this.when;
-          update_columns.push("when");
         }
 
         if(this.project){
           obj.project_id = this.project.id;
           item.project = this.project;
-          update_columns.push("project_id");
         }
 
         if (item.__typename.includes("_note")) {
