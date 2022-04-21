@@ -15,8 +15,8 @@
           group="people"
           :notes="notes"
           :date-preview="false"
-          :drop="drop"
-          :sort="sort"
+          drop
+          sort
           :focused="focusNote"
           :edited="editNote"
         />
@@ -37,8 +37,8 @@
             group="people"
             :notes="project.notes"
             :date-preview="false"
-            :drop="drop"
-            :sort="sort"
+            drop
+            sort
             :focused="focusNote"
             :edited="editNote"
           />
@@ -59,8 +59,6 @@ const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 import List from "src/components/list/List.vue";
 import { bus } from "src/components/list/List.vue";
-import { loading } from "src/common/system.js";
-import { getQueries } from "src/common/queries";
 import { uuidv4 } from "src/common/utils.js";
 
 export default defineComponent({
@@ -112,27 +110,24 @@ export default defineComponent({
   mounted() {
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
+    const notes = [...this.notes];
+    this.projectsCopy.forEach((p) => notes.push(...p.notes));
+    console.log('emit sort');
+    bus.emit(
+      "sort",
+      notes.sort((a, b) => a[this.positionColumn] - b[this.positionColumn])
+    );
   },
   unmounted() {
     document.removeEventListener("click", this.resetFocusedNote);
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      getQueries(mutation.variables).forEach((query) => {
-        console.log("mutateQueue query", query);
-        this.$addToCache(mutation.variables, query);
-      });
-      return p;
-    },
-    appendNote(note){
+    appendNote(note) {
       const project = this.selectedProject;
       if (project) {
-        const index = this.projectsCopy.findIndex(p => p.id == project.id);
-        let p = JSON.parse(JSON.stringify(this.projects[index]))
+        const index = this.projectsCopy.findIndex((p) => p.id == project.id);
+        let p = JSON.parse(JSON.stringify(this.projects[index]));
         p.notes.push(note);
         this.projectsCopy[index] = p;
       } else {
@@ -142,7 +137,7 @@ export default defineComponent({
         this.editNote = note;
         this.focusNote = note;
         this.$nextTick(() => {
-          bus.emit("scrollTo", {item: note, top: true});
+          bus.emit("scrollTo", { item: note, top: true });
         });
       });
     },
@@ -152,8 +147,8 @@ export default defineComponent({
       if (this.editNote) return;
       const note = this.newNote;
       this.appendNote(note);
-      
-      this.mutateQueue({
+
+      this.$mutateQueue({
         mutation: CREATE_NOTE,
         variables: note,
       });
@@ -221,7 +216,7 @@ export default defineComponent({
       this.removeNote(note);
       note.deleted = true;
       note.deleted_at = new Date();
-      this.mutateQueue({
+      this.$mutateQueue({
         mutation: TRASH_NOTE,
         variables: note,
       });
@@ -305,7 +300,7 @@ export default defineComponent({
           if (prevProject) {
             next = prevProject.notes[prevProject.notes.length - 1];
           } else {
-            next= this.notes[this.notes.length - 1];
+            next = this.notes[this.notes.length - 1];
           }
           this.focusNote = next;
         }

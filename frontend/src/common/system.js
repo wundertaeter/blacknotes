@@ -8,6 +8,6 @@ export function loading(loading) {
   } else {
     updateLoadingTimeout = setTimeout(() => {
       Store.commit("user/updateLoading", false);
-    }, 250);
+    }, 500);
   }
 }

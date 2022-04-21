@@ -6,7 +6,8 @@ import { ApolloLink, concat, split } from "apollo-link";
 import { WebSocketLink } from "apollo-link-ws";
 import { getMainDefinition } from "apollo-utilities";
 import { createApolloProvider } from "@vue/apollo-option";
-
+import { loading } from "src/common/system.js";
+import { getQueries } from "src/common/queries";
 
 export default boot(
   async ({ app }) => {
@@ -84,6 +85,19 @@ export default boot(
 
         apolloClient.writeQuery({ ...query, data });
       }
+    }
+
+
+    app.config.globalProperties.$mutateQueue = (mutation) => {
+      loading(true);
+      let p = apolloClient.mutate(mutation);
+      p.finally(() => loading(false));
+      getQueries(mutation.variables).forEach((query) => {
+        console.log("mutateQueue query", query);
+        app.config.globalProperties.$addToCache(mutation.variables, query);
+      });
+
+      return p;
     }
   }
 );

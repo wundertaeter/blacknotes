@@ -52,8 +52,6 @@ const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
 import List from "src/components/list/List.vue";
 import { bus } from "src/components/list/List.vue";
-import { loading } from "src/common/system.js";
-import { getQueries } from "src/common/queries";
 import { uuidv4 } from "src/common/utils.js";
 import {
   toDatabaseString,
@@ -76,8 +74,8 @@ export default defineComponent({
   data() {
     return {
       items: {},
-      projects: [],
-      notes: [],
+      projects: null,
+      notes: null,
       whens: [],
       watchers: [],
       focusNote: null,
@@ -155,29 +153,20 @@ export default defineComponent({
     this.updateData();
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
+
+    bus.emit('sort', [...this.projects, ...this.notes].sort(this.sortMethod));
   },
   unmounted() {
     document.removeEventListener("click", this.resetFocusedNote);
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      getQueries(mutation.variables).forEach((query) => {
-        console.log("mutateQueue query", query);
-        this.$addToCache(mutation.variables, query);
-      });
-      return p;
-    },
     sortMethod(a, b) {
       return this.positionColumn
         ? a[this.positionColumn] - b[this.positionColumn]
         : new Date(a[this.groupBy]) - new Date(b[this.groupBy]);
     },
     updateData() {
-      console.log("update!!!????????");
       this.dates.forEach((date) => {
         this.items[date.title] = { notes: [], projects: [] };
       });
@@ -203,10 +192,10 @@ export default defineComponent({
         }
         this.items[dateString].projects.push(note);
       });
-      console.log("this.sorted", this.items, this.dates);
     },
     addNote(e) {
       e.stopPropagation();
+      console.log('this.editNote', this.editNote)
       if (this.editNote) return;
       const note = this.newNote;
       const dateString = this.formatDate(this.selectedwhen);
@@ -218,7 +207,7 @@ export default defineComponent({
           bus.emit("scrollTo", { item: note, top: true });
         });
       });
-      this.mutateQueue({
+      this.$mutateQueue({
         mutation: CREATE_NOTE,
         variables: note,
       });
@@ -267,7 +256,7 @@ export default defineComponent({
       this.focusNote = next;
       item.deleted = true;
       item.deleted_at = new Date();
-      this.mutateQueue({
+      this.$mutateQueue({
         mutation: TRASH_NOTE,
         variables: item,
       });
@@ -277,11 +266,9 @@ export default defineComponent({
       bus.emit("resetFocus");
     },
     setFocusNote(note) {
-      console.log("select ", note);
       this.focusNote = note;
     },
     setEditNote(note) {
-      console.log("edit ", note);
       this.editNote = note;
     },
     getNextDateString(currentDate) {
@@ -556,8 +543,11 @@ export default defineComponent({
         result({ data }) {
           console.log("note sub", data);
           this.notes = JSON.parse(JSON.stringify(data.active_notes));
-          this.updateData();
-          this.updateCache();
+          if(this.projects && this.notes){
+            this.updateData();
+            this.updateCache();
+            this.notes = null;
+          }
         },
       },
       notes_project: {
@@ -577,8 +567,11 @@ export default defineComponent({
         result({ data }) {
           console.log("project sub", data);
           this.projects = JSON.parse(JSON.stringify(data.notes_project));
-          this.updateData();
-          this.updateCache();
+          if(this.projects && this.notes){
+            this.updateData();
+            this.updateCache();
+            this.projects = null;
+          }
         },
       },
     },

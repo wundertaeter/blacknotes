@@ -89,7 +89,6 @@ const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { loading } from "src/common/system.js";
-import { getQueries } from "src/common/queries";
 import { uuidv4 } from "src/common/utils.js";
 
 export default defineComponent({
@@ -213,16 +212,6 @@ export default defineComponent({
     setEditNote(note){
       this.editNote = note;
     },
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      getQueries(mutation.variables).forEach((query) => {
-        console.log("mutateQueue query", query);
-        this.$addToCache(mutation.variables, query);
-      });
-      return p;
-    },
     sortMethod(a, b) {
       if (this.sortBy.date) {
         return this.sortBy.desc
@@ -241,7 +230,7 @@ export default defineComponent({
       bus.emit("revert");
     },
     trashProject() {
-      this.mutateQueue({
+      this.$mutateQueue({
           mutation: TRASH_PROJECT,
           variables: {
             id: this.project.id,
@@ -275,7 +264,7 @@ export default defineComponent({
         this.project.completed_at = this.project.done
           ? toDatabaseString(today())
           : null;
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: CHECK_PROJECT,
           variables: this.project,
         });
@@ -301,7 +290,7 @@ export default defineComponent({
           bus.emit("scrollTo", note);
         });
       });
-      this.mutateQueue({
+      this.$mutateQueue({
           mutation: CREATE_NOTE,
           variables: note,
         })

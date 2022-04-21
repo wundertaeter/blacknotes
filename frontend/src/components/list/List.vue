@@ -52,8 +52,6 @@ import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
-import { getQueries } from "src/common/queries";
-import { loading } from "src/common/system.js";
 // import { scroll } from "quasar";
 // const { getScrollTarget, setVerticalScrollPosition } = scroll;
 export const bus = mitt();
@@ -74,6 +72,7 @@ export default defineComponent({
   },
   mounted() {
     console.log("items", this.items);
+    // bus.on("sort", this.updatePositions);
     bus.on("revert", this.revert);
     bus.on("scrollTo", this.scrollTo);
     bus.on("setFocus", this.setFocus);
@@ -86,6 +85,7 @@ export default defineComponent({
     }
   },
   unmounted() {
+    // bus.off("sort", this.updatePositions);
     bus.off("revert", this.revert);
     bus.off("scrollTo", this.scrollTo);
     bus.off("setFocus", this.setFocus);
@@ -283,17 +283,6 @@ export default defineComponent({
         }
       }
     },
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      getQueries(mutation.variables).forEach((query) => {
-        console.log("mutateQueue query", query);
-        this.$addToCache(mutation.variables, query);
-      });
-
-      return p;
-    },
     revert() {
       const item = this.focusNote;
       console.log("list revert item", item);
@@ -303,7 +292,7 @@ export default defineComponent({
         console.log("revert", item);
         item.deleted = false;
         item.deleted_at = null;
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: item.__typename.includes("_note")
             ? TRASH_NOTE
             : TRASH_PROJECT,
@@ -365,7 +354,7 @@ export default defineComponent({
         console.log("trash note!!");
         item.deleted = true;
         item.deleted_at = new Date();
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: item.__typename.includes("_note")
             ? TRASH_NOTE
             : TRASH_PROJECT,
@@ -426,6 +415,7 @@ export default defineComponent({
       }
     },
     sortEvent(e) {
+      console.log('sort event')
       this.updatePositions(this.newItems);
     },
     updatePositions(items) {
@@ -437,7 +427,7 @@ export default defineComponent({
       let item;
       for (let i = 0; i < items.length; i++) {
         item = items[i];
-        console.log("note", item);
+        // console.log("note", item);
         item[this.positionColumn] = i;
 
         const { __typename, project, ...obj } = item;
@@ -454,7 +444,7 @@ export default defineComponent({
       }
 
       if (notes.length) {
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: SORT_NOTES,
           variables: {
             objects: notes,
@@ -463,7 +453,7 @@ export default defineComponent({
         });
       }
       if (projects.length) {
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: SORT_PROJECTS,
           variables: {
             objects: projects,
@@ -492,7 +482,7 @@ export default defineComponent({
           );
           this.items.splice(index, 1);
         }
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: type.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
         });
