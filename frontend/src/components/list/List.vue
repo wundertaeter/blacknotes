@@ -15,13 +15,15 @@
         :id="element.id"
         v-if="element.__typename.includes('_note')"
         @dragstart="(e) => dragStart(e, element)"
-        @click.stop="setFocusNote(element)"
-        :focused="focusedNote && focusedNote.id == element.id"
+        @click.stop="setFocus(element)"
+        :focused="focusNote && focusNote.id == element.id"
+        :edited="editNote && editNote.id == element.id"
         class="note"
         :ref="`item-${element.id}`"
         v-model="notesCopy[notesCopy.indexOf(element)]"
         @check="check"
         @edit="setEditNote"
+        @dblclick="setEdit(element)"
         :date-preview="datePreview"
       />
       <item
@@ -29,13 +31,15 @@
         data-type="project"
         :id="element.id"
         @dragstart="(e) => dragStart(e, element)"
-        @click.stop="setFocusNote(element)"
-        :focused="focusedNote && focusedNote.id == element.id"
+        @click.stop="setFocus(element)"
+        :focused="focusNote && focusNote.id == element.id"
+        :edited="editNote && editNote.id == element.id"
         class="note"
         :ref="`item-${element.id}`"
         v-model="projectsCopy[projectsCopy.indexOf(element)]"
         @check="check"
         @edit="setEditNote"
+        @dblclick="setEdit(element)"
         :date-preview="datePreview"
       />
     </template>
@@ -50,8 +54,8 @@ import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
 import { getQueries } from "src/common/queries";
 import { loading } from "src/common/system.js";
-import { scroll } from "quasar";
-const { getScrollTarget, setVerticalScrollPosition } = scroll;
+// import { scroll } from "quasar";
+// const { getScrollTarget, setVerticalScrollPosition } = scroll;
 export const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
@@ -71,24 +75,26 @@ export default defineComponent({
   mounted() {
     console.log("items", this.items);
     bus.on("revert", this.revert);
+    bus.on("scrollTo", this.scrollTo);
+    bus.on("setFocus", this.setFocus);
+    bus.on("setEdit", this.setEdit);
+    bus.on("resetFocus", this.resetFocus);
+    bus.on("trash", this.trashNote);
     if (this.select) {
-      document.addEventListener("click", this.resetFocusedNote);
+      document.addEventListener("click", this.resetFocus);
       document.addEventListener("keydown", this.onKeydown);
-    } else {
-      bus.on("focusNote", this.focusNote);
-      bus.on("resetFocusedNote", this.resetFocusedNote);
-      bus.on("trash", this.trashNote);
     }
   },
   unmounted() {
     bus.off("revert", this.revert);
+    bus.off("scrollTo", this.scrollTo);
+    bus.off("setFocus", this.setFocus);
+    bus.off("setEdit", this.setEdit);
+    bus.off("resetFocus", this.resetFocus);
+    bus.off("trash", this.trashNote);
     if (this.select) {
-      document.removeEventListener("click", this.resetFocusedNote);
+      document.removeEventListener("click", this.resetFocus);
       document.removeEventListener("keydown", this.onKeydown);
-    } else {
-      bus.off("focusNote", this.focusNote);
-      bus.off("resetFocusedNote", this.resetFocusedNote);
-      bus.off("trash", this.trashNote);
     }
   },
   data() {
@@ -97,7 +103,7 @@ export default defineComponent({
       projectsCopy: JSON.parse(JSON.stringify(this.projects)),
       updateId: null,
       trashNoteTimeout: null,
-      focusedNote: null,
+      focusNote: null,
       loading: false,
       editNote: null,
       checkTimeout: null,
@@ -116,6 +122,16 @@ export default defineComponent({
         this.projectsCopy = JSON.parse(JSON.stringify(value));
       },
     },
+    focused: {
+      handler(value){
+        this.focusNote = value;
+      }
+    },
+    edited: {
+      handler(value){
+        this.editNote = value;
+      }
+    }
   },
   props: {
     group: {
@@ -181,8 +197,14 @@ export default defineComponent({
     },
     sortMethod: {
       type: Function,
-      required: true,
+      required: false,
     },
+    focused: {
+      required: false
+    },
+    edited: {
+      required: false
+    }
   },
   methods: {
     dragStart(e, item) {
@@ -192,31 +214,72 @@ export default defineComponent({
         e.dataTransfer.setData("project", JSON.stringify(item));
       }
     },
-    setEditNote(note) {
+    setFocus(note) {
+      if(this.select){
+        this.focusNote = note;
+      }
+      this.$emit('select', note);
+    },
+    setEditNote(note){
       this.editNote = note;
-      this.$emit("edit", note);
+      this.$emit('edit', note);
     },
-    scrollToElement(el) {
-      const target = getScrollTarget(el);
-      const offset = el.offsetTop - window.innerHeight / 3;
-      const duration = 500;
-      setVerticalScrollPosition(target, offset, duration);
+    setEdit(note) {
+      this.setFocus(note)
+      this.setEditNote(note);
     },
-    scrollToItem() {
-      this.scrollToElement(this.$refs[`item-${this.focusedNote.id}`].$el);
+    // scrollToElement(el) {
+    //   const target = getScrollTarget(el);
+    //   const offset = el.offsetTop - window.innerHeight / 3;
+    //   const duration = 250;
+    //   console.log('offset', offset);
+    //   setVerticalScrollPosition(target, offset, duration);
+    // },
+    scrollTo(args) {
+      const item = args.item ? args.item : args;
+      const top = args.item ? args.top : false;
+      // console.log("scrollTo top", top);
+      const ref = this.$refs[`item-${item.id}`];
+      if (ref) {
+        // console.log("ref ", item);
+        // this.scrollToElement(ref.$el);
+        if(!this.elementInViewport(ref.$el)){
+          ref.$el.scrollIntoView(!!top);
+        }
+        // console.log("this.focusNote", this.focusNote);
+      }
+    },
+    elementInViewport(el) {
+      var top = el.offsetTop;
+      var left = el.offsetLeft;
+      var width = el.offsetWidth;
+      var height = el.offsetHeight;
+
+      while(el.offsetParent) {
+        el = el.offsetParent;
+        top += el.offsetTop;
+        left += el.offsetLeft;
+      }
+
+      return (
+        top >= window.pageYOffset &&
+        left >= window.pageXOffset &&
+        (top + height) <= (window.pageYOffset + window.innerHeight) &&
+        (left + width) <= (window.pageXOffset + window.innerWidth)
+      );
     },
     onKeydown(e) {
-      if (!this.editNote && this.focusedNote) {
+      if (!this.editNote && this.focusNote) {
         if (e.keyCode === 8) {
           this.trashNote();
         } else if (e.keyCode == 38) {
           e.preventDefault();
           this.selectionUp();
-          this.scrollToItem();
+          this.scrollTo(this.focusNote);
         } else if (e.keyCode == 40) {
           e.preventDefault();
           this.selectionDown();
-          this.scrollToItem();
+          this.scrollTo(this.focusNote);
         }
       }
     },
@@ -232,7 +295,7 @@ export default defineComponent({
       return p;
     },
     revert() {
-      const item = this.focusedNote;
+      const item = this.focusNote;
       console.log("list revert item", item);
       if (!item) return;
       this.removeItem(item);
@@ -257,9 +320,9 @@ export default defineComponent({
         console.log("note index", index);
         console.log(this.items);
         this.items = {
-          notes: this.notesCopy.filter(n => n.id != item.id),
-          projects: this.projectsCopy
-        }
+          notes: this.notesCopy.filter((n) => n.id != item.id),
+          projects: this.projectsCopy,
+        };
         console.log(this.items);
         next = this.notesCopy[index];
         if (!next) {
@@ -279,11 +342,11 @@ export default defineComponent({
           next = this.projectsCopy[length - 1];
         }
       }
-      this.focusedNote = next;
+      this.focusNote = next;
       console.log("remove item", item);
     },
     trashNote() {
-      const item = this.focusedNote;
+      const item = this.focusNote;
       console.log("trashNote!!!", item);
       if (!item) return;
       this.removeItem(item);
@@ -315,38 +378,28 @@ export default defineComponent({
     //   const cacheData = apolloClient.readQuery(query);
     //   console.log("removeFromCache data", cacheData);
     // },
-    focusNote(note) {
-      this.focusedNote = note;
-    },
     selectionDown() {
       const index = this.items.findIndex(
         (it) =>
-          it.id == this.focusedNote.id &&
-          it.__typename == this.focusedNote.__typename
+          it.id == this.focusNote.id &&
+          it.__typename == this.focusNote.__typename
       );
       const next = this.items[index + 1];
-      this.focusNote(next || this.items[0]);
+      if(next) this.setFocus(next);
     },
     selectionUp() {
       const index = this.items.findIndex(
         (it) =>
-          it.id == this.focusedNote.id &&
-          it.__typename == this.focusedNote.__typename
+          it.id == this.focusNote.id &&
+          it.__typename == this.focusNote.__typename
       );
       const next = this.items[index - 1];
-      const length = this.items.length;
-      this.focusNote(next || this.items[length - 1]);
+      if(next) this.setFocus(next);
     },
-    setFocusNote(note) {
-      if (this.select) {
-        this.focusedNote = note;
-      } else {
-        this.$emit("select", note);
-      }
-    },
-    resetFocusedNote() {
-      this.focusedNote = null;
-      this.editNote = null;
+    resetFocus() {
+      console.log("reset focus");
+      this.setFocus(null)
+      this.setEdit(null);
     },
     removeEvent(e) {
       console.log("removeEvent", e);
@@ -427,7 +480,7 @@ export default defineComponent({
       //this.loading = true;
       loading(true);
       item.done = !item.done;
-      if(item.done){
+      if (item.done) {
         item.completed_at = new Date();
       }
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
@@ -452,14 +505,15 @@ export default defineComponent({
     },
     items: {
       get() {
-        return [...this.notesCopy, ...this.projectsCopy].sort(this.sortMethod);
+        const items = [...this.notesCopy, ...this.projectsCopy];
+        return this.sortMethod ? items.sort(this.sortMethod) : items;
       },
       set(newItems) {
         console.log("set new value", newItems);
-        if(newItems.notes && newItems.projects){
+        if (newItems.notes && newItems.projects) {
           this.notesCopy = newItems.notes;
           this.projectsCopy = newItems.projects;
-        }else{
+        } else {
           this.newItems = newItems;
         }
         // this.updatePositions(newValue);

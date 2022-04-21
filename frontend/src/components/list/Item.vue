@@ -1,5 +1,5 @@
 <template>
-  <q-card flat :class="{ focused: focused, item: true }" @dblclick="open">
+  <q-card flat :class="{ focused: focused, item: true }">
     <q-checkbox
       v-if="modelValue.icon"
       v-model="done"
@@ -142,6 +142,11 @@ export default {
       required: false,
       default: false,
     },
+    edited: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     datePreview: {
       type: Boolean,
       required: false,
@@ -180,11 +185,25 @@ export default {
         }
       },
     },
-    edit: {
+    edited: {
       handler(value) {
-        this.$emit("edit", value ? this.modelValue : null);
+        if(value){
+          this.edit = true;
+          if (this.modelValue.__typename.includes("_note")) {
+            this.edit = true;
+            this.focusTitle();
+          } else {
+            this.$store.commit("user/updateCurrentProject", this.modelValue);
+            this.$router.push("/");
+          }
+        }
       },
     },
+    edit: {
+      handler(value){
+        this.$emit("edit", value ? this.modelValue : null);
+      }
+    }
   },
   data() {
     return {
@@ -233,15 +252,6 @@ export default {
           },
         });
       }, 500);
-    },
-    open() {
-      if (this.modelValue.__typename.includes("_note")) {
-        this.edit = true;
-        this.focusTitle();
-      } else {
-        this.$store.commit("user/updateCurrentProject", this.modelValue);
-        this.$router.push("/");
-      }
     },
     dateOptions(timestamp) {
       return isToday(timestamp) || isFuture(timestamp);

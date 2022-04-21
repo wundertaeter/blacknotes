@@ -6,7 +6,6 @@ query GetProjectNotes($project_id: uuid!, $done: Boolean_comparison_exp = {_eq: 
     done
     when
     user_id
-    project_id
     deleted
     anytime_position
     today_position

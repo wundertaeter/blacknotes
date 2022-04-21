@@ -6,7 +6,6 @@ subscription SubscribeProjectNotes($project_id: uuid!, $done: Boolean_comparison
     done
     when
     user_id
-    project_id
     deleted
     anytime_position
     today_position

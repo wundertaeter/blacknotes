@@ -68,6 +68,7 @@
           :notes="notes"
           :projects="projects"
           :sortMethod="sortMethod"
+          @edit="setEditNote"
         />
       </div>
     </q-scroll-area>
@@ -188,7 +189,7 @@ export default defineComponent({
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
-    newNote(){
+    newNote() {
       return {
         __typename: "active_notes",
         id: uuidv4(),
@@ -202,12 +203,16 @@ export default defineComponent({
         someday_position: null,
         anytime_position: null,
         [this.positionColumn]: this.maxPosition + 1,
-        project_id: this.project.id || null,
+        project_id: this.project.default ? null : this.project.id,
+        project: this.project.default ? null : this.project,
         when: this.when ? toDatabaseString(this.when) : null,
       };
-    }
+    },
   },
   methods: {
+    setEditNote(note){
+      this.editNote = note;
+    },
     mutateQueue(mutation) {
       loading(true);
       let p = this.$apollo.mutate(mutation);
@@ -236,8 +241,7 @@ export default defineComponent({
       bus.emit("revert");
     },
     trashProject() {
-      this.$apollo
-        .mutate({
+      this.mutateQueue({
           mutation: TRASH_PROJECT,
           variables: {
             id: this.project.id,
@@ -282,16 +286,22 @@ export default defineComponent({
         }
       }, 500);
     },
-    addNote() {
+    addNote(e) {
+      e.stopPropagation();
+      if(this.editNote) return;
       const note = this.newNote;
       if (this.$route.name == "project" && this.currentProject) {
         note.project = this.currentProject;
       }
 
       this.notes = [...this.notes, note];
-
-      this.$apollo
-        .mutate({
+      this.$nextTick(() => {
+        bus.emit("setEdit", note);
+        this.$nextTick(() => {
+          bus.emit("scrollTo", note);
+        });
+      });
+      this.mutateQueue({
           mutation: CREATE_NOTE,
           variables: note,
         })

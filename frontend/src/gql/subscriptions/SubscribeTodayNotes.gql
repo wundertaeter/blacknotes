@@ -6,7 +6,6 @@ subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
     done
     when
     user_id
-    project_id
     anytime_position
     today_position
     someday_position

@@ -6,7 +6,6 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     done
     when
     user_id
-    project_id
     deleted
     anytime_position
     today_position

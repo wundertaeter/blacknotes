@@ -1,28 +1,34 @@
 <template>
-  <project v-if="project" v-model="project" position-column="anytime_position" :config="config">
-    <template v-slot:toolbar="{addNote}">
+  <projects
+    title="Anytime"
+    icon="reorder"
+    position-column="anytime_position"
+    :config="config"
+  >
+    <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
     </template>
-  </project>
+  </projects>
 </template>
 
 <script>
 import { defineComponent } from "vue";
-const GET_ANYTIME_NOTES = require("src/gql/queries/GetAnytime.gql");
+const GET_ANYTIME = require("src/gql/queries/GetAnytime.gql");
 const SUBSCRIBE_ANYTIME_NOTES = require("src/gql/subscriptions/SubscribeAnytimeNotes.gql");
-import Project from "src/components/Project.vue";
+const SUBSCRIBE_ANYTIME_PROJECTS = require("src/gql/subscriptions/SubscribeAnytimeProjects.gql");
+import Projects from "src/components/Projects.vue";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Project,
+    Projects,
   },
   data() {
     return {
-      project: { title: "Anytime", icon: "reorder", default: true },
       config: {
-        query: GET_ANYTIME_NOTES,
+        query: GET_ANYTIME,
         notes_subscription: SUBSCRIBE_ANYTIME_NOTES,
+        projects_subscription: SUBSCRIBE_ANYTIME_PROJECTS,
         variables: {
           user_id: this.$store.state.user.id,
         },

@@ -6,7 +6,6 @@ query GetTodayNotes($user_id: Int!, $today: date!) {
     done
     when
     user_id
-    project_id
     deleted
     anytime_position
     today_position

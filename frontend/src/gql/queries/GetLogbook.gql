@@ -6,7 +6,6 @@ query GetLogbook($user_id: Int!) {
     when
     done
     user_id
-    project_id
     deleted
     completed_at
     anytime_position
