@@ -6,28 +6,17 @@
           <q-icon :name="icon" />
           {{ title }}
         </h4>
-        <list
-          v-if="notes"
-          @select="setFocusNote"
-          @edit="setEditNote"
-          :select="false"
-          :position-column="positionColumn"
-          :sortMethod="sortMethod"
-          group="people"
-          :notes="notes"
-          :date-preview="false"
-          :focused="focusNote"
-          :edited="editNote"
-        />
         <div
           v-for="project in projects"
           :key="project.id"
           style="margin-top: 50px"
         >
-          <span class="project-title"
-            ><q-icon :name="project.icon" /> {{ project.title }}
-          </span>
-          <hr class="project-title-seperator" />
+          <div v-if="project.title">
+            <span class="project-title"
+              ><q-icon :name="project.icon" /> {{ project.title }}
+            </span>
+            <hr class="project-title-seperator" />
+          </div>
           <list
             @select="setFocusNote"
             @edit="setEditNote"
@@ -129,11 +118,9 @@ export default defineComponent({
       const project = this.selectedProject;
       if (project) {
         const index = this.projectsCopy.findIndex((p) => p.id == project.id);
-        let p = JSON.parse(JSON.stringify(this.projects[index]));
+        let p = JSON.parse(JSON.stringify(this.projectsCopy[index]));
         p.notes.push(note);
         this.projectsCopy[index] = p;
-      } else {
-        this.notes = [...this.notes, note];
       }
       this.$nextTick(() => {
         this.editNote = note;
@@ -237,11 +224,7 @@ export default defineComponent({
       if (this.projects.length == 0) return;
       let nextProject = this.projects[project_index];
       if (!nextProject) {
-        if (this.notes.length > 0) {
-          return null;
-        } else {
-          nextProject = this.projects[0];
-        }
+        return null;
       }
       if (nextProject.notes) {
         return nextProject;
@@ -253,11 +236,7 @@ export default defineComponent({
       if (this.projects.length == 0) return;
       let prevProject = this.projects[project_index];
       if (!prevProject) {
-        if (this.notes.length > 0) {
-          return null;
-        } else {
-          prevProject = this.projects[this.projects.length - 1];
-        }
+        return null;
       }
       if (prevProject.notes) {
         return prevProject;
@@ -267,16 +246,15 @@ export default defineComponent({
     },
     selectionDown() {
       if (this.focusNote) {
-        const project = this.selectedProject;
-        console.log("project", project);
-        const notes = project ? project.notes : this.notes;
-        const index = notes.findIndex((note) => note.id == this.focusNote.id);
-        let next = notes[index + 1];
+        const index = this.selectedProject.notes.findIndex(
+          (note) => note.id == this.focusNote.id
+        );
+        let next = this.selectedProject.notes[index + 1];
         if (next) {
           this.focusNote = next;
         } else {
           const nextProject = this.getNextProject(
-            project ? this.projects.indexOf(project) + 1 : 0
+            this.projects.indexOf(this.selectedProject) + 1
           );
           if (nextProject) {
             next = nextProject.notes[0];
@@ -287,43 +265,50 @@ export default defineComponent({
     },
     selectionUp() {
       if (this.focusNote) {
-        const project = this.selectedProject;
-        const notes = project ? project.notes : this.notes;
-        const index = notes.findIndex((note) => note.id == this.focusNote.id);
-        let next = notes[index - 1];
+        const index = this.selectedProject.notes.findIndex(
+          (note) => note.id == this.focusNote.id
+        );
+        let next = this.selectedProject.notes[index - 1];
         if (next) {
           this.focusNote = next;
-        } else if (project) {
+        } else {
           const prevProject = this.getPrevProject(
-            project
-              ? this.projects.indexOf(project) - 1
-              : this.projects.length - 1
+            this.projects.indexOf(this.selectedProject) - 1
           );
           if (prevProject) {
             next = prevProject.notes[prevProject.notes.length - 1];
-          } else {
-            next = this.notes[this.notes.length - 1];
+            this.focusNote = next;
           }
-          this.focusNote = next;
         }
       }
     },
     updateCache() {
+      console.log('update cache', {
+          active_notes: this.notes,
+          notes_project: this.projectsCopy,
+        })
       if (!this.config?.query) return;
-      const apolloClient = this.$apollo.provider.defaultClient;
-      apolloClient.writeQuery({
-        query: this.config?.query,
-        data: {
+      this.$updateCache(
+        this.config.query,
+        {
           active_notes: this.notes,
           notes_project: this.projectsCopy,
         },
-        variables: this.config?.variables,
-      });
+        this.config?.variables
+      );
     },
   },
   computed: {
     projects() {
-      return this.projectsCopy.filter((p) => p.notes.length);
+      return [
+        {
+          notes: JSON.parse(JSON.stringify(this.notes)).map((n) => {
+            n.project = { title: null, id: null };
+            return n;
+          }),
+        },
+        ...this.projectsCopy.filter((p) => p.notes.length),
+      ];
     },
     user() {
       return this.$store.state.user;

@@ -423,15 +423,14 @@ export default defineComponent({
     },
     updateCache() {
       if (!this.config?.query) return;
-      const apolloClient = this.$apollo.provider.defaultClient;
-      apolloClient.writeQuery({
-        query: this.config?.query,
-        data: {
+      this.$updateCache(
+        this.config.query,
+        {
           active_notes: this.notes,
           notes_project: this.projects,
         },
-        variables: this.config?.variables,
-      });
+        this.config?.variables
+      );
     },
   },
   computed: {

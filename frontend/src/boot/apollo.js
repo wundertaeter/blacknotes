@@ -76,7 +76,7 @@ export default boot(
           type = cacheData["active_notes"] ? "active_notes" : "notes_note";
         } else {
           type = "notes_project";
-          if(!cacheData.notes_project) return;
+          if (!cacheData.notes_project) return;
         }
         data = {
           ...cacheData,
@@ -98,6 +98,10 @@ export default boot(
       });
 
       return p;
+    }
+
+    app.config.globalProperties.$updateCache = (query, data, variables) => {
+      apolloClient.writeQuery({ query, data, variables });
     }
   }
 );

@@ -64,7 +64,6 @@
           :select="select"
           :done="done"
           :keep="keep"
-          :config="config"
           :notes="notes"
           :projects="projects"
           :sortMethod="sortMethod"
@@ -207,7 +206,7 @@ export default defineComponent({
     },
   },
   methods: {
-    setEditNote(note){
+    setEditNote(note) {
       this.editNote = note;
     },
     sortMethod(a, b) {
@@ -229,13 +228,12 @@ export default defineComponent({
     },
     trashProject() {
       this.$mutateQueue({
-          mutation: TRASH_PROJECT,
-          variables: {
-            id: this.project.id,
-            deleted_at: new Date(),
-          },
-        })
-        .then((resp) => this.nextProject());
+        mutation: TRASH_PROJECT,
+        variables: {
+          id: this.project.id,
+          deleted_at: new Date(),
+        },
+      }).then((resp) => this.nextProject());
     },
     nextProject() {
       const projects = [...this.user.projects];
@@ -275,7 +273,7 @@ export default defineComponent({
     },
     addNote(e) {
       e.stopPropagation();
-      if(this.editNote) return;
+      if (this.editNote) return;
       const note = this.newNote;
       if (this.$route.name == "project" && this.currentProject) {
         note.project = this.currentProject;
@@ -289,22 +287,20 @@ export default defineComponent({
         });
       });
       this.$mutateQueue({
-          mutation: CREATE_NOTE,
-          variables: note,
-        })
-        .then(() => this.updateCache());
+        mutation: CREATE_NOTE,
+        variables: note,
+      }).then(() => this.updateCache());
     },
     updateCache() {
-      if (!this.config.query) return;
-      const apolloClient = this.$apollo.provider.defaultClient;
-      apolloClient.writeQuery({
-        query: this.config.query,
-        data: {
+      if (!this.config?.query) return;
+      this.$updateCache(
+        this.config.query,
+        {
           active_notes: this.notes,
           notes_project: this.projects,
         },
-        variables: this.config.variables,
-      });
+        this.config?.variables
+      );
     },
   },
   apollo: {
