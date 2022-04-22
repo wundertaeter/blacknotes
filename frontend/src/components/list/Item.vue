@@ -1,6 +1,5 @@
 <template>
   <q-card flat :class="{ focused: focused, item: true }">
-    {{modelValue.anytime_position}}
     <q-checkbox
       v-if="modelValue.icon"
       v-model="done"

@@ -163,8 +163,8 @@
                 clickable
                 @dblclick="element.edit = true"
                 @drop="onDrop"
-                @dragover="onDragover(element)"
-                @dragleave="onDragleave(element)"
+                @dragover="(e) => onDragover(e, element)"
+                @dragleave="(e) => onDragleave(e, element)"
                 @click="selectProject(element)"
                 @keydown.enter="element.edit = true"
                 active-class="text-orange"
@@ -266,10 +266,12 @@ export default defineComponent({
     },
   },
   methods: {
-    onDragover(project) {
-      this.focusedProject = project;
+    onDragover(e, project) {
+      if(e.dataTransfer.types[1] == 'note'){
+        this.focusedProject = project;
+      }
     },
-    onDragleave(project) {
+    onDragleave(e) {
       this.focusedProject = null;
     },
     onDrop(e) {
@@ -291,7 +293,8 @@ export default defineComponent({
         }
       }
 
-      this.onDragleave();
+      this.onDragleave(e);
+      e.dataTransfer.clearData();
     },
     projectActive(project) {
       if (this.currentProject && this.$route.name == "project") {
