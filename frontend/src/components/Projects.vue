@@ -112,6 +112,8 @@ export default defineComponent({
   },
   methods: {
     sortMethod(a, b) {
+      if(a[this.positionColumn]  === null) return 1;
+      if(b[this.positionColumn]  === null) return -1;
       return a[this.positionColumn] - b[this.positionColumn];
     },
     appendNote(note) {

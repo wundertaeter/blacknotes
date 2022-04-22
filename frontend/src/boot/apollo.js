@@ -91,11 +91,12 @@ export default boot(
     app.config.globalProperties.$mutateQueue = (mutation) => {
       loading(true);
       let p = apolloClient.mutate(mutation);
-      p.finally(() => loading(false));
       getQueries(mutation.variables).forEach((query) => {
         console.log("mutateQueue query", query);
         app.config.globalProperties.$addToCache(mutation.variables, query);
       });
+      
+      p.finally(() => loading(false));
 
       return p;
     }

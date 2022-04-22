@@ -150,11 +150,10 @@ export default defineComponent({
       }
     }
     console.log("dates", this.dates);
-    this.updateData();
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
 
-    bus.emit('sort', [...this.projects, ...this.notes].sort(this.sortMethod));
+    // bus.emit('sort', [...this.projects, ...this.notes].sort(this.sortMethod));
   },
   unmounted() {
     document.removeEventListener("click", this.resetFocusedNote);
@@ -162,9 +161,15 @@ export default defineComponent({
   },
   methods: {
     sortMethod(a, b) {
-      return this.positionColumn
-        ? a[this.positionColumn] - b[this.positionColumn]
-        : new Date(a[this.groupBy]) - new Date(b[this.groupBy]);
+      if(this.positionColumn){
+        if(a[this.positionColumn]  === null) return 1;
+        if(b[this.positionColumn]  === null) return -1;
+        return a[this.positionColumn] - b[this.positionColumn];
+      }else{
+        if(a[this.groupBy]  === null) return 1;
+        if(b[this.groupBy]  === null) return -1;
+        return new Date(a[this.groupBy]) - new Date(b[this.groupBy]);
+      }
     },
     updateData() {
       this.dates.forEach((date) => {
@@ -382,7 +387,7 @@ export default defineComponent({
             this.focusNote = items[items.length - 1];
           }
         }
-        console.log("this note", this.focusNote);
+        // console.log("this note", this.focusNote);
         //this.focusedNote = next || this.notes[0];
       }
     },

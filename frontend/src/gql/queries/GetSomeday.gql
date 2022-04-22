@@ -1,5 +1,5 @@
 query GetSomedayNotes($user_id: Int!) {
-  active_notes(where: {_and: {user_id: {_eq: $user_id}, when: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc}) {
+  active_notes(where: {_and: {user_id: {_eq: $user_id}, when: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc_nulls_last}) {
     id
     title
     content
@@ -17,7 +17,7 @@ query GetSomedayNotes($user_id: Int!) {
     }
   }
 
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_eq: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {someday_position: asc_nulls_last}) {
     title
     icon
     id

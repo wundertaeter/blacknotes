@@ -1,5 +1,5 @@
 query GetUpcoming($user_id: Int!, $today: date!) {
-  active_notes(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc}) {
+  active_notes(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc_nulls_last}) {
     id
     title
     content
@@ -16,7 +16,7 @@ query GetUpcoming($user_id: Int!, $today: date!) {
       title
     }
   }
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc_nulls_last}) {
     id
     title
     done

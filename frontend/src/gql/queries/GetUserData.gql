@@ -4,7 +4,7 @@ query GetUserData($id: Int!) {
     username
     admin: is_superuser
   }
-  projects: notes_project(order_by: {position: asc}, where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
+  projects: notes_project(order_by: {position: asc_nulls_last}, where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
     title
     icon
     id

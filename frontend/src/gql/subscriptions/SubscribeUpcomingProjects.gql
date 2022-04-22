@@ -1,5 +1,5 @@
 subscription SubscribeUpcomingNotes($user_id: Int!, $today: date!) {
-  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc}) {
+  notes_project(where: {_and: {user_id: {_eq: $user_id}, when: {_gt: $today}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {upcoming_position: asc_nulls_last}) {
     id
     title
     done

@@ -212,6 +212,7 @@ export default defineComponent({
   },
   methods: {
     dragStart(e, item) {
+      item[this.positionColumn] = null;
       if (item.__typename.includes("_note")) {
         e.dataTransfer.setData("note", JSON.stringify(item));
       } else {
@@ -390,7 +391,7 @@ export default defineComponent({
       if(next) this.setFocus(next);
     },
     resetFocus() {
-      console.log("reset focus");
+      // console.log("reset focus");
       this.setFocus(null)
       this.setEdit(null);
     },

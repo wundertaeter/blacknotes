@@ -12,7 +12,7 @@ subscription SubscribeAnytimeProjects($user_id: Int!) {
     someday_position
     anytime_position
     upcoming_position
-    notes(where: {_and: {done: {_eq: false}, deleted: {_eq: false}}}, order_by: {anytime_position: asc}) {
+    notes(where: {_and: {done: {_eq: false}, deleted: {_eq: false}}}, order_by: {anytime_position: asc_nulls_last}) {
       id
       title
       content

@@ -210,6 +210,8 @@ export default defineComponent({
       this.editNote = note;
     },
     sortMethod(a, b) {
+      if(a[this.sortBy.column]  === null) return 1;
+      if(b[this.sortBy.column]  === null) return -1;
       if (this.sortBy.date) {
         return this.sortBy.desc
           ? new Date(b[this.sortBy.column]) - new Date(a[this.sortBy.column])

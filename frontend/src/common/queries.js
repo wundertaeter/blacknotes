@@ -88,13 +88,13 @@ export function getQueries(item) {
         } else {
             queries.push(getUpcoming());
         }
-    } else {
-        queries.push(GetAnytime());
     }
 
     if (item.project_id) {
         queries.push(getProject(item.project_id));
     }
+
+    queries.push(GetAnytime());
 
     return queries;
 }

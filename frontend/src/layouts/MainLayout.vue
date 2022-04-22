@@ -278,12 +278,10 @@ export default defineComponent({
       if (note) {
         note = JSON.parse(note);
         console.log("drop note: ", note);
-        this.$apollo.mutate({
+        note.project_id = this.focusedProject.id;
+        this.$mutateQueue({
           mutation: UPDATE_NOTE_PROJECT,
-          variables: {
-            id: note.id,
-            project_id: this.focusedProject.id,
-          },
+          variables: note,
         });
       } else {
         let project = e.dataTransfer.getData("project");

@@ -1,5 +1,5 @@
-mutation UpdateNoteProject($id: uuid!, $project_id: uuid!) {
-  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id, deleted: false, deleted_at: null, done: false, completed_at: null}) {
+mutation UpdateNoteProject($id: uuid!, $project_id: uuid!, $someday_position: Int!, $today_position: Int!, $upcoming_position: Int!, $anytime_position: Int!) {
+  note: update_notes_note_by_pk(pk_columns: {id: $id}, _set: {project_id: $project_id, deleted: false, deleted_at: null, done: false, completed_at: null, someday_position: $someday_position, today_position: $today_position, upcoming_position: $upcoming_position, anytime_position: $anytime_position}) {
     done
     completed_at
     deleted
