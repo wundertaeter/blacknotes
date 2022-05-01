@@ -4,7 +4,6 @@
     v-model="currentProject"
     more
     :config="{
-        query: GET_PROJECT,
         notes_subscription: SUBSCRIBE_PROJECT,
         variables: {
           project_id: currentProject.id,
@@ -21,7 +20,6 @@
 
 <script>
 import { defineComponent } from "vue";
-const GET_PROJECT = require("src/gql/queries/GetProject.gql");
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
 import Project from "src/components/Project.vue";
 
@@ -33,7 +31,6 @@ export default defineComponent({
   data() {
     return {
       config: null,
-      GET_PROJECT,
       SUBSCRIBE_PROJECT
     };
   },

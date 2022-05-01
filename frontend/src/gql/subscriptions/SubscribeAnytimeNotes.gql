@@ -7,6 +7,7 @@ subscription SubscribeAnytimeNotes($user_id: Int!) {
     when
     user_id
     deleted
+    position
     anytime_position
     today_position
     someday_position

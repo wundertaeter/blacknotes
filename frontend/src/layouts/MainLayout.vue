@@ -315,6 +315,7 @@ export default defineComponent({
         mutation: SORT_PROJECTS,
         variables: {
           objects: this.projects,
+          update_columns: ['position']
         },
       });
     },

@@ -14,7 +14,6 @@
 
 <script>
 import { defineComponent } from "vue";
-const GET_TODAY = require("src/gql/queries/GetToday.gql");
 const SUBSCRIBE_TODAY_NOTES = require("src/gql/subscriptions/SubscribeTodayNotes.gql");
 const SUBSCRIBE_TODAY_PROJECTS = require("src/gql/subscriptions/SubscribeTodayProjects.gql");
 import Project from "src/components/Project.vue";
@@ -28,7 +27,6 @@ export default defineComponent({
     return {
       project: { title: "Today", icon: "star", default: true },
       config: {
-        query: GET_TODAY,
         notes_subscription: SUBSCRIBE_TODAY_NOTES,
         projects_subscription: SUBSCRIBE_TODAY_PROJECTS,
         variables: {

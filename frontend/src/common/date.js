@@ -53,3 +53,39 @@ export function formatDate(timestamp, format) {
     }
     return date.formatDate(timestamp, format);
 }
+
+export function timelineDates(timeline) {
+    const dates = [];
+    let next;
+    for (let i = 0; i <= timeline; i++) {
+        next = date.addToDate(today(), { day: i });
+        dates.push({ date: next, title: date.formatDate(next, "dddd") });
+    }
+    return dates;
+}
+
+export function formatDateForward(timestamp, timelineDates) {
+    if (isTomorrow(timestamp)) {
+        return "Tomorrow";
+    }
+    let dateString = date.formatDate(timestamp, "dddd");
+    if (
+        timelineDates.some((d) =>
+            date.isSameDate(d.date, timestamp, "day")
+        )
+    ) {
+        return dateString;
+    }
+    return date.formatDate(timestamp, "MMMM");
+}
+
+export function formatDateBackwards(timestamp) {
+    if (isToday(timestamp)) {
+        return "Today";
+    } else if (isYesterday(timestamp)) {
+        return "Yesterday";
+    } else if (isCurrentWeek(timestamp)) {
+        return date.formatDate(timestamp, "dddd");
+    }
+    return date.formatDate(timestamp, "MMMM");
+}

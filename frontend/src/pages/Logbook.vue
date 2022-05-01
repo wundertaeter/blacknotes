@@ -12,7 +12,6 @@
 
 <script>
 import { defineComponent } from "vue";
-const GET_LOGBOOK = require("src/gql/queries/GetLogbook.gql");
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
 const SUBSCRIBE_LOGBOOK_PROJECTS = require("src/gql/subscriptions/SubscribeLogbookProjects.gql");
 import Timeline from "src/components/Timeline.vue";
@@ -29,7 +28,6 @@ export default defineComponent({
       // const where = {_and: {user_id: {_eq: user_id}, deleted: {_eq: false}, done: {_eq: true}}};
       // const group_by = {completed_at: desc};
       config: {
-        query: GET_LOGBOOK,
         notes_subscription: SUBSCRIBE_LOGBOOK_NOTES,
         projects_subscription: SUBSCRIBE_LOGBOOK_PROJECTS,
         variables: {

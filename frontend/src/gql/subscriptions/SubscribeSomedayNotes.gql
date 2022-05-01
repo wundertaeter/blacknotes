@@ -7,6 +7,7 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     when
     user_id
     deleted
+    position
     anytime_position
     today_position
     someday_position
@@ -14,6 +15,7 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     upcoming_position
     project {
       title
+      id
     }
   }
 }

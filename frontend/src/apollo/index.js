@@ -1,12 +1,5 @@
 import { createHttpLink, InMemoryCache } from '@apollo/client/core'
-import { persistCache, LocalStorageWrapper } from 'apollo3-cache-persist';
-export async function getClientOptions(/* {app, router, ...} */ options) {
-  const cache = new InMemoryCache();
-  // await before instantiating ApolloClient, else queries might run before the cache is persisted
-  await persistCache({
-    cache,
-    storage: new LocalStorageWrapper(window.localStorage),
-  });
+export /*async*/ function getClientOptions(/* {app, router, ...} */ options) {
   return Object.assign(
     // General options.
     {
@@ -14,7 +7,21 @@ export async function getClientOptions(/* {app, router, ...} */ options) {
         uri:
           process.env.GRAPHQL_URI
       }),
-      cache,
+      cache: new InMemoryCache(),
+      defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'network-first',
+          errorPolicy: 'ignore',
+        },
+        query: {
+          fetchPolicy: 'network-first',
+          errorPolicy: 'all',
+        },
+        mutate: {
+          errorPolicy: 'all'
+        }
+        
+      }
     },
     // Specific Quasar mode options.
     process.env.MODE === 'spa'

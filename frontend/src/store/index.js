@@ -1,6 +1,7 @@
 import { store } from "quasar/wrappers";
 import { createStore } from "vuex";
 import user from './user'
+import cache from './cache'
 // import example from './module-example'
 
 /*
@@ -14,7 +15,8 @@ import user from './user'
 
 export const Store = createStore({
   modules: {
-    user
+    user,
+    cache
   },
 
   // enable strict mode (adds overhead!)

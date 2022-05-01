@@ -7,7 +7,7 @@
           {{ title }}
         </h4>
         <div
-          v-for="project in projects"
+          v-for="project in cache"
           :key="project.id"
           style="margin-top: 50px"
         >
@@ -18,6 +18,7 @@
             <hr class="project-title-seperator" />
           </div>
           <list
+            v-if="project.notes"
             @select="setFocusNote"
             @edit="setEditNote"
             :project="project"
@@ -25,7 +26,7 @@
             :position-column="positionColumn"
             :sortMethod="sortMethod"
             group="people"
-            :notes="project.notes"
+            :items="project.notes"
             :date-preview="false"
             :focused="focusNote"
             :edited="editNote"
@@ -57,8 +58,8 @@ export default defineComponent({
   },
   data() {
     return {
-      projectsCopy: [],
-      notes: [],
+      projects: null,
+      notes: null,
       whens: [],
       watchers: [],
       focusNote: null,
@@ -98,13 +99,6 @@ export default defineComponent({
   mounted() {
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
-    // const notes = [...this.notes];
-    // this.projectsCopy.forEach((p) => notes.push(...p.notes));
-    // console.log('emit sort');
-    // bus.emit(
-    //   "sort",
-    //   notes.sort((a, b) => a[this.positionColumn] - b[this.positionColumn])
-    // );
   },
   unmounted() {
     document.removeEventListener("click", this.resetFocusedNote);
@@ -112,18 +106,12 @@ export default defineComponent({
   },
   methods: {
     sortMethod(a, b) {
-      if(a[this.positionColumn]  === null) return 1;
-      if(b[this.positionColumn]  === null) return -1;
+      if (a[this.positionColumn] === null) return 1;
+      if (b[this.positionColumn] === null) return -1;
       return a[this.positionColumn] - b[this.positionColumn];
     },
     appendNote(note) {
-      const project = this.selectedProject;
-      if (project) {
-        const index = this.projectsCopy.findIndex((p) => p.id == project.id);
-        let p = JSON.parse(JSON.stringify(this.projectsCopy[index]));
-        p.notes.push(note);
-        this.projectsCopy[index] = p;
-      }
+      this.$updateCache(note);
       this.$nextTick(() => {
         this.editNote = note;
         this.focusNote = note;
@@ -161,18 +149,17 @@ export default defineComponent({
       }
     },
     removeNote(note) {
-      const project = this.selectedProject;
-      const projectIndex = this.projects.indexOf(project);
-      const notes = project ? project.notes : this.notes;
-      const index = notes.findIndex((n) => n.id == note.id);
+      const projectIndex = this.cache.indexOf(this.selectedProject);
+      const index = this.selectedProject.notes.findIndex((n) => n.id == note.id);
 
-      notes.splice(index, 1);
-      let next;
-      if (project) {
-        project.notes = [...notes];
-        next = project.notes[index];
+      console.log("this.selectedProject.notes", this.selectedProject.notes);
+      this.$updateCache(note);
+
+      this.$nextTick(() => {
+        console.log("this.selectedProject.notes next tick", this.selectedProject.notes);
+        let next = this.selectedProject.notes[index];
         if (!next) {
-          next = project.notes[project.notes.length - 1];
+          next = this.selectedProject.notes[this.selectedProject.notes.length - 1];
         }
         if (!next) {
           const nextProject = this.getNextProject(projectIndex + 1);
@@ -182,31 +169,18 @@ export default defineComponent({
             const prevProject = this.getPrevProject(projectIndex - 1);
             if (prevProject) {
               next = prevProject.notes[prevProject.notes.length - 1];
-            } else {
-              next = this.notes[this.notes.length - 1];
             }
           }
         }
-      } else {
-        this.notes = [...notes];
-        next = this.notes[index];
-        if (!next) {
-          next = this.notes[this.notes.length - 1];
-        }
-        if (!next) {
-          const nextProject = this.getNextProject(0);
-          if (nextProject) {
-            next = nextProject.notes[0];
-          }
-        }
-      }
-      this.focusNote = next;
+        this.focusNote = next;
+      });
+
     },
     trashNote() {
-      const note = this.focusNote;
-      this.removeNote(note);
+      const note = {...this.focusNote};
       note.deleted = true;
       note.deleted_at = new Date();
+      this.removeNote(note);
       this.$mutateQueue({
         mutation: TRASH_NOTE,
         variables: note,
@@ -223,8 +197,8 @@ export default defineComponent({
       this.editNote = note;
     },
     getNextProject(project_index) {
-      if (this.projects.length == 0) return;
-      let nextProject = this.projects[project_index];
+      if (this.cache.length == 0) return;
+      let nextProject = this.cache[project_index];
       if (!nextProject) {
         return null;
       }
@@ -235,8 +209,8 @@ export default defineComponent({
       }
     },
     getPrevProject(project_index) {
-      if (this.projects.length == 0) return;
-      let prevProject = this.projects[project_index];
+      if (this.cache.length == 0) return;
+      let prevProject = this.cache[project_index];
       if (!prevProject) {
         return null;
       }
@@ -256,7 +230,7 @@ export default defineComponent({
           this.focusNote = next;
         } else {
           const nextProject = this.getNextProject(
-            this.projects.indexOf(this.selectedProject) + 1
+            this.cache.indexOf(this.selectedProject) + 1
           );
           if (nextProject) {
             next = nextProject.notes[0];
@@ -275,7 +249,7 @@ export default defineComponent({
           this.focusNote = next;
         } else {
           const prevProject = this.getPrevProject(
-            this.projects.indexOf(this.selectedProject) - 1
+            this.cache.indexOf(this.selectedProject) - 1
           );
           if (prevProject) {
             next = prevProject.notes[prevProject.notes.length - 1];
@@ -285,49 +259,48 @@ export default defineComponent({
       }
     },
     updateCache() {
-      console.log('update cache', {
-          active_notes: this.notes,
-          notes_project: this.projectsCopy,
-        })
-      if (!this.config?.query) return;
-      this.$updateCache(
-        this.config.query,
-        {
-          active_notes: this.notes,
-          notes_project: this.projectsCopy,
-        },
-        this.config?.variables
-      );
+      if (this.notes && this.projects) {
+        const items = [
+          {
+            notes: this.notes.map((n) => ({
+              ...n,
+              project: { title: null, id: null },
+            })),
+          },
+          ...this.projects.filter((p) => p.notes.length),
+        ];
+        this.$store.commit("cache/update", { key: this.title, items });
+        this.projects = null;
+        this.notes = null;
+      }
     },
   },
   computed: {
-    projects() {
-      return [
-        {
-          notes: JSON.parse(JSON.stringify(this.notes)).map((n) => {
-            n.project = { title: null, id: null };
-            return n;
-          }),
-        },
-        ...this.projectsCopy.filter((p) => p.notes.length),
-      ];
+    cache() {
+      return this.$store.state.cache[this.title];
     },
     user() {
       return this.$store.state.user;
     },
     selectedProject() {
-      const project = this.focusNote
-        ? this.focusNote.project
-        : this.editNote
-        ? this.editNote.project
-        : this.start;
-      return project ? this.projects.find((p) => p.id == project.id) : null;
+      const selected = this.focusNote ? this.focusNote : this.editNote;
+      console.log("selectedProject", selected);
+      if (selected) {
+        const index = this.cache.findIndex((project) =>
+          project.notes.some((note) => note.id == selected.id)
+        );
+        return index >= 0 ? this.cache[index] : this.cache[0];
+      } else {
+        return this.cache[0];
+      }
+    },
+    maxPosition() {
+      const positions = this.selectedProject.notes.map(
+        (it) => it[this.positionColumn]
+      );
+      return positions.length ? Math.max(...positions) : 0;
     },
     newNote() {
-      const project = this.selectedProject;
-      const notes = project ? project.notes : this.notes;
-      const positions = notes.map((it) => it[this.positionColumn]);
-      const maxPosition = positions.length ? Math.max(...positions) : 0;
       return {
         __typename: "active_notes",
         id: uuidv4(),
@@ -340,36 +313,14 @@ export default defineComponent({
         today_position: null,
         someday_position: null,
         anytime_position: null,
-        project_id: project ? project.id : null,
-        [this.positionColumn]: maxPosition + 1,
-        project: project,
+        project_id: this.selectedProject.id,
+        [this.positionColumn]: this.maxPosition + 1,
+        project: this.selectedProject.id ? this.selectedProject : null,
         when: null,
       };
     },
   },
   apollo: {
-    active_notes: {
-      query() {
-        return this.config?.query;
-      },
-      fetchPolicy: "cache-first",
-      variables() {
-        return this.config?.variables;
-      },
-      skip() {
-        return !this.config?.query || !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.notes = data.active_notes
-          ? JSON.parse(JSON.stringify(data.active_notes))
-          : [];
-        this.projectsCopy = data.notes_project
-          ? JSON.parse(JSON.stringify(data.notes_project))
-          : [];
-        this.$apollo.skipAllQueries = true;
-      },
-    },
     $subscribe: {
       active_notes: {
         query() {
@@ -407,7 +358,7 @@ export default defineComponent({
         },
         result({ data }) {
           console.log("project sub", data);
-          this.projectsCopy = JSON.parse(JSON.stringify(data.notes_project));
+          this.projects = JSON.parse(JSON.stringify(data.notes_project));
           this.updateCache();
         },
       },

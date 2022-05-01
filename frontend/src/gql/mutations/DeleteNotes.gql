@@ -1,0 +1,5 @@
+mutation DeleteNotes($ids: [uuid!]!) {
+  delete_notes_note(where: {id: {_in: $ids}}) {
+    affected_rows
+  }
+}

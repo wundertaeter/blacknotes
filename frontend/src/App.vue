@@ -18,6 +18,7 @@ export default defineComponent({
       // message: 'Some important process is in progress. Hang on...',
       // messageColor: 'black'
     });
+    this.$store.commit('cache/load');
     this.$q.dark.set(true);
   },
   computed: {
@@ -31,7 +32,6 @@ export default defineComponent({
   apollo: {
     user: {
       query: GET_USER_DATA,
-      fetchPolicy: "cache-first",
       variables() {
         return {
           id: this.userId,

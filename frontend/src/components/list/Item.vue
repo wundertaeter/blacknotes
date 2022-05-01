@@ -105,7 +105,6 @@
 </template>
 
 <script>
-import { loading } from "src/common/system.js";
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 import { toDatabaseString } from "src/common/date.js";
 import {
@@ -231,18 +230,11 @@ export default {
     },
   },
   methods: {
-    mutateQueue(mutation) {
-      loading(true);
-      let p = this.$apollo.mutate(mutation);
-      p.finally(() => loading(false));
-      //this.promiseQueue.push(p);
-      return p;
-    },
     updateNote(note) {
-      loading(true);
+      this.$loading(true);
       if (this.updateId) clearTimeout(this.updateId);
       this.updateId = setTimeout(() => {
-        this.mutateQueue({
+        this.$mutateQueue({
           mutation: UPDATE_NOTE,
           variables: {
             id: note.id,
@@ -329,6 +321,7 @@ export default {
       };
       this.$emit("update:modelValue", note);
       this.updateNote(note);
+      this.$updateCache(note);
     },
   },
 };

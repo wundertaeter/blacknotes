@@ -6,11 +6,11 @@ import { ApolloLink, concat, split } from "apollo-link";
 import { WebSocketLink } from "apollo-link-ws";
 import { getMainDefinition } from "apollo-utilities";
 import { createApolloProvider } from "@vue/apollo-option";
-import { loading } from "src/common/system.js";
-import { getQueries } from "src/common/queries";
+import { Store } from "src/store";
 
+let updateLoadingTimeout = null;
 export default boot(
-  async ({ app }) => {
+  /*async*/ ({ app }) => {
     const httpLink = createHttpLink({ uri: process.env.GRAPHQL_URI });
 
     const authMiddleware = new ApolloLink(async (operation, forward) => {
@@ -45,7 +45,7 @@ export default boot(
       httpLink
     );
 
-    const options = await getClientOptions(/* {app, router ...} */);
+    const options = /*await*/ getClientOptions(/* {app, router ...} */);
     options.link = concat(authMiddleware, link);
     const apolloClient = new ApolloClient(options);
 
@@ -62,47 +62,25 @@ export default boot(
     app.use(apolloProvider);
 
 
-
-    app.config.globalProperties.$addToCache = (item, query) => {
-      if (!item.__typename) return;
-      const cacheData = apolloClient.readQuery(query);
-      console.log("addToCache data", cacheData, item);
-
-      if (cacheData) {
-        let type;
-        let data;
-
-        if (item.__typename.includes("_note")) {
-          type = cacheData["active_notes"] ? "active_notes" : "notes_note";
-        } else {
-          type = "notes_project";
-          if (!cacheData.notes_project) return;
-        }
-        data = {
-          ...cacheData,
-          [type]: [...cacheData[type], item],
-        };
-
-        apolloClient.writeQuery({ ...query, data });
+    app.config.globalProperties.$loading = (loading) => {
+      if (updateLoadingTimeout) clearTimeout(updateLoadingTimeout);
+      if (loading) {
+        Store.commit("user/updateLoading", true);
+      } else {
+        updateLoadingTimeout = setTimeout(() => {
+          Store.commit("user/updateLoading", false);
+        }, 500);
       }
     }
 
 
     app.config.globalProperties.$mutateQueue = (mutation) => {
-      loading(true);
+      app.config.globalProperties.$loading(true);
       let p = apolloClient.mutate(mutation);
-      getQueries(mutation.variables).forEach((query) => {
-        console.log("mutateQueue query", query);
-        app.config.globalProperties.$addToCache(mutation.variables, query);
-      });
-      
-      p.finally(() => loading(false));
+
+      p.finally(() => app.config.globalProperties.$loading(false));
 
       return p;
-    }
-
-    app.config.globalProperties.$updateCache = (query, data, variables) => {
-      apolloClient.writeQuery({ query, data, variables });
     }
   }
 );

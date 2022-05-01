@@ -8,6 +8,7 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     user_id
     deleted
     deleted_at
+    position
     anytime_position
     today_position
     someday_position
@@ -15,6 +16,7 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     upcoming_position
     project {
       title
+      id
     }
   }
 }

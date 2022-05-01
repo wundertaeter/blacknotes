@@ -59,13 +59,13 @@
         </h4>
 
         <list
+          v-if="cache"
           :position-column="positionColumn"
           :sort="sort"
           :select="select"
           :done="done"
           :keep="keep"
-          :notes="notes"
-          :projects="projects"
+          :items="cache"
           :sortMethod="sortMethod"
           @edit="setEditNote"
         />
@@ -73,7 +73,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <slot name="toolbar" v-bind="{ addNote, revert }" />
+        <slot name="toolbar" v-bind="{ addNote, revert, deleteAll }" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -87,7 +87,6 @@ const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
-import { loading } from "src/common/system.js";
 import { uuidv4 } from "src/common/utils.js";
 
 export default defineComponent({
@@ -98,11 +97,15 @@ export default defineComponent({
   data() {
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
-      projects: [],
-      notes: [],
+      projects: null,
+      notes: null,
       timeout: null,
       moreShowing: false,
     };
+  },
+  mounted(){
+    console.log('sort!!');
+    bus.emit('sort');
   },
   props: {
     modelValue: {
@@ -174,18 +177,23 @@ export default defineComponent({
   },
   computed: {
     maxPosition() {
-      const positions = (this.project.notes || this.notes).map(
+      const positions = this.cache.map( // dont work?!!!!!!
         (note) => note[this.positionColumn]
       );
+      console.log('positions', this.cache, positions, this.positionColumn);
       return positions.length ? Math.max(...positions) : 0;
     },
     user() {
       return this.$store.state.user;
     },
+    cache(){
+      return this.$store.state.cache[this.modelValue.title]
+    },
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
     newNote() {
+      console.log(this.maxPosition);
       return {
         __typename: "active_notes",
         id: uuidv4(),
@@ -228,6 +236,12 @@ export default defineComponent({
       console.log("revert");
       bus.emit("revert");
     },
+    deleteAll(e){
+      e.stopPropagation();
+      console.log('deleteAll');
+      bus.emit('deleteAll');
+      this.$store.commit('cache/update', {key: this.modelValue.title, items: []});
+    },
     trashProject() {
       this.$mutateQueue({
         mutation: TRASH_PROJECT,
@@ -253,7 +267,7 @@ export default defineComponent({
       }
     },
     checkProject() {
-      loading(true);
+      this.$loading(true);
       console.log("projects", this.user.projects);
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
@@ -281,7 +295,8 @@ export default defineComponent({
         note.project = this.currentProject;
       }
 
-      this.notes = [...this.notes, note];
+      this.$updateCache(note);
+
       this.$nextTick(() => {
         bus.emit("setEdit", note);
         this.$nextTick(() => {
@@ -291,43 +306,20 @@ export default defineComponent({
       this.$mutateQueue({
         mutation: CREATE_NOTE,
         variables: note,
-      }).then(() => this.updateCache());
+      });
     },
-    updateCache() {
-      if (!this.config?.query) return;
-      this.$updateCache(
-        this.config.query,
-        {
-          active_notes: this.notes,
-          notes_project: this.projects,
-        },
-        this.config?.variables
-      );
-    },
+    updateCache(){
+      if(!this.modelValue.default){
+        this.$store.commit('cache/update', {key: this.modelValue.title, items: this.notes, sort: this.sortMethod});
+      }else if(this.notes && this.projects){
+        console.log('update cache', this.notes, this.projects);
+        this.$store.commit('cache/update', {key: this.modelValue.title, notes: this.notes, projects: this.projects, sort: this.sortMethod});
+        this.projects = null;
+        this.notes = null;
+      }
+    }
   },
   apollo: {
-    active_notes: {
-      query() {
-        return this.config.query;
-      },
-      fetchPolicy: "cache-first",
-      variables() {
-        return this.config.variables;
-      },
-      skip() {
-        return !this.user.id;
-      },
-      result({ data }) {
-        console.log("result", data);
-        this.notes = data.active_notes
-          ? JSON.parse(JSON.stringify(data.active_notes))
-          : [];
-        this.projects = data.notes_project
-          ? JSON.parse(JSON.stringify(data.notes_project))
-          : [];
-        this.$apollo.skipAllQueries = true;
-      },
-    },
     $subscribe: {
       active_notes: {
         query() {
@@ -345,7 +337,7 @@ export default defineComponent({
         },
         result({ data }) {
           console.log("note sub", data);
-          this.notes = JSON.parse(JSON.stringify(data.active_notes));
+          this.notes = data.active_notes;
           this.updateCache();
         },
       },
@@ -365,7 +357,7 @@ export default defineComponent({
         },
         result({ data }) {
           console.log("project sub", data);
-          this.projects = JSON.parse(JSON.stringify(data.notes_project));
+          this.projects = data.notes_project;
           this.updateCache();
         },
       },
