@@ -225,17 +225,18 @@ export default defineComponent({
 
       this.$nextTick(() => {
         let next = this.cache[groupBy][index];
+        console.log('NEXT ??', next);
         if (!next) {
           const length = this.cache[groupBy].length;
           next = this.cache[groupBy][length - 1];
         }
-        const dates = [...this.dates];
-        while (dates[0].title != groupBy) {
-          dates.push(dates.shift());
-        }
         if (!next) {
+          const dates = [...this.dates].reverse();
+          while (dates[0].title != groupBy) {
+            dates.push(dates.shift());
+          }
           for (const date of dates) {
-            next = this.cache[date.title][0];
+            next = this.cache[date.title][this.cache[date.title].length - 1];
             if (next) break;
           }
         }
@@ -379,11 +380,21 @@ export default defineComponent({
     },
     updateCache() {
       if (this.projects && this.notes) {
-        const items = {};
-        this.dates.forEach((date) => {
-          items[date.title] = [];
-        });
-        this.notes.forEach((note) => {
+        this.$store.commit("cache/update", { key: this.title, notes: this.notes, projects: this.projects });
+        this.notes = null;
+        this.projects = null;
+      }
+    },
+  },
+  computed: {
+    cache() {
+      const cache = this.$store.state.cache[this.title];
+      const items = {};
+      this.dates.forEach((date) => {
+        items[date.title] = [];
+      });
+      if(cache){
+        cache.notes.forEach((note) => {
           let dateString = this.formatDate(note[this.groupBy]);
           if (!items[dateString]) {
             this.dates.push({
@@ -394,7 +405,7 @@ export default defineComponent({
           }
           items[dateString].push(note);
         });
-        this.projects.forEach((note) => {
+        cache.projects.forEach((note) => {
           let dateString = this.formatDate(note[this.groupBy]);
           if (!items[dateString]) {
             this.dates.push({
@@ -408,16 +419,8 @@ export default defineComponent({
         for (const date in items) {
           items[date] = items[date].sort(this.sortMethod);
         }
-        console.log("update data", items);
-        this.$store.commit("cache/update", { key: this.title, items });
-        this.notes = null;
-        this.projects = null;
       }
-    },
-  },
-  computed: {
-    cache() {
-      return this.$store.state.cache[this.title];
+      return items;
     },
     user() {
       return this.$store.state.user;
@@ -429,7 +432,7 @@ export default defineComponent({
       const dates = [...this.dates]; //.filter(d => this.cache[d.title].length);
       return this.backwards
         ? dates
-            .filter((d) => this.cache && this.cache[d.title].length)
+            .filter((d) => this.cache && this.cache[d.title]?.length)
             .sort((a, b) => b.date - a.date)
         : dates.sort((a, b) => a.date - b.date);
     },

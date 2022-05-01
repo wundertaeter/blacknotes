@@ -280,11 +280,14 @@ export default defineComponent({
       if (note) {
         note = JSON.parse(note);
         console.log("drop note: ", note);
+        note.prevProject = {...note.project};
         note.project_id = this.focusedProject.id;
+        note.project = this.focusedProject;
         this.$mutateQueue({
           mutation: UPDATE_NOTE_PROJECT,
           variables: note,
         });
+        this.$updateCache(note);
       } else {
         let project = e.dataTransfer.getData("project");
         if (project) {

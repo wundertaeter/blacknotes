@@ -9,100 +9,84 @@ const timline = ['Logbook', 'Upcoming'];
 export default boot(
     ({ app }) => {
 
-        const addProject = (key, item, sort) => {
-            Store.commit('cache/addProject', { key, item, sort });
+        const add = (key, item) => {
+            console.log('Add item to ' + key, item);
+            Store.commit('cache/add', { key, item });
         }
 
-        const removeProject = (key, item, sort) => {
-            Store.commit('cache/removeProject', { key, item, sort });
+        const remove = (key, item) => {
+            console.log('Remove item from ' + key, item);
+            Store.commit('cache/remove', { key, item });
         }
 
-        const addProjects = (key, item, sort) => {
-            Store.commit('cache/addProjects', { key, item, sort });
+        const addProjects = (key, item) => {
+            console.log('Add item to ' + key, item);
+            Store.commit('cache/addProjects', { key, item });
         }
 
-        const removeProjects = (key, item, sort) => {
-            Store.commit('cache/removeProjects', { key, item, sort });
+        const removeProjects = (key, item) => {
+            console.log('Remove item from ' + key, item);
+            Store.commit('cache/removeProjects', { key, item });
         }
 
-        const addTimeline = (key, item, sort) => {
-            Store.commit('cache/addTimeline', { key, item, sort });
-        }
-
-        const removeTimeline = (key, item, sort) => {
-            Store.commit('cache/removeTimeline', { key, item, sort });
-        }
-
-        const handle = (key, item, sort) => {
-            if (item.deleted || item.done) {
-                console.log('Remove item from ' + key, item);
-                if (projects.includes(key)) {
-                    removeProjects(key, item, sort);
-                }else if (timline.includes(key)){
-                    removeTimeline(key, item, sort);
+        const handle = (key, item) => {
+            if (projects.includes(key)) {
+                if (item.deleted || item.done) {
+                    removeProjects(key, item);
                 } else {
-                    removeProject(key, item, sort);
+                    addProjects(key, item);
                 }
             } else {
-                console.log('Add item to ' + key, item);
-                if (projects.includes(key)) {
-                    addProjects(key, item, sort);
-                }else if (timline.includes(key)){
-                    addTimeline(key, item, sort);
+                if (item.deleted || item.done) {
+                    remove(key, item);
                 } else {
-                    addProject(key, item, sort);
+                    add(key, item);
                 }
             }
+
         }
 
-        app.config.globalProperties.$updateCache = (item, sort) => {
+        app.config.globalProperties.$updateCache = (item) => {
             console.log('item', item)
+            item = { ...item };
             if (!item.__typename) throw 'missing typename for item';
             if (item.deleted) {
-                if (item.permanentDeleted){
-                    removeProject('Trash', item, sort);
-                }else{
-                    addProject('Trash', item, sort);
+                if (item.permanentDeleted) {
+                    remove('Trash', item);
+                } else {
+                    add('Trash', item);
                 }
+            }else{
+                remove('Trash', item);
             }
 
             if (item.done) {
-                if(item.deleted){
-                    removeTimeline('Logbook', item, sort);
-                }else{
-                    addTimeline('Logbook', item, sort);
+                if (item.deleted) {
+                    remove('Logbook', item);
+                } else {
+                    add('Logbook', item);
                 }
-            }
-
-            if(item.prevWhen){
-                item.prevWhen = undefined;
-                timline.forEach(title => removeTimeline(title, item, sort));
+            }else{
+                remove('Logbook', item);
             }
 
             if (item.when) {
                 const dateString = formatDate(item.when);
                 if (dateString == "Today") {
-                    handle('Today', item, sort);
+                    handle('Today', item);
                 } else if (dateString == "Someday") {
-                    handle('Someday', item, sort);
+                    handle('Someday', item);
                 } else {
-                    handle('Upcoming', item, sort);
+                    handle('Upcoming', item);
                 }
             }
 
             if (item.project?.title) {
-                handle(item.project.title, item, sort);
+                handle(item.project.title, item);
             }
 
-            if(item.prevProject){
-                const title = item.prevProject.title;
-                item.prevProject = undefined;
-                removeProjects('Anytime', item, sort);
-                removeProject(title, item, sort);
-            }
+            handle('Anytime', item);
 
-           
-            handle('Anytime', item, sort);
         }
     }
 );

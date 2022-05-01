@@ -1,8 +1,11 @@
 <template>
   <draggable
+    :id="id"
     v-model="itemsCopy"
     :sort="sort"
     :drop="drop"
+    @add="(e) => $emit('add', e)"
+    @remove="(e) => $emit('remove', e)"
     :group="{ name: group, pull: drag, put: drop }"
     @update:modelValue="updatePositions"
     item-key="id"
@@ -48,7 +51,6 @@ const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
 const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 // const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
-
 export default defineComponent({
   name: "NoteList",
   components: {
@@ -57,6 +59,7 @@ export default defineComponent({
   },
   mounted() {
     console.log("items", this.itemsCopy);
+    bus.on(this.id, this.updateItem);
     bus.on("sort", this.updatePositions);
     bus.on("revert", this.revert);
     bus.on("deleteAll", this.deleteAll);
@@ -71,6 +74,7 @@ export default defineComponent({
     }
   },
   unmounted() {
+    bus.off(this.id, this.updateItem);
     bus.off("sort", this.updatePositions);
     bus.off("revert", this.revert);
     bus.off("deleteAll", this.deleteAll);
@@ -115,6 +119,10 @@ export default defineComponent({
   },
   props: {
     group: {
+      type: String,
+      required: false,
+    },
+    id: {
       type: String,
       required: false,
     },
@@ -203,13 +211,6 @@ export default defineComponent({
       this.setFocus(note);
       this.setEditNote(note);
     },
-    // scrollToElement(el) {
-    //   const target = getScrollTarget(el);
-    //   const offset = el.offsetTop - window.innerHeight / 3;
-    //   const duration = 250;
-    //   console.log('offset', offset);
-    //   setVerticalScrollPosition(target, offset, duration);
-    // },
     scrollTo(args) {
       const item = args.item ? args.item : args;
       const top = args.item ? args.top : false;
@@ -307,32 +308,7 @@ export default defineComponent({
             itemsToDelete.projects.push(item);
           }
         }
-        //  else {
-        //   item.deleted = true;
-        //   item.deleted_at = new Date();
-        //   if (item.__typename.includes("_note")) {
-        //     itemsToTrash.notes.push(item);
-        //   } else {
-        //     itemsToTrash.projects.push(item);
-        //   }
-        // }
       });
-      // if (itemsToTrash.notes.length) {
-      //   this.$mutateQueue({
-      //     mutation: TRASH_NOTES,
-      //     variables: {
-      //       objects: itemsToTrash.notes
-      //     }
-      //   })
-      // }
-      // if (itemsToTrash.projects.length) {
-      //   this.$mutateQueue({
-      //     mutation: TRASH_PROJECTS,
-      //     variables: {
-      //       objects: itemsToTrash.projects
-      //     }
-      //   })
-      // }
       if (itemsToDelete.notes.length) {
         this.$mutateQueue({
           mutation: DELETE_NOTES,
@@ -355,18 +331,7 @@ export default defineComponent({
       console.log("trashNote!!!", item);
       if (!item) return;
 
-      if (item.deleted) {
-        // console.log("delete note!!");
-        // item.permanentDeleted = true;
-        // this.$apollo.mutate({
-        //   mutation: item.__typename.includes("_note")
-        //     ? DELETE_NOTE
-        //     : DELETE_PROJECT,
-        //   variables: {
-        //     id: item.id,
-        //   },
-        // });
-      } else {
+      if (!item.deleted) {
         console.log("trash note!!");
         item.deleted = true;
         item.deleted_at = new Date();
@@ -379,11 +344,6 @@ export default defineComponent({
         this.removeItem(item);
       }
     },
-    // removeFromCache(item, query) {
-    //   const apolloClient = this.$apollo.provider.defaultClient;
-    //   const cacheData = apolloClient.readQuery(query);
-    //   console.log("removeFromCache data", cacheData);
-    // },
     selectionDown() {
       const index = this.itemsCopy.findIndex(
         (it) =>
@@ -417,20 +377,17 @@ export default defineComponent({
       let item;
       for (let i = 0; i < this.itemsCopy.length; i++) {
         item = this.itemsCopy[i];
-        // console.log("note", item);
-        // item = JSON.parse(JSON.stringify(item));
+
         item[this.positionColumn] = i;
 
         const { __typename, project, ...obj } = item;
         if (this.when) {
           obj.when = this.when ? toDatabaseString(this.when) : null;
-          item.prevWhen = item.when;
           item.when = this.when;
         }
 
         if (this.project) {
           obj.project_id = this.project.id;
-          item.prevProject = { ...item.project };
           item.project = this.project;
         }
 
@@ -439,7 +396,6 @@ export default defineComponent({
         } else {
           projects.push(obj);
         }
-        this.$updateCache(item, this.sortMethod);
       }
 
       if (notes.length) {

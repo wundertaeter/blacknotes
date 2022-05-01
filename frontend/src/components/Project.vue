@@ -187,7 +187,9 @@ export default defineComponent({
       return this.$store.state.user;
     },
     cache(){
-      return this.$store.state.cache[this.modelValue.title]
+      const cache = this.$store.state.cache[this.modelValue.title];
+      console.log('CACHE', cache);
+      return cache ? [...cache.notes, ...cache.projects].sort(this.sortMethod) : [];
     },
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
@@ -309,11 +311,9 @@ export default defineComponent({
       });
     },
     updateCache(){
-      if(!this.modelValue.default){
-        this.$store.commit('cache/update', {key: this.modelValue.title, items: this.notes, sort: this.sortMethod});
-      }else if(this.notes && this.projects){
+     if(!this.project.default || this.notes && this.projects){
         console.log('update cache', this.notes, this.projects);
-        this.$store.commit('cache/update', {key: this.modelValue.title, notes: this.notes, projects: this.projects, sort: this.sortMethod});
+        this.$store.commit('cache/update', {key: this.modelValue.title, notes: this.notes, projects: this.projects});
         this.projects = null;
         this.notes = null;
       }

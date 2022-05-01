@@ -1,16 +1,3 @@
-import { formatDateForward, formatDateBackwards, timelineDates } from "src/common/date";
-import { timeline } from "src/components/Timeline.vue";
-function uniqueById(array) {
-    if(!Array.isArray(array)) return array;
-    var resArr = [];
-    array.forEach((item) => {
-        var i = resArr.findIndex(it => it.id == item.id);
-        if (i <= -1) {
-            resArr.push(item);
-        }
-    });
-    return resArr;
-}
 
 function save(state) {
     return new Promise(resolve => {
@@ -21,124 +8,87 @@ function save(state) {
     })
 }
 
-export function update(state, { key, notes, projects, sort, ...attrs }) {
-    const rawItems = attrs.items ? attrs.items : [...projects, ...notes];
-
-    state[key] = uniqueById(sort ? rawItems.sort(sort) : rawItems);
+export function update(state, { key, notes, projects }) {
+    state[key] = { notes: notes || [], projects: projects || [] };
     console.log('commit to store', state[key]);
     save(state);
 }
 
-export function addProjects(state, { key, item, sort }) {
+export function addProjects(state, { key, item }) {
     const cache = state[key];
-    if(cache){
+    if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
-        for (const project of items) {
-            if(item.project?.id == project.id){
+        for (const project of items.projects) {
+            if (item.project && item.project.id == project.id) {
                 const index = project.notes.findIndex(it => it.id == item.id);
-                if(index >= 0){
+                if (index >= 0) {
                     project.notes[index] = item;
-                }else{
+                } else {
                     project.notes.push(item);
                 }
-                if(sort) project.notes = project.notes.sort(sort);
                 state[key] = items;
-                return save(state);
+                
+            }else if(item.prevProject && item.prevProject.id == project.id){
+                const index = project.notes.findIndex(it => it.id == item.id);
+                if (index >= 0) {
+                    project.notes.splice(index, 1);
+                    state[key] = items;
+                }
             }
         }
+        save(state);
     }
 }
 
-export function removeProjects(state, { key, item, sort }) {
+export function removeProjects(state, { key, item }) {
     const cache = state[key];
-    if(cache){
+    if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
-        for (const project of items) {
-            const index = project.notes.findIndex(note => note.id == item.id);
+        for (const project of items.projects) {
+            const index = project.notes.findIndex(it => it.id == item.id);
             if (index >= 0) {
                 project.notes.splice(index, 1);
-                if(sort) project.notes = project.notes.sort(sort);
                 state[key] = items;
-                return save(state);
             }
         }
+        save(state);
     }
 }
 
-export function addTimeline(state, { key, item, sort }) {
-    const cache = state[key];
-    if(cache){
-        const items = JSON.parse(JSON.stringify(cache));
-        for (const date in items) {
-            if(key == 'Upcoming'){
-                if(formatDateForward(item.when, timelineDates(timeline)) == date){
-                    const index = items[date].findIndex(it => it.id == item.id);
-                    if(index >= 0){
-                        items[date][index] = item;
-                    }else{
-                        items[date].push(item);
-                    }
-                    if(sort) items[date] = items[date].sort(sort);
-                    state[key] = items;
-                    return save(state);
-                }
-            }else if(key == 'Logbook'){
-                if(formatDateBackwards(item.when) == date){
-                    if(index >= 0){
-                        items[date][index] = item;
-                    }else{
-                        items[date].push(item);
-                    }
-                    if(sort) items[date] = items[date].sort(sort);
-                    state[key] = items;
-                    return save(state);
-                }
-            }
-        }
-    }
-}
-
-export function removeTimeline(state, { key, item, sort }) {
-    const cache = state[key];
-    if(cache){
-        const items = JSON.parse(JSON.stringify(cache));
-        for (const date in items) {
-            const index = items[date].findIndex(note => note.id == item.id);
-            if (index >= 0) {
-                items[date].splice(index, 1);
-                if(sort) items[date] = items[date].sort(sort);
-                state[key] = items;
-                return save(state);
-            }
-        }
-    }
-}
-
-export function addProject(state, { key, item, sort }) {
+export function add(state, { key, item }) {
+    console.log('ADD TO CACHE', key, item);
     const cache = state[key];
     if (cache) {
-        const items = [...cache];
-        const index = items.findIndex(it => it.id == item.id);
+        const items = JSON.parse(JSON.stringify(cache));
+        const type = item.__typename.includes('_note') ? 'notes' : 'projects';
+        const index = items[type].findIndex(it => it.id == item.id);
         console.log('INDEX', index, item);
         if (index >= 0) {
-            items[index] = item;
+            items[type][index] = item;
         } else {
-            items.push(item)
+            items[type].push(item)
         }
-        state[key] = sort ? items.sort(sort) : items;
+        state[key] = items;
         save(state);
     }
 }
 
-export function removeProject(state, { key, item, sort }) {
+export function remove(state, { key, item }) {
+    console.log('REMOVE TO CACHE', key, item);
     const cache = state[key];
     if (cache) {
-        const items = [...cache];
-        items.splice(items.findIndex(it => it.id == item.id), 1);
-        state[key] = sort ? items.sort(sort) : items;
+        const items = JSON.parse(JSON.stringify(cache));
+        const type = item.__typename.includes('_note') ? 'notes' : 'projects';
+        const index = items[type].findIndex(it => it.id == item.id);
+        console.log('REMOVE', type, index);
+        if (index >= 0) {
+            items[type].splice(index, 1);
+        }
+        state[key] = items;
         save(state);
     }
 }
+
 
 
 export function load(state) {

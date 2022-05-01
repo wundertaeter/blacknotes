@@ -19,8 +19,11 @@
           </div>
           <list
             v-if="project.notes"
+            :id="project.title"
             @select="setFocusNote"
             @edit="setEditNote"
+            @add="(e) => addEvent(e, project)"
+            xxremove="(e) => removeEvent(e, project)"
             :project="project"
             :select="false"
             :position-column="positionColumn"
@@ -104,6 +107,26 @@ export default defineComponent({
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
+    addEvent(e, project) {
+      for (const p of this.cache) {
+        let item = p.notes.find((item) => item.id == e.item.id);
+        if (item) {
+          item = { ...item };
+          if (item.project.title) {
+            this.$store.commit("cache/remove", {
+              key: item.project.title,
+              item,
+            });
+          }
+          if (project.title) {
+            this.$store.commit("cache/add", {
+              key: project.title,
+              item: { ...item, project, project_id: project.id },
+            });
+          }
+        }
+      }
+    },
     sortMethod(a, b) {
       if (a[this.positionColumn] === null) return 1;
       if (b[this.positionColumn] === null) return -1;
@@ -148,17 +171,19 @@ export default defineComponent({
       }
     },
     removeNote(note) {
-      const projectIndex = this.cache.indexOf(this.selectedProject);
-      const index = this.selectedProject.notes.findIndex((n) => n.id == note.id);
+      const project = this.selectedProject;
+      const projectIndex = this.cache.indexOf(project);
+      const index = project.notes.findIndex((n) => n.id == note.id);
 
-      console.log("this.selectedProject.notes", this.selectedProject.notes);
+      console.log("project.notes", project, project.notes);
       this.$updateCache(note);
 
       this.$nextTick(() => {
-        console.log("this.selectedProject.notes next tick", this.selectedProject.notes);
-        let next = this.selectedProject.notes[index];
+        const project = this.cache[projectIndex];
+        console.log("project.notes next tick", project.notes);
+        let next = project.notes[index];
         if (!next) {
-          next = this.selectedProject.notes[this.selectedProject.notes.length - 1];
+          next = project.notes[project.notes.length - 1];
         }
         if (!next) {
           const nextProject = this.getNextProject(projectIndex + 1);
@@ -173,10 +198,9 @@ export default defineComponent({
         }
         this.focusNote = next;
       });
-
     },
     trashNote() {
-      const note = {...this.focusNote};
+      const note = { ...this.focusNote };
       note.deleted = true;
       note.deleted_at = new Date();
       this.removeNote(note);
@@ -259,16 +283,18 @@ export default defineComponent({
     },
     updateCache() {
       if (this.notes && this.projects) {
-        const items = [
-          {
-            notes: this.notes.map((n) => ({
-              ...n,
-              project: { title: null, id: null },
-            })),
-          },
-          ...this.projects.filter((p) => p.notes.length),
-        ];
-        this.$store.commit("cache/update", { key: this.title, items });
+        this.$store.commit("cache/update", {
+          key: this.title,
+          projects: [
+            {
+              notes: this.notes.map((n) => ({
+                ...n,
+                project: { title: null, id: null },
+              })),
+            },
+            ...this.projects.filter((p) => !!p.notes.length),
+          ],
+        });
         this.projects = null;
         this.notes = null;
       }
@@ -276,22 +302,20 @@ export default defineComponent({
   },
   computed: {
     cache() {
-      return this.$store.state.cache[this.title];
+      return this.$store.state.cache[this.title]?.projects;
     },
     user() {
       return this.$store.state.user;
     },
     selectedProject() {
       const selected = this.focusNote ? this.focusNote : this.editNote;
-      console.log("selectedProject", selected);
+      let project;
       if (selected) {
-        const index = this.cache.findIndex((project) =>
+        project = this.cache.find((project) =>
           project.notes.some((note) => note.id == selected.id)
         );
-        return index >= 0 ? this.cache[index] : this.cache[0];
-      } else {
-        return this.cache[0];
       }
+      return project || this.cache[0];
     },
     maxPosition() {
       const positions = this.selectedProject.notes.map(
