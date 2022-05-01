@@ -29,12 +29,11 @@ export function update(state, { key, notes, projects, sort, ...attrs }) {
     save(state);
 }
 
-export function addProjects(state, { key, item }) {
+export function addProjects(state, { key, item, sort }) {
     const cache = state[key];
     if(cache){
         const items = JSON.parse(JSON.stringify(cache));
         for (const project of items) {
-            console.log('project', project);
             if(item.project?.id == project.id){
                 const index = project.notes.findIndex(it => it.id == item.id);
                 if(index >= 0){
@@ -42,6 +41,7 @@ export function addProjects(state, { key, item }) {
                 }else{
                     project.notes.push(item);
                 }
+                if(sort) project.notes = project.notes.sort(sort);
                 state[key] = items;
                 return save(state);
             }
@@ -49,7 +49,7 @@ export function addProjects(state, { key, item }) {
     }
 }
 
-export function removeProjects(state, { key, item }) {
+export function removeProjects(state, { key, item, sort }) {
     const cache = state[key];
     if(cache){
         const items = JSON.parse(JSON.stringify(cache));
@@ -57,6 +57,7 @@ export function removeProjects(state, { key, item }) {
             const index = project.notes.findIndex(note => note.id == item.id);
             if (index >= 0) {
                 project.notes.splice(index, 1);
+                if(sort) project.notes = project.notes.sort(sort);
                 state[key] = items;
                 return save(state);
             }
@@ -64,12 +65,11 @@ export function removeProjects(state, { key, item }) {
     }
 }
 
-export function addTimeline(state, { key, item }) {
+export function addTimeline(state, { key, item, sort }) {
     const cache = state[key];
     if(cache){
         const items = JSON.parse(JSON.stringify(cache));
         for (const date in items) {
-            console.log('date', date);
             if(key == 'Upcoming'){
                 if(formatDateForward(item.when, timelineDates(timeline)) == date){
                     const index = items[date].findIndex(it => it.id == item.id);
@@ -78,6 +78,7 @@ export function addTimeline(state, { key, item }) {
                     }else{
                         items[date].push(item);
                     }
+                    if(sort) items[date] = items[date].sort(sort);
                     state[key] = items;
                     return save(state);
                 }
@@ -88,6 +89,7 @@ export function addTimeline(state, { key, item }) {
                     }else{
                         items[date].push(item);
                     }
+                    if(sort) items[date] = items[date].sort(sort);
                     state[key] = items;
                     return save(state);
                 }
@@ -96,7 +98,7 @@ export function addTimeline(state, { key, item }) {
     }
 }
 
-export function removeTimeline(state, { key, item }) {
+export function removeTimeline(state, { key, item, sort }) {
     const cache = state[key];
     if(cache){
         const items = JSON.parse(JSON.stringify(cache));
@@ -104,6 +106,7 @@ export function removeTimeline(state, { key, item }) {
             const index = items[date].findIndex(note => note.id == item.id);
             if (index >= 0) {
                 items[date].splice(index, 1);
+                if(sort) items[date] = items[date].sort(sort);
                 state[key] = items;
                 return save(state);
             }
@@ -111,27 +114,28 @@ export function removeTimeline(state, { key, item }) {
     }
 }
 
-export function addProject(state, { key, item }) {
+export function addProject(state, { key, item, sort }) {
     const cache = state[key];
     if (cache) {
         const items = [...cache];
         const index = items.findIndex(it => it.id == item.id);
+        console.log('INDEX', index, item);
         if (index >= 0) {
             items[index] = item;
         } else {
             items.push(item)
         }
-        state[key] = items;
+        state[key] = sort ? items.sort(sort) : items;
         save(state);
     }
 }
 
-export function removeProject(state, { key, item }) {
+export function removeProject(state, { key, item, sort }) {
     const cache = state[key];
     if (cache) {
         const items = [...cache];
         items.splice(items.findIndex(it => it.id == item.id), 1);
-        state[key] = items;
+        state[key] = sort ? items.sort(sort) : items;
         save(state);
     }
 }

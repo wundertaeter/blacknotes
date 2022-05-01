@@ -334,20 +334,20 @@ export default defineComponent({
       //   })
       // }
       if (itemsToDelete.notes.length) {
-         this.$mutateQueue({
+        this.$mutateQueue({
           mutation: DELETE_NOTES,
           variables: {
-            ids: itemsToDelete.notes.map(note => note.id)
-          }
-        })
+            ids: itemsToDelete.notes.map((note) => note.id),
+          },
+        });
       }
       if (itemsToDelete.projects.length) {
         this.$mutateQueue({
           mutation: DELETE_PROJECTS,
           variables: {
-            ids: itemsToDelete.projects.map(note => note.id)
-          }
-        })
+            ids: itemsToDelete.projects.map((note) => note.id),
+          },
+        });
       }
     },
     trashNote() {
@@ -376,7 +376,7 @@ export default defineComponent({
             : TRASH_PROJECT,
           variables: item,
         });
-        this.removeItem(item);  
+        this.removeItem(item);
       }
     },
     // removeFromCache(item, query) {
@@ -424,11 +424,13 @@ export default defineComponent({
         const { __typename, project, ...obj } = item;
         if (this.when) {
           obj.when = this.when ? toDatabaseString(this.when) : null;
+          item.prevWhen = item.when;
           item.when = this.when;
         }
 
         if (this.project) {
           obj.project_id = this.project.id;
+          item.prevProject = { ...item.project };
           item.project = this.project;
         }
 
@@ -437,6 +439,7 @@ export default defineComponent({
         } else {
           projects.push(obj);
         }
+        this.$updateCache(item, this.sortMethod);
       }
 
       if (notes.length) {

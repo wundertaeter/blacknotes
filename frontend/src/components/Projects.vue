@@ -27,7 +27,6 @@
             :sortMethod="sortMethod"
             group="people"
             :items="project.notes"
-            :date-preview="false"
             :focused="focusNote"
             :edited="editNote"
           />
