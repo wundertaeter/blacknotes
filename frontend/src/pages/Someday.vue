@@ -25,7 +25,12 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Someday", icon: "unarchive", default: true },
+      project: {
+        title: "Someday",
+        icon: "unarchive",
+        default: true,
+        id: "someday",
+      },
       config: {
         notes_subscription: SUBSCRIBE_SOMEDAY_NOTES,
         projects_subscription: SUBSCRIBE_SOMEDAY_PROJECTS,

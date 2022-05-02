@@ -85,6 +85,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    id: {
+      type: String,
+      required: true,
+    },
     icon: {
       type: String,
       required: true,
@@ -112,7 +116,7 @@ export default defineComponent({
       for (const p of this.cache) {
         let item = p.notes.find((item) => item.id == e.item.id);
         if (item) {
-          item = { ...item };
+          item = { ...item, project, project_id: project.id   };
           if (item.project.title) {
             this.$store.commit("cache/remove", {
               key: item.project.title,
@@ -122,9 +126,11 @@ export default defineComponent({
           if (project.title) {
             this.$store.commit("cache/add", {
               key: project.title,
-              item: { ...item, project, project_id: project.id },
+              item,
             });
           }
+          this.updateFocusNote(item);
+          return;
         }
       }
     },
@@ -218,6 +224,11 @@ export default defineComponent({
     setFocusNote(note) {
       this.focusNote = note;
     },
+    updateFocusNote(item) {
+      if(item.id == this.focusNote.id){
+        this.focusNote = item;
+      }
+    },  
     setEditNote(note) {
       this.editNote = note;
     },
@@ -286,7 +297,7 @@ export default defineComponent({
     updateCache() {
       if (this.notes && this.projects) {
         this.$store.commit("cache/update", {
-          key: this.title,
+          key: this.id,
           projects: [
             {
               notes: this.notes.map((n) => ({
@@ -304,7 +315,7 @@ export default defineComponent({
   },
   computed: {
     cache() {
-      return this.$store.state.cache[this.title]?.projects.filter(p => p.notes.length);
+      return this.$store.state.cache[this.id]?.projects.filter(p => p.notes.length);
     },
     user() {
       return this.$store.state.user;

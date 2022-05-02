@@ -6,6 +6,7 @@
     group-by="completed_at"
     icon="assignment_turned_in"
     title="Logbook"
+    id="logbook"
     :drop="false"
   />
 </template>

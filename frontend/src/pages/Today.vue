@@ -25,7 +25,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Today", icon: "star", default: true },
+      project: { title: "Today", icon: "star", default: true, id: "today" },
       config: {
         notes_subscription: SUBSCRIBE_TODAY_NOTES,
         projects_subscription: SUBSCRIBE_TODAY_PROJECTS,

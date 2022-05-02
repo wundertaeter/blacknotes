@@ -14,6 +14,7 @@
         :id="element.id"
         @dragstart="(e) => dragStart(e, element)"
         @click.stop="setFocus(element)"
+        @mousedown="setFocus(element)"
         :focused="focusNote && focusNote.id == element.id"
         :edited="editNote && editNote.id == element.id"
         class="note"

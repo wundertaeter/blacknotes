@@ -1,6 +1,7 @@
 <template>
   <projects
     title="Anytime"
+    id="anytime"
     icon="reorder"
     position-column="anytime_position"
     :config="config"

@@ -118,6 +118,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    id: {
+      type: String,
+      required: true,
+    },
     icon: {
       type: String,
       required: true,
@@ -160,22 +164,27 @@ export default defineComponent({
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
-    addEvent(e, date) {
-      Object.keys(this.cache).forEach(dateString => {
-        let item = this.cache[dateString].find((item) => item.id == e.item.id);
+    addEvent(e, newDate) {
+      console.log('newDate', newDate);
+      for(const date of this.dates){
+        let item = this.cache[date.title].find((item) => item.id == e.item.id);
         if (item) {
+          console.log('date', date);
+          item = { ...item, when: newDate.date };
           this.$store.commit("cache/remove", {
-            key: this.title,
-            item ,
+            key: this.id,
+            item,
           });
 
           this.$store.commit("cache/add", {
-            key: this.title,
-            item: { ...item, when: date.date },
+            key: this.id,
+            item: item,
           });
-          
+
+          this.updateFocusNote(item);
+          return;
         }
-      })
+      }
     },
     sortMethod(a, b) {
       if (this.positionColumn) {
@@ -271,6 +280,11 @@ export default defineComponent({
     setFocusNote(note) {
       this.focusNote = note;
     },
+    updateFocusNote(item) {
+      if(item.id == this.focusNote.id){
+        this.focusNote = item;
+      }
+    },  
     setEditNote(note) {
       this.editNote = note;
     },
@@ -354,7 +368,7 @@ export default defineComponent({
           let nextDateString = this.getNextDateString(
             new Date(this.focusNote[this.groupBy])
           );
-          console.log("next date string", nextDateString);
+          // console.log("next date string", nextDateString);
           if (nextDateString) {
             items = this.cache[nextDateString];
             this.focusNote = items[0];
@@ -397,7 +411,7 @@ export default defineComponent({
     },
     updateCache() {
       if (this.projects && this.notes) {
-        this.$store.commit("cache/update", { key: this.title, notes: this.notes, projects: this.projects });
+        this.$store.commit("cache/update", { key: this.id, notes: this.notes, projects: this.projects });
         this.notes = null;
         this.projects = null;
       }
@@ -405,7 +419,7 @@ export default defineComponent({
   },
   computed: {
     cache() {
-      const cache = this.$store.state.cache[this.title];
+      const cache = this.$store.state.cache[this.id];
       const items = {};
       this.dates.forEach((date) => {
         items[date.title] = [];

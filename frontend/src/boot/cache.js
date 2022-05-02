@@ -2,8 +2,8 @@ import { boot } from "quasar/wrappers";
 import { Store } from "src/store";
 import { formatDate } from "src/common/date";
 
-const projects = ['Anytime'];
-const timline = ['Logbook', 'Upcoming'];
+const projects = ['anytime'];
+const timline = ['logbook', 'upcoming'];
 
 
 export default boot(
@@ -48,40 +48,40 @@ export default boot(
             if (!item.__typename) throw 'missing typename for item';
             if (item.deleted) {
                 if (item.permanentDeleted) {
-                    remove('Trash', item);
+                    remove('trash', item);
                 } else {
-                    add('Trash', item);
+                    add('trash', item);
                 }
             }else{
-                remove('Trash', item);
+                remove('trash', item);
             }
 
             if (item.done) {
                 if (item.deleted) {
-                    remove('Logbook', item);
+                    remove('logbook', item);
                 } else {
-                    add('Logbook', item);
+                    add('logbook', item);
                 }
             }else{
-                remove('Logbook', item);
+                remove('logbook', item);
             }
 
             if (item.when) {
                 const dateString = formatDate(item.when);
                 if (dateString == "Today") {
-                    handle('Today', item);
+                    handle('today', item);
                 } else if (dateString == "Someday") {
-                    handle('Someday', item);
+                    handle('someday', item);
                 } else {
-                    handle('Upcoming', item);
+                    handle('upcoming', item);
                 }
             }
 
-            if (item.project?.title) {
-                handle(item.project.title, item);
+            if (item.project?.id) {
+                handle(item.project.id, item);
             }
 
-            handle('Anytime', item);
+            handle('anytime', item);
 
         }
     }

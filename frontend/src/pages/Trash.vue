@@ -1,6 +1,13 @@
 <template>
-  <project v-if="project" v-model="project" :sort="false" keep :config="config" :sort-by="sortBy">
-    <template v-slot:toolbar="{revert, deleteAll}">
+  <project
+    v-if="project"
+    v-model="project"
+    :sort="false"
+    keep
+    :config="config"
+    :sort-by="sortBy"
+  >
+    <template v-slot:toolbar="{ revert, deleteAll }">
       <q-btn icon="replay" @click="revert" />
       <q-space />
       <q-btn icon="delete" @click="deleteAll" />
@@ -21,7 +28,7 @@ export default defineComponent({
   },
   data() {
     return {
-      project: { title: "Trash", icon: "delete", default: true },
+      project: { title: "Trash", icon: "delete", default: true, id: "trash" },
       config: {
         notes_subscription: SUBSCRIBE_TRASH_NOTES,
         projects_subscription: SUBSCRIBE_TRASH_PROJECTS,
@@ -30,10 +37,10 @@ export default defineComponent({
         },
       },
       sortBy: {
-        column: 'deleted_at',
+        column: "deleted_at",
         desc: true,
         date: true,
-      }
+      },
     };
   },
 });

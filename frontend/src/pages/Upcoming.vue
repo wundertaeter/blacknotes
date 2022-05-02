@@ -7,6 +7,7 @@
     sort
     icon="date_range"
     title="Upcoming"
+    id="upcoming"
     position-column="upcoming_position"
     update-when
   >

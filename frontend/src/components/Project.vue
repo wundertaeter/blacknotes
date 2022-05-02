@@ -187,7 +187,7 @@ export default defineComponent({
       return this.$store.state.user;
     },
     cache(){
-      const cache = this.$store.state.cache[this.modelValue.title];
+      const cache = this.$store.state.cache[this.modelValue.id];
       console.log('CACHE', cache);
       return cache ? [...cache.notes, ...cache.projects].sort(this.sortMethod) : [];
     },
@@ -242,7 +242,7 @@ export default defineComponent({
       e.stopPropagation();
       console.log('deleteAll');
       bus.emit('deleteAll');
-      this.$store.commit('cache/update', {key: this.modelValue.title, items: []});
+      this.$store.commit('cache/update', {key: this.modelValue.id, items: []});
     },
     trashProject() {
       this.$mutateQueue({
@@ -313,7 +313,7 @@ export default defineComponent({
     updateCache(){
      if(!this.project.default || this.notes && this.projects){
         console.log('update cache', this.notes, this.projects);
-        this.$store.commit('cache/update', {key: this.modelValue.title, notes: this.notes, projects: this.projects});
+        this.$store.commit('cache/update', {key: this.modelValue.id, notes: this.notes, projects: this.projects});
         this.projects = null;
         this.notes = null;
       }
