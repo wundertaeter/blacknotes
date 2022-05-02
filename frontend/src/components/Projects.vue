@@ -181,13 +181,17 @@ export default defineComponent({
 
       this.$nextTick(() => {
         const project = this.cache[projectIndex];
-        console.log("project.notes next tick", project.notes);
-        let next = project.notes[index];
-        if (!next) {
-          next = project.notes[project.notes.length - 1];
+        let next;
+        if(project){
+          console.log("project.notes next tick", project.notes);
+          next = project.notes[index];
+          if (!next) {
+            next = project.notes[project.notes.length - 1];
+          }
         }
         if (!next) {
           const nextProject = this.getNextProject(projectIndex + 1);
+          console.log('nextProject', nextProject)
           if (nextProject) {
             next = nextProject.notes[0];
           } else {
@@ -229,7 +233,7 @@ export default defineComponent({
       if (nextProject.notes) {
         return nextProject;
       } else {
-        return this.selectNextNote(project_index + 1);
+        return this.getNextProject(project_index + 1);
       }
     },
     getPrevProject(project_index) {
@@ -303,7 +307,7 @@ export default defineComponent({
   },
   computed: {
     cache() {
-      return this.$store.state.cache[this.title]?.projects;
+      return this.$store.state.cache[this.title]?.projects.filter(p => p.notes.length);
     },
     user() {
       return this.$store.state.user;

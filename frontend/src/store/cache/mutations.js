@@ -1,3 +1,4 @@
+import { Store } from "../index";
 
 function save(state) {
     return new Promise(resolve => {
@@ -18,19 +19,25 @@ export function addProjects(state, { key, item }) {
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
-        for (const project of items.projects) {
-            if (item.project?.id == project.id) {
-                const index = project.notes.findIndex(it => it.id == item.id);
-                if (index >= 0) {
-                    project.notes[index] = item;
-                } else {
-                    project.notes.push(item);
-                }
-            }else if(item.prevProject && item.prevProject.id == project.id){
-                const index = project.notes.findIndex(it => it.id == item.id);
-                if (index >= 0) {
-                    project.notes.splice(index, 1);
-                }
+        const project = items.projects.find(project => item.project?.id == project.id);
+        if (project) {
+            const index = project.notes.findIndex(it => it.id == item.id);
+            console.log('index', index);
+            if (index >= 0) {
+                project.notes[index] = item;
+            } else {
+                project.notes.push(item);
+            }
+        } else {
+            const project = { ...Store.state.user.projects.find(project => item.project.id == project.id) };
+            project.notes = [item];
+            items.projects.push(project);
+        }
+        if (item.prevProject) {
+            const project = items.projects.find(project => item.prevProject.id == project.id);
+            const index = project.notes.findIndex(it => it.id == item.id);
+            if (index >= 0) {
+                project.notes.splice(index, 1);
             }
         }
         state[key] = items;
@@ -54,7 +61,6 @@ export function removeProjects(state, { key, item }) {
 }
 
 export function add(state, { key, item }) {
-    console.log('ADD TO CACHE', key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
@@ -72,7 +78,6 @@ export function add(state, { key, item }) {
 }
 
 export function remove(state, { key, item }) {
-    console.log('REMOVE FROM CACHE', key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
