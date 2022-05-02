@@ -58,7 +58,6 @@ export default defineComponent({
     draggable,
   },
   mounted() {
-    console.log("items", this.itemsCopy);
     bus.on(this.id, this.updateItem);
     bus.on("sort", this.updatePositions);
     bus.on("revert", this.revert);

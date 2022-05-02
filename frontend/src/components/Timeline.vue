@@ -143,12 +143,12 @@ export default defineComponent({
       } else {
         nextDate = date.addToDate(this.start, { day: d });
       }
-      console.log("nextDate", this.formatDate(nextDate));
+      // console.log("nextDate", this.formatDate(nextDate));
       if (!this.dates.some((d) => d.title == this.formatDate(nextDate))) {
         this.dates.push({ title: this.formatDate(nextDate), date: nextDate });
       }
     }
-    console.log("dates", this.dates);
+    // console.log("dates", this.dates);
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
 

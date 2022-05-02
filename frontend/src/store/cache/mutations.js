@@ -19,23 +19,21 @@ export function addProjects(state, { key, item }) {
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
         for (const project of items.projects) {
-            if (item.project && item.project.id == project.id) {
+            if (item.project?.id == project.id) {
                 const index = project.notes.findIndex(it => it.id == item.id);
                 if (index >= 0) {
                     project.notes[index] = item;
                 } else {
                     project.notes.push(item);
                 }
-                state[key] = items;
-                
             }else if(item.prevProject && item.prevProject.id == project.id){
                 const index = project.notes.findIndex(it => it.id == item.id);
                 if (index >= 0) {
                     project.notes.splice(index, 1);
-                    state[key] = items;
                 }
             }
         }
+        state[key] = items;
         save(state);
     }
 }
@@ -48,9 +46,9 @@ export function removeProjects(state, { key, item }) {
             const index = project.notes.findIndex(it => it.id == item.id);
             if (index >= 0) {
                 project.notes.splice(index, 1);
-                state[key] = items;
             }
         }
+        state[key] = items;
         save(state);
     }
 }
@@ -74,7 +72,7 @@ export function add(state, { key, item }) {
 }
 
 export function remove(state, { key, item }) {
-    console.log('REMOVE TO CACHE', key, item);
+    console.log('REMOVE FROM CACHE', key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));

@@ -99,6 +99,7 @@ export default defineComponent({
     },
   },
   mounted() {
+    bus.emit('sort');
     document.addEventListener("click", this.resetFocusedNote);
     document.addEventListener("keydown", this.onKeydown);
   },
