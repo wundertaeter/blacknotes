@@ -4,8 +4,6 @@
     v-model="itemsCopy"
     :sort="sort"
     :drop="drop"
-    @add="(e) => $emit('add', e)"
-    @remove="(e) => $emit('remove', e)"
     :group="{ name: group, pull: drag, put: drop }"
     @update:modelValue="updatePositions"
     item-key="id"

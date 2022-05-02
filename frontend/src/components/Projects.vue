@@ -176,14 +176,12 @@ export default defineComponent({
       const projectIndex = this.cache.indexOf(project);
       const index = project.notes.findIndex((n) => n.id == note.id);
 
-      console.log("project.notes", project, project.notes);
       this.$updateCache(note);
 
       this.$nextTick(() => {
         const project = this.cache[projectIndex];
         let next;
         if(project){
-          console.log("project.notes next tick", project.notes);
           next = project.notes[index];
           if (!next) {
             next = project.notes[project.notes.length - 1];
@@ -191,7 +189,6 @@ export default defineComponent({
         }
         if (!next) {
           const nextProject = this.getNextProject(projectIndex + 1);
-          console.log('nextProject', nextProject)
           if (nextProject) {
             next = nextProject.notes[0];
           } else {

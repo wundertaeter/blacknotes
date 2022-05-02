@@ -16,6 +16,7 @@ export function update(state, { key, notes, projects }) {
 }
 
 export function addProjects(state, { key, item }) {
+    console.log('Add item to ' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
@@ -46,6 +47,7 @@ export function addProjects(state, { key, item }) {
 }
 
 export function removeProjects(state, { key, item }) {
+    console.log('Remove item from ' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
@@ -61,12 +63,13 @@ export function removeProjects(state, { key, item }) {
 }
 
 export function add(state, { key, item }) {
+    console.log('Add item to ' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
         const type = item.__typename.includes('_note') ? 'notes' : 'projects';
         const index = items[type].findIndex(it => it.id == item.id);
-        console.log('INDEX', index, item);
+        // console.log('INDEX', index, item);
         if (index >= 0) {
             items[type][index] = item;
         } else {
@@ -78,12 +81,13 @@ export function add(state, { key, item }) {
 }
 
 export function remove(state, { key, item }) {
+    console.log('Remove item from ' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
         const type = item.__typename.includes('_note') ? 'notes' : 'projects';
         const index = items[type].findIndex(it => it.id == item.id);
-        console.log('REMOVE', type, index);
+        // console.log('REMOVE', type, index);
         if (index >= 0) {
             items[type].splice(index, 1);
         }

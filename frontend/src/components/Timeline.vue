@@ -16,6 +16,7 @@
             <list
               v-if="cache && cache[date.title]"
               @select="setFocusNote"
+              @add="(e) => addEvent(e, date)"
               @edit="setEditNote"
               :select="false"
               :position-column="positionColumn"
@@ -159,6 +160,23 @@ export default defineComponent({
     document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
+    addEvent(e, date) {
+      Object.keys(this.cache).forEach(dateString => {
+        let item = this.cache[dateString].find((item) => item.id == e.item.id);
+        if (item) {
+          this.$store.commit("cache/remove", {
+            key: this.title,
+            item ,
+          });
+
+          this.$store.commit("cache/add", {
+            key: this.title,
+            item: { ...item, when: date.date },
+          });
+          
+        }
+      })
+    },
     sortMethod(a, b) {
       if (this.positionColumn) {
         if (this.backwards) {
@@ -225,7 +243,6 @@ export default defineComponent({
 
       this.$nextTick(() => {
         let next = this.cache[groupBy][index];
-        console.log('NEXT ??', next);
         if (!next) {
           const length = this.cache[groupBy].length;
           next = this.cache[groupBy][length - 1];

@@ -10,22 +10,18 @@ export default boot(
     ({ app }) => {
 
         const add = (key, item) => {
-            console.log('Add item to ' + key, item);
             Store.commit('cache/add', { key, item });
         }
 
         const remove = (key, item) => {
-            console.log('Remove item from ' + key, item);
             Store.commit('cache/remove', { key, item });
         }
 
         const addProjects = (key, item) => {
-            console.log('Add item to projects ' + key, item);
             Store.commit('cache/addProjects', { key, item });
         }
 
         const removeProjects = (key, item) => {
-            console.log('Remove item from projects ' + key, item);
             Store.commit('cache/removeProjects', { key, item });
         }
 
