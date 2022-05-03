@@ -13,9 +13,9 @@
         :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
         :id="element.id"
         @dragstart="(e) => dragStart(e, element)"
-        @click.stop="setFocus(element)"
-        @mousedown="setFocus(element)"
-        :focused="focusNote && focusNote.id == element.id"
+        @click.stop
+        @mousedown="setSelected(element)"
+        :focused="selectedItems.some((item) => item.id == element.id)"
         :edited="editNote && editNote.id == element.id"
         class="note"
         :ref="`item-${element.id}`"
@@ -56,16 +56,15 @@ export default {
   },
   mounted() {
     bus.on(this.id, this.multiDrop);
-    this.$emit('mounted', this);
+    this.$emit("mounted", this);
   },
-  unmounted(){
+  unmounted() {
     bus.off(this.id, this.multiDrop);
   },
   data(props) {
     return {
       itemsCopy: JSON.parse(JSON.stringify(props.items)),
       updateId: null,
-      focusNote: null,
       editNote: null,
       checkTimeout: null,
       selectedItems: [],
@@ -79,9 +78,9 @@ export default {
         this.itemsCopy = JSON.parse(JSON.stringify(value));
       },
     },
-    focused: {
+    selected: {
       handler(value) {
-        this.focusNote = value;
+        this.selectedItems = value;
       },
     },
     edited: {
@@ -145,7 +144,8 @@ export default {
       type: Function,
       required: false,
     },
-    focused: {
+    selected: {
+      type: Array,
       required: false,
     },
     edited: {
@@ -154,7 +154,7 @@ export default {
   },
   methods: {
     multiDrop({ event, items }) {
-      console.log('multidrop !!');
+      console.log("multidrop !!");
       var model = this.itemsCopy;
       if (event.from == event.to) {
         model = model.filter((item) => !items.find((it) => it.id == item.id));
@@ -169,10 +169,10 @@ export default {
         ...items,
         ...model.slice(event.newIndex, model.length),
       ];
-      this.updatePositions()
+      this.updatePositions();
     },
     onEnd(e) {
-      console.log('on end', e.to.id);
+      console.log("on end", e.to.id);
       bus.emit(e.to.id, { event: e, items: this.selectedItems });
     },
     itemClicked(item, event) {
@@ -191,15 +191,16 @@ export default {
         e.dataTransfer.setData("project", JSON.stringify(item));
       }
     },
-    setFocus(note) {
-      this.$emit("select", note);
+    setSelected(note) {
+      console.log('emit select');
+      this.$emit("select", [note]);
     },
     setEditNote(note) {
       this.editNote = note;
       this.$emit("edit", note);
     },
     setEdit(note) {
-      this.setFocus(note);
+      this.setSelected([note]);
       this.setEditNote(note);
     },
     scrollTo(args) {
@@ -213,7 +214,7 @@ export default {
         if (!this.elementInViewport(ref.$el)) {
           ref.$el.scrollIntoView(!!top);
         }
-        // console.log("this.focusNote", this.focusNote);
+        // console.log("this.selectedItems", this.selectedItems);
       }
     },
     elementInViewport(el) {
@@ -238,7 +239,7 @@ export default {
 
     reset() {
       // console.log("reset focus");
-      this.setFocus(null);
+      this.setSelected(null);
       this.setEdit(null);
     },
     updatePositions() {

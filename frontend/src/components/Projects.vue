@@ -19,13 +19,13 @@
           </div>
           <list
             v-if="project.notes"
-            @select="setSelected"
+            @select="setSelectedItems"
             @edit="setEdit"
             :project="project"
             :position-column="positionColumn"
             group="people"
             :items="[...project.notes].sort(sortMethod)"
-            :focused="selected"
+            :selected="selectedItems"
             :edited="edit"
             @mounted="listComponentMounted"
           />
@@ -49,7 +49,6 @@ export default {
   data() {
     return {
       whens: [],
-      selected: null,
       edit: null,
       dates: [],
     };
@@ -88,7 +87,7 @@ export default {
       this.$nextTick(() => {
         const project = this.cache[projectIndex];
         let next;
-        if(project){
+        if (project) {
           next = project.notes[index];
           if (!next) {
             next = project.notes[project.notes.length - 1];
@@ -105,14 +104,14 @@ export default {
             }
           }
         }
-        this.selected = next;
+        this.setSelectedItem(next);
       });
     },
     updateSelected(item) {
-      if(item.id == this.selected.id){
-        this.selected = item;
+      if (item.id == this.selectedItem.id) {
+        this.setSelectedItem(item);
       }
-    },  
+    },
     getNextProject(project_index) {
       if (this.cache.length == 0) return;
       let nextProject = this.cache[project_index];
@@ -138,39 +137,39 @@ export default {
       }
     },
     selectionDown() {
-      if (this.selected) {
+      if (this.selectedItem) {
         const index = this.selectedProject.notes.findIndex(
-          (note) => note.id == this.selected.id
+          (note) => note.id == this.selectedItem.id
         );
         let next = this.selectedProject.notes[index + 1];
         if (next) {
-          this.selected = next;
+          this.setSelectedItem(next);
         } else {
           const nextProject = this.getNextProject(
             this.cache.indexOf(this.selectedProject) + 1
           );
           if (nextProject) {
             next = nextProject.notes[0];
-            this.selected = next;
+            this.setSelectedItem(next);
           }
         }
       }
     },
     selectionUp() {
-      if (this.selected) {
+      if (this.selectedItem) {
         const index = this.selectedProject.notes.findIndex(
-          (note) => note.id == this.selected.id
+          (note) => note.id == this.selectedItem.id
         );
         let next = this.selectedProject.notes[index - 1];
         if (next) {
-          this.selected = next;
+          this.setSelectedItem(next);
         } else {
           const prevProject = this.getPrevProject(
             this.cache.indexOf(this.selectedProject) - 1
           );
           if (prevProject) {
             next = prevProject.notes[prevProject.notes.length - 1];
-            this.selected = next;
+            this.setSelectedItem(next);
           }
         }
       }
@@ -215,10 +214,12 @@ export default {
   },
   computed: {
     cache() {
-      return this.$store.state.cache[this.id]?.projects.filter(p => p.notes.length);
+      return this.$store.state.cache[this.id]?.projects.filter(
+        (p) => p.notes.length
+      );
     },
     selectedProject() {
-      const selected = this.selected ? this.selected : this.edit;
+      const selected = this.selectedItem ? this.selectedItem : this.edit;
       let project;
       if (selected) {
         project = this.cache.find((project) =>

@@ -60,14 +60,14 @@
 
         <list
           v-if="cache"
-          @select="setSelected"
+          @select="setSelectedItems"
           @edit="setEdit"
           :position-column="positionColumn"
           :sort="sort"
           :done="done"
           :keep="keep"
           :items="cache"
-          :focused="selected"
+          :selected="selectedItems"
           :edited="edit"
           @mounted="listComponentMounted"
         />
@@ -129,10 +129,7 @@ export default {
   },
   computed: {
     maxPosition() {
-      const positions = this.cache.map(
-        // dont work?!!!!!!
-        (note) => note[this.positionColumn]
-      );
+      const positions = this.cache.map((note) => note[this.positionColumn]);
       console.log("positions", this.cache, positions, this.positionColumn);
       return positions.length ? Math.max(...positions) : 0;
     },
@@ -149,7 +146,6 @@ export default {
   },
   methods: {
     newNote() {
-      console.log(this.maxPosition);
       return {
         __typename: "active_notes",
         id: uuidv4(),
@@ -173,8 +169,6 @@ export default {
       const index = this.cache.findIndex(
         (it) => it.id == item.id && it.__typename == item.__typename
       );
-      // console.log("index", index);
-      // console.log(this.cache);
 
       this.$updateCache(item);
 
@@ -185,8 +179,7 @@ export default {
           const length = this.cache.length;
           next = this.cache[length - 1];
         }
-        this.selected = next;
-        // console.log("next item", next);
+        this.setSelectedItem(next);
       });
     },
     deleteAll() {
@@ -226,20 +219,20 @@ export default {
     selectionDown() {
       const index = this.cache.findIndex(
         (it) =>
-          it.id == this.selected.id &&
-          it.__typename == this.selected.__typename
+          it.id == this.selectedItem.id &&
+          it.__typename == this.selectedItem.__typename
       );
       const next = this.cache[index + 1];
-      if (next) this.setSelected(next);
+      if (next) this.setSelectedItem(next);
     },
     selectionUp() {
       const index = this.cache.findIndex(
         (it) =>
-          it.id == this.selected.id &&
-          it.__typename == this.selected.__typename
+          it.id == this.selectedItem.id &&
+          it.__typename == this.selectedItem.__typename
       );
       const next = this.cache[index - 1];
-      if (next) this.setSelected(next);
+      if (next) this.setSelectedItem(next);
     },
     sortMethod(a, b) {
       if (a[this.sortBy.column] === null) return 1;
@@ -311,6 +304,6 @@ export default {
         this.notes = null;
       }
     },
-  }
+  },
 };
 </script>

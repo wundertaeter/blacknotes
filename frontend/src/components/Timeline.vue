@@ -15,7 +15,7 @@
           >
             <list
               v-if="cache && cache[date.title]"
-              @select="setSelected"
+              @select="setSelectedItems"
               @edit="setEdit"
               :position-column="positionColumn"
               group="people"
@@ -25,7 +25,7 @@
               :drop="drop"
               :sort="sort"
               :sortMethod="sortMethod"
-              :focused="selected"
+              :selected="selectedItems"
               :edited="edit"
               @mounted="listComponentMounted"
             />
@@ -66,7 +66,6 @@ export default {
   data() {
     return {
       whens: [],
-      selected: null,
       edit: null,
       dates: [],
       timeline: 7,
@@ -146,11 +145,6 @@ export default {
         }
       }
     },
-    updateSelected(item) {
-      if (item.id == this.selected.id) {
-        this.selected = item;
-      }
-    },
     getNextDateString(currentDate) {
       // console.log("get next date string", this.formatDate(currentDate));
       let nextDate = this.nextDay(currentDate);
@@ -221,20 +215,23 @@ export default {
       return this.backwards ? tomorrow(d) : yesterday(d);
     },
     selectionDown() {
-      if (this.selected) {
-        let items = this.cache[this.formatDate(this.selected[this.groupBy])];
-        const index = items.findIndex((note) => note.id == this.selected.id);
+      if (this.selectedItem) {
+        let items =
+          this.cache[this.formatDate(this.selectedItem[this.groupBy])];
+        const index = items.findIndex(
+          (note) => note.id == this.selectedItem.id
+        );
         const next = items[index + 1];
         if (next) {
-          this.selected = next;
+          this.setSelectedItem(next);
         } else {
           let nextDateString = this.getNextDateString(
-            new Date(this.selected[this.groupBy])
+            new Date(this.selectedItem[this.groupBy])
           );
           // console.log("next date string", nextDateString);
           if (nextDateString) {
             items = this.cache[nextDateString];
-            this.selected = items[0];
+            this.setSelectedItem(items[0]);
           }
         }
         // console.log("this note", this.selected);
@@ -242,19 +239,22 @@ export default {
       }
     },
     selectionUp() {
-      if (this.selected) {
-        let items = this.cache[this.formatDate(this.selected[this.groupBy])];
-        const index = items.findIndex((note) => note.id == this.selected.id);
+      if (this.selectedItem) {
+        let items =
+          this.cache[this.formatDate(this.selectedItem[this.groupBy])];
+        const index = items.findIndex(
+          (note) => note.id == this.selectedItem.id
+        );
         const next = items[index - 1];
         if (next) {
-          this.selected = next;
+          this.setSelectedItem(next);
         } else {
           let prevDateString = this.getPrevDateString(
-            new Date(this.selected[this.groupBy])
+            new Date(this.selectedItem[this.groupBy])
           );
           if (prevDateString) {
             items = this.cache[prevDateString];
-            this.selected = items[items.length - 1];
+            this.setSelectedItem(items[items.length - 1]);
           }
         }
         // console.log("this note", this.selected);
@@ -283,8 +283,8 @@ export default {
         this.projects = null;
       }
     },
-    removeItem() {
-      const item = { ...this.selected, deleted: true, deleted_at: new Date() };
+    removeItem(item) {
+      item = { ...item, deleted: true, deleted_at: new Date() };
       const groupBy = this.formatDate(item[this.groupBy]);
       const index = this.cache[groupBy].findIndex((it) => it.id == item.id);
 
@@ -306,7 +306,7 @@ export default {
             if (next) break;
           }
         }
-        this.selected = next;
+        this.setSelectedItem(next);
       });
     },
     newNote() {

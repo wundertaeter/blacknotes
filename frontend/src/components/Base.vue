@@ -13,9 +13,9 @@ export default {
     return {
       projects: null,
       notes: null,
-      selected: null,
+      selectedItems: [],
       edit: null,
-      listComponents: []
+      listComponents: [],
     };
   },
   mounted() {
@@ -70,53 +70,67 @@ export default {
     user() {
       return this.$store.state.user;
     },
+    selectedItem() {
+      return this.selectedItems[this.selectedItems.length - 1];
+    },
   },
   methods: {
-    listComponentMounted(component){
+    listComponentMounted(component) {
       component.updatePositions();
       this.listComponents.push(component);
     },
     revert(e) {
       e.stopPropagation();
-      const item = {...this.selected, deleted: false, deleted_at: null}
-      this.$mutateQueue({
-        mutation: item.__typename.includes("_note")
-          ? TRASH_NOTE
-          : TRASH_PROJECT,
-        variables: item,
+      this.selectedItems.forEach((item) => {
+        item = { ...this.selected, deleted: false, deleted_at: null };
+        this.$mutateQueue({
+          mutation: item.__typename.includes("_note")
+            ? TRASH_NOTE
+            : TRASH_PROJECT,
+          variables: item,
+        });
+        this.removeItem(item);
       });
-      this.removeItem(item);
     },
-    setSelected(note) {
-      this.selected = note;
+    setSelectedItems(items) {
+      this.selectedItems = items;
+    },
+    setSelectedItem(item) {
+      this.setSelectedItems([item]);
+    },
+    updateSelected(item) {
+      const index = this.selectedItems.findIndex((it) => it.id == item.id);
+      if (index >= 0) {
+        this.selectedItems[index] = item;
+      }
     },
     reset() {
       console.log("reset");
-      this.listComponents.forEach(component => component.reset());
+      this.listComponents.forEach((component) => component.reset());
     },
     setEdit(note) {
       this.edit = note;
     },
-    scrollTo(item){
-      this.listComponents.forEach(component => component.scrollTo(item));
+    scrollTo(item) {
+      this.listComponents.forEach((component) => component.scrollTo(item));
     },
     onKeydown(e) {
-      if (!this.edit && this.selected) {
+      if (!this.edit && this.selectedItems.length) {
         if (e.keyCode === 8) {
-          this.trash(this.selected);
+          this.selectedItems.forEach((item) => this.trash(item));
         } else if (e.keyCode == 38) {
           e.preventDefault();
           this.selectionUp();
-          this.scrollTo(this.selected);
+          this.scrollTo(this.selectedItem);
         } else if (e.keyCode == 40) {
           e.preventDefault();
           this.selectionDown();
-          this.scrollTo(this.selected);
+          this.scrollTo(this.selectedItem);
         }
       }
     },
     trash(item) {
-      item = {...item, deleted: true, deleted_at: new Date()};
+      item = { ...item, deleted: true, deleted_at: new Date() };
       item.deleted = true;
       item.deleted_at = new Date();
       this.$mutateQueue({
@@ -149,9 +163,9 @@ export default {
 
       this.$nextTick(() => {
         this.edit = note;
-        this.selected = note;
+        this.selectedItems = [note];
         this.$nextTick(() => {
-          this.scrollTo(note)
+          this.scrollTo(note);
         });
       });
       this.$mutateQueue({
