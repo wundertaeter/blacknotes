@@ -19,27 +19,25 @@ export function addProjects(state, { key, item }) {
     console.log('Add item to ' + key, item);
     const cache = state[key];
     if (cache) {
+        let added = false;
         const items = JSON.parse(JSON.stringify(cache));
-        const project = items.projects.find(project => item.project?.id == project.id);
-        if (project) {
+        for (const project of items.projects) {
             const index = project.notes.findIndex(it => it.id == item.id);
-            console.log('index', index);
-            if (index >= 0) {
-                project.notes[index] = item;
-            } else {
-                project.notes.push(item);
+            if (item.project?.id == project.id) {
+                if (index >= 0) {
+                    project.notes[index] = item;
+                } else {
+                    project.notes.push(item);
+                }
+                added = true;
+            } else if (index >= 0) {
+                project.notes.splice(index, 1);
             }
-        } else {
+        }
+        if (!added) {
             const project = { ...Store.state.user.projects.find(project => item.project.id == project.id) };
             project.notes = [item];
             items.projects.push(project);
-        }
-        if (item.prevProject) {
-            const project = items.projects.find(project => item.prevProject.id == project.id);
-            const index = project.notes.findIndex(it => it.id == item.id);
-            if (index >= 0) {
-                project.notes.splice(index, 1);
-            }
         }
         state[key] = items;
         save(state);

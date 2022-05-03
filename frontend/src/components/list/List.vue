@@ -4,8 +4,8 @@
     v-model="itemsCopy"
     :sort="sort"
     :drop="drop"
+    @end="onEnd"
     :group="{ name: group, pull: drag, put: drop }"
-    @update:modelValue="updatePositions"
     item-key="id"
   >
     <template #item="{ element }">
@@ -32,11 +32,11 @@
 <script>
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
-// import mitt from "mitt";
+import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
 // import { scroll } from "quasar";
 // const { getScrollTarget, setVerticalScrollPosition } = scroll;
-// const bus = mitt();
+const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 // const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
@@ -47,6 +47,7 @@ const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
 const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 // const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
+import { uuidv4 } from "src/common/utils";
 export default {
   name: "NoteList",
   components: {
@@ -54,7 +55,11 @@ export default {
     draggable,
   },
   mounted() {
+    bus.on(this.id, this.multiDrop);
     this.$emit('mounted', this);
+  },
+  unmounted(){
+    bus.off(this.id, this.multiDrop);
   },
   data(props) {
     return {
@@ -63,7 +68,9 @@ export default {
       focusNote: null,
       editNote: null,
       checkTimeout: null,
+      selectedItems: [],
       trigger: 0,
+      id: uuidv4(),
     };
   },
   watch: {
@@ -85,10 +92,6 @@ export default {
   },
   props: {
     group: {
-      type: String,
-      required: false,
-    },
-    id: {
       type: String,
       required: false,
     },
@@ -150,6 +153,36 @@ export default {
     },
   },
   methods: {
+    multiDrop({ event, items }) {
+      console.log('multidrop !!');
+      var model = this.itemsCopy;
+      if (event.from == event.to) {
+        model = model.filter((item) => !items.find((it) => it.id == item.id));
+      } else {
+        // items.forEach(this.$refs.multiclick.appendToSelection);
+        items = items.filter(
+          (item) => !this.itemsCopy.find((it) => it.id == item.id)
+        );
+      }
+      this.itemsCopy = [
+        ...model.slice(0, event.newIndex),
+        ...items,
+        ...model.slice(event.newIndex, model.length),
+      ];
+      this.updatePositions()
+    },
+    onEnd(e) {
+      console.log('on end', e.to.id);
+      bus.emit(e.to.id, { event: e, items: this.selectedItems });
+    },
+    itemClicked(item, event) {
+      const multiclick = this.$refs.multiclick;
+      if (!multiclick.itemIsSelected(item)) {
+        multiclick.itemClicked(item, event);
+      } else if (event.shiftKey) {
+        multiclick.removeFromSelection(item, event);
+      }
+    },
     dragStart(e, item) {
       item[this.positionColumn] = null;
       if (item.__typename.includes("_note")) {
@@ -237,6 +270,8 @@ export default {
         } else {
           projects.push(obj);
         }
+
+        this.$updateCache(item);
       }
 
       if (notes.length) {

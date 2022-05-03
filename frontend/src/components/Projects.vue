@@ -19,14 +19,12 @@
           </div>
           <list
             v-if="project.notes"
-            :id="project.title"
             @select="setSelected"
             @edit="setEdit"
-            @add="(e) => addEvent(e, project)"
             :project="project"
             :position-column="positionColumn"
             group="people"
-            :items="project.notes.sort(sortMethod)"
+            :items="[...project.notes].sort(sortMethod)"
             :focused="selected"
             :edited="edit"
             @mounted="listComponentMounted"
@@ -75,28 +73,6 @@ export default {
     },
   },
   methods: {
-    addEvent(e, project) {
-      for (const p of this.cache) {
-        let item = p.notes.find((item) => item.id == e.item.id);
-        if (item) {
-          item = { ...item, project, project_id: project.id   };
-          if (item.project.title) {
-            this.$store.commit("cache/remove", {
-              key: item.project.title,
-              item,
-            });
-          }
-          if (project.title) {
-            this.$store.commit("cache/add", {
-              key: project.title,
-              item,
-            });
-          }
-          this.updateSelected(item);
-          return;
-        }
-      }
-    },
     sortMethod(a, b) {
       if (a[this.positionColumn] === null) return 1;
       if (b[this.positionColumn] === null) return -1;

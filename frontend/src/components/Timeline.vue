@@ -16,7 +16,6 @@
             <list
               v-if="cache && cache[date.title]"
               @select="setSelected"
-              @add="(e) => addEvent(e, date)"
               @edit="setEdit"
               :position-column="positionColumn"
               group="people"
@@ -124,28 +123,6 @@ export default {
     }
   },
   methods: {
-    addEvent(e, newDate) {
-      console.log("newDate", newDate);
-      for (const date of this.dates) {
-        let item = this.cache[date.title].find((item) => item.id == e.item.id);
-        if (item) {
-          console.log("date", date);
-          item = { ...item, when: newDate.date };
-          this.$store.commit("cache/remove", {
-            key: this.id,
-            item,
-          });
-
-          this.$store.commit("cache/add", {
-            key: this.id,
-            item: item,
-          });
-
-          this.updateSelected(item);
-          return;
-        }
-      }
-    },
     sortMethod(a, b) {
       if (this.positionColumn) {
         if (this.backwards) {
