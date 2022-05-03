@@ -206,9 +206,9 @@ export default {
         today_position: null,
         someday_position: null,
         anytime_position: null,
-        project_id: this.selectedProject.id,
+        project_id: this.selectedProject?.id,
         [this.positionColumn]: this.maxPosition + 1,
-        project: this.selectedProject.id ? this.selectedProject : null,
+        project: this.selectedProject?.id ? this.selectedProject : null,
         when: null,
       };
     },
@@ -230,10 +230,10 @@ export default {
       return project || this.cache[0];
     },
     maxPosition() {
-      const positions = this.selectedProject.notes.map(
+      const positions = this.selectedProject?.notes.map(
         (it) => it[this.positionColumn]
       );
-      return positions.length ? Math.max(...positions) : 0;
+      return positions?.length ? Math.max(...positions) : 0;
     },
   },
 };
