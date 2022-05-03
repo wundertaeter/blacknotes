@@ -2,8 +2,8 @@
   <project
     v-if="project"
     v-model="project"
-    :sort="false"
     keep
+    select
     :config="config"
     :sort-by="sortBy"
   >

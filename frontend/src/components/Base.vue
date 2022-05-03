@@ -39,12 +39,12 @@ export default {
     select: {
       type: Boolean,
       required: false,
-      default: true,
+      default: false,
     },
     sort: {
       type: Boolean,
       required: false,
-      default: true,
+      default: false,
     },
     done: {
       type: Boolean,
@@ -82,7 +82,7 @@ export default {
     revert(e) {
       e.stopPropagation();
       this.selectedItems.forEach((item) => {
-        item = { ...this.selected, deleted: false, deleted_at: null };
+        item = { ...item, deleted: false, deleted_at: null };
         this.$mutateQueue({
           mutation: item.__typename.includes("_note")
             ? TRASH_NOTE
@@ -91,6 +91,9 @@ export default {
         });
         this.removeItem(item);
       });
+    },
+    setEditItem(item){
+      this.edit = item;
     },
     setSelectedItems(items) {
       this.selectedItems = items;
@@ -115,8 +118,9 @@ export default {
       this.listComponents.forEach((component) => component.scrollTo(item));
     },
     onKeydown(e) {
-      if (!this.edit && this.selectedItems.length) {
+      if (!this.edit && this.selectedItem) {
         if (e.keyCode === 8) {
+          e.stopPropagation();
           this.selectedItems.forEach((item) => this.trash(item));
         } else if (e.keyCode == 38) {
           e.preventDefault();
@@ -162,8 +166,8 @@ export default {
       this.$updateCache(note);
 
       this.$nextTick(() => {
-        this.edit = note;
-        this.selectedItems = [note];
+        this.setSelectedItem(note);
+        this.setEditItem(note);
         this.$nextTick(() => {
           this.scrollTo(note);
         });

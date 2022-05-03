@@ -3,6 +3,8 @@
     v-if="currentProject"
     v-model="currentProject"
     more
+    sort
+    select
     :config="{
         notes_subscription: SUBSCRIBE_PROJECT,
         variables: {

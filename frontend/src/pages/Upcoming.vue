@@ -5,6 +5,7 @@
     group-by="when"
     drop
     sort
+    select
     icon="date_range"
     title="Upcoming"
     id="upcoming"

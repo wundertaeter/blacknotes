@@ -54,6 +54,9 @@ export default {
       }
       this.lastSelected = item;
     },
+    setLastSelected(item){
+      this.lastSelected = item;
+    },
     setSelectedItem(item) {
       if (this.itemIsDisabled(item)) return;
       this.selectedItems = [item];
@@ -88,13 +91,9 @@ export default {
     },
     appendToSelection(item) {
       if (this.itemIsDisabled(item)) return;
-      this.selectedItems = [
-        ...new Map(
-          this.selectedItems
-            .concat([item])
-            .map((item) => [item[this.uid], item])
-        ).values(),
-      ];
+      if(!this.selectedItems.some(it => it[this.uid] == item[this.uid])){
+        this.selectedItems.push(item)
+      }
     },
     removeFromSelection(item) {
       this.selectedItems = this.selectedItems.filter(
@@ -117,7 +116,7 @@ export default {
     },
     itemIsDisabled(item) {
       const disabled =
-        this.disableItems && this.disableItems.find((it) => it.id == item.id);
+        this.disableItems && this.disableItems.some((it) => it.id == item.id);
       if (disabled && this.selectedItems.includes(item)) {
         this.removeFromSelection(item);
       }

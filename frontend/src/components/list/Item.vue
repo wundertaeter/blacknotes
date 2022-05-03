@@ -1,5 +1,5 @@
 <template>
-  <q-card flat :class="{ focused: focused, item: true }">
+  <q-card flat :class="{ selected: selected, item: true }">
     <q-checkbox
       v-if="modelValue.icon"
       v-model="done"
@@ -68,7 +68,7 @@
       /-->
     </q-card-section>
 
-    <q-card-actions class="actions-card" v-if="edit && focused">
+    <q-card-actions class="actions-card" v-if="edit && selected">
       <div class="editor-actions">
         <q-btn
           :disable="readonly"
@@ -136,7 +136,7 @@ export default {
       required: false,
       default: false,
     },
-    focused: {
+    selected: {
       type: Boolean,
       required: false,
       default: false,
@@ -176,7 +176,7 @@ export default {
         this.when = value.when;
       }
     },
-    focused: {
+    selected: {
       handler(value) {
         if (!value) {
           this.blurTitle();
@@ -186,8 +186,8 @@ export default {
     },
     edited: {
       handler(value) {
+        console.log('edited item handler', value)
         if(value){
-          this.edit = true;
           if (this.modelValue.__typename.includes("_note")) {
             this.edit = true;
             this.focusTitle();
@@ -266,7 +266,7 @@ export default {
       this.contentFocused = false;
     },
     onKeydown(e) {
-      if (!this.contentFocused && this.focused && e.keyCode == 13) {
+      if (!this.contentFocused && this.selected && e.keyCode == 13) {
         if (this.edit) {
           this.blurTitle();
           this.edit = false;
@@ -341,7 +341,7 @@ export default {
 .actions-card {
   border-top: 1px solid black;
 }
-.focused {
+.selected {
   border: 3px solid $orange;
 }
 .when {

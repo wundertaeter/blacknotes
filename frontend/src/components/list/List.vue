@@ -1,35 +1,44 @@
 <template>
-  <draggable
-    :id="id"
-    v-model="itemsCopy"
-    :sort="sort"
-    :drop="drop"
-    @end="onEnd"
-    :group="{ name: group, pull: drag, put: drop }"
-    item-key="id"
+  <vue-multiclick
+    @selected="onSelect"
+    ref="multiclick"
+    :items="itemsCopy"
+    uid="id"
+    v-slot="{ itemIsSelected }"
   >
-    <template #item="{ element }">
-      <item
-        :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
-        :id="element.id"
-        @dragstart="(e) => dragStart(e, element)"
-        @click.stop
-        @mousedown="setSelected(element)"
-        :focused="selectedItems.some((item) => item.id == element.id)"
-        :edited="editNote && editNote.id == element.id"
-        class="note"
-        :ref="`item-${element.id}`"
-        v-model="itemsCopy[itemsCopy.indexOf(element)]"
-        @check="check"
-        @edit="setEditNote"
-        @dblclick="setEdit(element)"
-        :date-preview="datePreview"
-      />
-    </template>
-  </draggable>
+    <draggable
+      :id="id"
+      v-model="itemsCopy"
+      :sort="sort"
+      :drop="drop"
+      @end="onEnd"
+      :group="{ name: group, pull: drag, put: drop }"
+      item-key="id"
+    >
+      <template #item="{ element }">
+        <item
+          :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
+          :id="element.id"
+          @dragstart="(e) => dragStart(e, element)"
+          @click.stop
+          @mousedown="itemClicked(element, $event)"
+          :selected="itemIsSelected(element)"
+          :edited="editItem && editItem.id == element.id"
+          class="note"
+          :ref="`item-${element.id}`"
+          v-model="itemsCopy[itemsCopy.indexOf(element)]"
+          @check="check"
+          @edit="setEditItem"
+          @dblclick="setEdit(element)"
+          :date-preview="datePreview"
+        />
+      </template>
+    </draggable>
+  </vue-multiclick>
 </template>
 
 <script>
+import VueMulticlick from "src/components/VueMulticlick.vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
 import mitt from "mitt";
@@ -53,6 +62,7 @@ export default {
   components: {
     Item,
     draggable,
+    VueMulticlick,
   },
   mounted() {
     bus.on(this.id, this.multiDrop);
@@ -65,7 +75,7 @@ export default {
     return {
       itemsCopy: JSON.parse(JSON.stringify(props.items)),
       updateId: null,
-      editNote: null,
+      editItem: null,
       checkTimeout: null,
       selectedItems: [],
       trigger: 0,
@@ -80,12 +90,13 @@ export default {
     },
     selected: {
       handler(value) {
-        this.selectedItems = value;
+        this.setSelectedItems(value);
       },
     },
     edited: {
       handler(value) {
-        this.editNote = value;
+        console.log('whatch edited', value, this.itemsCopy);
+        this.editItem = value;
       },
     },
   },
@@ -154,12 +165,12 @@ export default {
   },
   methods: {
     multiDrop({ event, items }) {
-      console.log("multidrop !!");
+      console.log("multidrop !!", items);
       var model = this.itemsCopy;
       if (event.from == event.to) {
         model = model.filter((item) => !items.find((it) => it.id == item.id));
       } else {
-        // items.forEach(this.$refs.multiclick.appendToSelection);
+        items.forEach(this.$refs.multiclick.appendToSelection);
         items = items.filter(
           (item) => !this.itemsCopy.find((it) => it.id == item.id)
         );
@@ -172,10 +183,11 @@ export default {
       this.updatePositions();
     },
     onEnd(e) {
-      console.log("on end", e.to.id);
+      console.log("on end", e.to.id, this.selectedItems);
       bus.emit(e.to.id, { event: e, items: this.selectedItems });
     },
     itemClicked(item, event) {
+      console.log('itemClicked', item);
       const multiclick = this.$refs.multiclick;
       if (!multiclick.itemIsSelected(item)) {
         multiclick.itemClicked(item, event);
@@ -191,17 +203,29 @@ export default {
         e.dataTransfer.setData("project", JSON.stringify(item));
       }
     },
-    setSelected(note) {
-      console.log('emit select');
-      this.$emit("select", [note]);
+    onSelect(items){
+      this.$emit("select", items);
     },
-    setEditNote(note) {
-      this.editNote = note;
-      this.$emit("edit", note);
+    setSelectedItems(items) {
+      console.log('setSelectedItems list', items);
+      this.$refs.multiclick?.setSelectedItems(items);
+      this.selectedItems = items;
+      if(items.length == 1){
+        this.$refs.multiclick?.setLastSelected(items[0]);
+      }
     },
-    setEdit(note) {
-      this.setSelected([note]);
-      this.setEditNote(note);
+    setSelectedItem(item) {
+      console.log('setSelectedItem ???????', item);
+      this.setSelectedItems([item]);
+      this.$refs.multiclick?.setLastSelected(item);
+    },
+    setEditItem(item) {
+      this.editItem = item;
+      this.$emit("edit", item);
+    },
+    setEdit(item) {
+      this.setSelectedItem(item);
+      this.setEditItem(item);
     },
     scrollTo(args) {
       const item = args.item ? args.item : args;
@@ -236,11 +260,13 @@ export default {
         left + width <= window.pageXOffset + window.innerWidth
       );
     },
-
+    selectNone(){
+      this.$refs.multiclick?.selectNone();
+    },
     reset() {
       // console.log("reset focus");
-      this.setSelected(null);
-      this.setEdit(null);
+      this.selectNone();
+      this.editItem = null;
     },
     updatePositions() {
       console.log("update positions", this.itemsCopy);

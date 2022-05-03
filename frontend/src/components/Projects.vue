@@ -22,6 +22,7 @@
             @select="setSelectedItems"
             @edit="setEdit"
             :project="project"
+            :sort="sort"
             :position-column="positionColumn"
             group="people"
             :items="[...project.notes].sort(sortMethod)"
