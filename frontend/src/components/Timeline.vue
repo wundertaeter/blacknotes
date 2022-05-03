@@ -15,10 +15,9 @@
           >
             <list
               v-if="cache && cache[date.title]"
-              @select="setFocusNote"
+              @select="setSelected"
               @add="(e) => addEvent(e, date)"
-              @edit="setEditNote"
-              :select="false"
+              @edit="setEdit"
               :position-column="positionColumn"
               group="people"
               :items="cache[date.title]"
@@ -27,8 +26,9 @@
               :drop="drop"
               :sort="sort"
               :sortMethod="sortMethod"
-              :focused="focusNote"
-              :edited="editNote"
+              :focused="selected"
+              :edited="edit"
+              @mounted="listComponentMounted"
             />
           </q-timeline-entry>
 
@@ -47,47 +47,30 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
-const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
-const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
-import List from "src/components/list/List.vue";
-import { bus } from "src/components/list/List.vue";
 import { uuidv4 } from "src/common/utils.js";
 import {
   toDatabaseString,
   formatDateBackwards,
   formatDateForward,
   timelineDates,
-  isToday,
-  isYesterday,
-  isCurrentWeek,
-  isTomorrow,
   date,
   today,
   yesterday,
   tomorrow,
 } from "src/common/date.js";
 
-export const timeline = 7;
+import Base from "src/components/Base.vue";
 
-export default defineComponent({
-  name: "PageIndex",
-  components: {
-    //Project,
-    List,
-  },
+export default {
+  name: "TimelineComponent",
+  extends: Base,
   data() {
     return {
-      projects: null,
-      notes: null,
       whens: [],
-      watchers: [],
-      focusNote: null,
-      editNote: null,
-      loading: false,
-      promiseQueue: [],
+      selected: null,
+      edit: null,
       dates: [],
-      timeline: timeline,
+      timeline: 7,
     };
   },
   props: {
@@ -104,16 +87,6 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    drop: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    sort: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     title: {
       type: String,
       required: true,
@@ -125,10 +98,6 @@ export default defineComponent({
     icon: {
       type: String,
       required: true,
-    },
-    positionColumn: {
-      type: String,
-      required: false,
     },
     updateWhen: {
       type: Boolean,
@@ -153,23 +122,14 @@ export default defineComponent({
         this.dates.push({ title: this.formatDate(nextDate), date: nextDate });
       }
     }
-    // console.log("dates", this.dates);
-    document.addEventListener("click", this.resetFocusedNote);
-    document.addEventListener("keydown", this.onKeydown);
-
-    bus.emit("sort");
-  },
-  unmounted() {
-    document.removeEventListener("click", this.resetFocusedNote);
-    document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
     addEvent(e, newDate) {
-      console.log('newDate', newDate);
-      for(const date of this.dates){
+      console.log("newDate", newDate);
+      for (const date of this.dates) {
         let item = this.cache[date.title].find((item) => item.id == e.item.id);
         if (item) {
-          console.log('date', date);
+          console.log("date", date);
           item = { ...item, when: newDate.date };
           this.$store.commit("cache/remove", {
             key: this.id,
@@ -181,7 +141,7 @@ export default defineComponent({
             item: item,
           });
 
-          this.updateFocusNote(item);
+          this.updateSelected(item);
           return;
         }
       }
@@ -209,84 +169,10 @@ export default defineComponent({
         }
       }
     },
-    addNote(e) {
-      e.stopPropagation();
-      console.log("this.editNote", this.editNote);
-      if (this.editNote) return;
-      const note = this.newNote;
-      this.$updateCache(note);
-      this.$nextTick(() => {
-        this.editNote = note;
-        this.focusNote = note;
-        this.$nextTick(() => {
-          bus.emit("scrollTo", { item: note, top: true });
-        });
-      });
-      this.$mutateQueue({
-        mutation: CREATE_NOTE,
-        variables: note,
-      });
-    },
-    onKeydown(e) {
-      // console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
-      if (!this.editNote && this.focusNote) {
-        if (e.keyCode === 8) {
-          this.trashNote();
-        } else if (e.keyCode == 38) {
-          e.preventDefault();
-          this.selectionUp();
-          bus.emit("scrollTo", this.focusNote);
-        } else if (e.keyCode == 40) {
-          e.preventDefault();
-          this.selectionDown();
-          bus.emit("scrollTo", this.focusNote);
-        }
+    updateSelected(item) {
+      if (item.id == this.selected.id) {
+        this.selected = item;
       }
-    },
-    trashNote() {
-      const item = { ...this.focusNote, deleted: true, deleted_at: new Date() };
-      const groupBy = this.formatDate(item[this.groupBy]);
-      const index = this.cache[groupBy].findIndex((it) => it.id == item.id);
-
-      this.$updateCache(item);
-
-      this.$nextTick(() => {
-        let next = this.cache[groupBy][index];
-        if (!next) {
-          const length = this.cache[groupBy].length;
-          next = this.cache[groupBy][length - 1];
-        }
-        if (!next) {
-          const dates = [...this.dates].reverse();
-          while (dates[0].title != groupBy) {
-            dates.push(dates.shift());
-          }
-          for (const date of dates) {
-            next = this.cache[date.title][this.cache[date.title].length - 1];
-            if (next) break;
-          }
-        }
-        this.focusNote = next;
-      });
-      this.$mutateQueue({
-        mutation: TRASH_NOTE,
-        variables: item,
-      });
-    },
-    resetFocusedNote() {
-      console.log("resetFocusedNote");
-      bus.emit("resetFocus");
-    },
-    setFocusNote(note) {
-      this.focusNote = note;
-    },
-    updateFocusNote(item) {
-      if(item.id == this.focusNote.id){
-        this.focusNote = item;
-      }
-    },  
-    setEditNote(note) {
-      this.editNote = note;
     },
     getNextDateString(currentDate) {
       // console.log("get next date string", this.formatDate(currentDate));
@@ -358,43 +244,43 @@ export default defineComponent({
       return this.backwards ? tomorrow(d) : yesterday(d);
     },
     selectionDown() {
-      if (this.focusNote) {
-        let items = this.cache[this.formatDate(this.focusNote[this.groupBy])];
-        const index = items.findIndex((note) => note.id == this.focusNote.id);
+      if (this.selected) {
+        let items = this.cache[this.formatDate(this.selected[this.groupBy])];
+        const index = items.findIndex((note) => note.id == this.selected.id);
         const next = items[index + 1];
         if (next) {
-          this.focusNote = next;
+          this.selected = next;
         } else {
           let nextDateString = this.getNextDateString(
-            new Date(this.focusNote[this.groupBy])
+            new Date(this.selected[this.groupBy])
           );
           // console.log("next date string", nextDateString);
           if (nextDateString) {
             items = this.cache[nextDateString];
-            this.focusNote = items[0];
+            this.selected = items[0];
           }
         }
-        // console.log("this note", this.focusNote);
+        // console.log("this note", this.selected);
         //this.focusedNote = next || this.notes[0];
       }
     },
     selectionUp() {
-      if (this.focusNote) {
-        let items = this.cache[this.formatDate(this.focusNote[this.groupBy])];
-        const index = items.findIndex((note) => note.id == this.focusNote.id);
+      if (this.selected) {
+        let items = this.cache[this.formatDate(this.selected[this.groupBy])];
+        const index = items.findIndex((note) => note.id == this.selected.id);
         const next = items[index - 1];
         if (next) {
-          this.focusNote = next;
+          this.selected = next;
         } else {
           let prevDateString = this.getPrevDateString(
-            new Date(this.focusNote[this.groupBy])
+            new Date(this.selected[this.groupBy])
           );
           if (prevDateString) {
             items = this.cache[prevDateString];
-            this.focusNote = items[items.length - 1];
+            this.selected = items[items.length - 1];
           }
         }
-        // console.log("this note", this.focusNote);
+        // console.log("this note", this.selected);
         //this.focusedNote = next || this.notes[0];
       }
     },
@@ -411,10 +297,58 @@ export default defineComponent({
     },
     updateCache() {
       if (this.projects && this.notes) {
-        this.$store.commit("cache/update", { key: this.id, notes: this.notes, projects: this.projects });
+        this.$store.commit("cache/update", {
+          key: this.id,
+          notes: this.notes,
+          projects: this.projects,
+        });
         this.notes = null;
         this.projects = null;
       }
+    },
+    removeItem() {
+      const item = { ...this.selected, deleted: true, deleted_at: new Date() };
+      const groupBy = this.formatDate(item[this.groupBy]);
+      const index = this.cache[groupBy].findIndex((it) => it.id == item.id);
+
+      this.$updateCache(item);
+
+      this.$nextTick(() => {
+        let next = this.cache[groupBy][index];
+        if (!next) {
+          const length = this.cache[groupBy].length;
+          next = this.cache[groupBy][length - 1];
+        }
+        if (!next) {
+          const dates = [...this.dates].reverse();
+          while (dates[0].title != groupBy) {
+            dates.push(dates.shift());
+          }
+          for (const date of dates) {
+            next = this.cache[date.title][this.cache[date.title].length - 1];
+            if (next) break;
+          }
+        }
+        this.selected = next;
+      });
+    },
+    newNote() {
+      return {
+        __typename: "active_notes",
+        id: uuidv4(),
+        title: "",
+        content: "",
+        done: false,
+        deleted: false,
+        user_id: this.user.id,
+        upcoming_position: null,
+        today_position: null,
+        someday_position: null,
+        anytime_position: null,
+        [this.positionColumn]: this.maxPosition + 1,
+        project: null,
+        when: toDatabaseString(this.selectedWhen),
+      };
     },
   },
   computed: {
@@ -424,7 +358,7 @@ export default defineComponent({
       this.dates.forEach((date) => {
         items[date.title] = [];
       });
-      if(cache){
+      if (cache) {
         cache.notes.forEach((note) => {
           let dateString = this.formatDate(note[this.groupBy]);
           if (!items[dateString]) {
@@ -453,9 +387,6 @@ export default defineComponent({
       }
       return items;
     },
-    user() {
-      return this.$store.state.user;
-    },
     titles() {
       return Object.keys(this.cache);
     },
@@ -477,79 +408,18 @@ export default defineComponent({
     today() {
       return today();
     },
-    selectedwhen() {
-      return this.focusNote
-        ? this.focusNote.when
-        : this.editNote
-        ? this.editNote.when
+    selectedWhen() {
+      return this.selected
+        ? this.selected.when
+        : this.edit
+        ? this.edit.when
         : this.start;
     },
-    newNote() {
-      const when = this.selectedwhen;
-      const items = this.cache[this.formatDate(when)];
+    maxPosition() {
+      const items = this.cache[this.formatDate(this.selectedWhen)];
       const positions = items.map((it) => it[this.positionColumn]);
-      const maxPosition = positions.length ? Math.max(...positions) : 0;
-      return {
-        __typename: "active_notes",
-        id: uuidv4(),
-        title: "",
-        content: "",
-        done: false,
-        deleted: false,
-        user_id: this.user.id,
-        upcoming_position: null,
-        today_position: null,
-        someday_position: null,
-        anytime_position: null,
-        [this.positionColumn]: maxPosition + 1,
-        project: null,
-        when: toDatabaseString(when),
-      };
+      return positions.length ? Math.max(...positions) : 0;
     },
   },
-  apollo: {
-    $subscribe: {
-      active_notes: {
-        query() {
-          return this.config?.notes_subscription;
-        },
-        variables() {
-          return this.config?.variables;
-        },
-        skip() {
-          return (
-            !this.config?.notes_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = JSON.parse(JSON.stringify(data.active_notes));
-          this.updateCache();
-        },
-      },
-      notes_project: {
-        query() {
-          return this.config?.projects_subscription;
-        },
-        variables() {
-          return this.config?.variables;
-        },
-        skip() {
-          return (
-            !this.config?.projects_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = JSON.parse(JSON.stringify(data.notes_project));
-          this.updateCache();
-        },
-      },
-    },
-  },
-});
+};
 </script>

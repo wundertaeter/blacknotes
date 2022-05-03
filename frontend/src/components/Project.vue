@@ -60,14 +60,16 @@
 
         <list
           v-if="cache"
+          @select="setSelected"
+          @edit="setEdit"
           :position-column="positionColumn"
           :sort="sort"
-          :select="select"
           :done="done"
           :keep="keep"
           :items="cache"
-          :sortMethod="sortMethod"
-          @edit="setEditNote"
+          :focused="selected"
+          :edited="edit"
+          @mounted="listComponentMounted"
         />
       </div>
     </q-scroll-area>
@@ -80,46 +82,26 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
-import List from "src/components/list/List.vue";
-import { bus } from "src/components/list/List.vue";
-const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
+import Base from "src/components/Base.vue";
 
-export default defineComponent({
-  name: "PageIndex",
-  components: {
-    List,
-  },
+export default {
+  name: "ProjectComponent",
+  extends: Base,
   data() {
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
-      projects: null,
-      notes: null,
       timeout: null,
       moreShowing: false,
     };
-  },
-  mounted(){
-    console.log('sort!!');
-    bus.emit('sort');
   },
   props: {
     modelValue: {
       type: Object,
       required: true,
-    },
-    when: {
-      type: Object,
-      required: false,
-      default: null,
-    },
-    positionColumn: {
-      type: String,
-      required: false,
     },
     sortBy: {
       type: Object,
@@ -131,34 +113,10 @@ export default defineComponent({
         };
       },
     },
-    select: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-    sort: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-    done: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-    keep: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     more: {
       type: Boolean,
       required: false,
       default: false,
-    },
-    config: {
-      type: Object,
-      required: true,
     },
   },
   watch: {
@@ -168,32 +126,28 @@ export default defineComponent({
       },
       deep: true,
     },
-    config: {
-      handler() {
-        this.$apollo.skipAllQueries = false;
-      },
-      deep: true,
-    },
   },
   computed: {
     maxPosition() {
-      const positions = this.cache.map( // dont work?!!!!!!
+      const positions = this.cache.map(
+        // dont work?!!!!!!
         (note) => note[this.positionColumn]
       );
-      console.log('positions', this.cache, positions, this.positionColumn);
+      console.log("positions", this.cache, positions, this.positionColumn);
       return positions.length ? Math.max(...positions) : 0;
     },
-    user() {
-      return this.$store.state.user;
-    },
-    cache(){
+    cache() {
       const cache = this.$store.state.cache[this.modelValue.id];
-      console.log('CACHE', cache);
-      return cache ? [...cache.notes, ...cache.projects].sort(this.sortMethod) : [];
+      console.log("CACHE", cache);
+      return cache
+        ? [...cache.notes, ...cache.projects].sort(this.sortMethod)
+        : [];
     },
     currentProject() {
       return this.$store.getters["user/getCurrentProject"];
     },
+  },
+  methods: {
     newNote() {
       console.log(this.maxPosition);
       return {
@@ -214,14 +168,82 @@ export default defineComponent({
         when: this.when ? toDatabaseString(this.when) : null,
       };
     },
-  },
-  methods: {
-    setEditNote(note) {
-      this.editNote = note;
+    removeItem(item) {
+      let next;
+      const index = this.cache.findIndex(
+        (it) => it.id == item.id && it.__typename == item.__typename
+      );
+      // console.log("index", index);
+      // console.log(this.cache);
+
+      this.$updateCache(item);
+
+      this.$nextTick(() => {
+        // console.log(this.cache);
+        next = this.cache[index];
+        if (!next) {
+          const length = this.cache.length;
+          next = this.cache[length - 1];
+        }
+        this.selected = next;
+        // console.log("next item", next);
+      });
+    },
+    deleteAll() {
+      e.stopPropagation();
+      // const itemsToTrash = { notes: [], projects: [] };
+      const itemsToDelete = { notes: [], projects: [] };
+      this.cache.forEach((item) => {
+        if (item.deleted) {
+          if (item.__typename.includes("_note")) {
+            itemsToDelete.notes.push(item);
+          } else {
+            itemsToDelete.projects.push(item);
+          }
+        }
+      });
+      if (itemsToDelete.notes.length) {
+        this.$mutateQueue({
+          mutation: DELETE_NOTES,
+          variables: {
+            ids: itemsToDelete.notes.map((note) => note.id),
+          },
+        });
+      }
+      if (itemsToDelete.projects.length) {
+        this.$mutateQueue({
+          mutation: DELETE_PROJECTS,
+          variables: {
+            ids: itemsToDelete.projects.map((note) => note.id),
+          },
+        });
+      }
+      this.$store.commit("cache/update", {
+        key: this.modelValue.id,
+        items: [],
+      });
+    },
+    selectionDown() {
+      const index = this.cache.findIndex(
+        (it) =>
+          it.id == this.selected.id &&
+          it.__typename == this.selected.__typename
+      );
+      const next = this.cache[index + 1];
+      if (next) this.setSelected(next);
+    },
+    selectionUp() {
+      const index = this.cache.findIndex(
+        (it) =>
+          it.id == this.selected.id &&
+          it.__typename == this.selected.__typename
+      );
+      const next = this.cache[index - 1];
+      if (next) this.setSelected(next);
     },
     sortMethod(a, b) {
-      if(a[this.sortBy.column]  === null) return 1;
-      if(b[this.sortBy.column]  === null) return -1;
+      if (a[this.sortBy.column] === null) return 1;
+      if (b[this.sortBy.column] === null) return -1;
       if (this.sortBy.date) {
         return this.sortBy.desc
           ? new Date(b[this.sortBy.column]) - new Date(a[this.sortBy.column])
@@ -231,18 +253,6 @@ export default defineComponent({
           ? b[this.sortBy.column] - a[this.sortBy.column]
           : a[this.sortBy.column] - b[this.sortBy.column];
       }
-    },
-    revert(e) {
-      // e.preventDefault();
-      e.stopPropagation();
-      console.log("revert");
-      bus.emit("revert");
-    },
-    deleteAll(e){
-      e.stopPropagation();
-      console.log('deleteAll');
-      bus.emit('deleteAll');
-      this.$store.commit('cache/update', {key: this.modelValue.id, items: []});
     },
     trashProject() {
       this.$mutateQueue({
@@ -289,79 +299,18 @@ export default defineComponent({
         }
       }, 500);
     },
-    addNote(e) {
-      e.stopPropagation();
-      if (this.editNote) return;
-      const note = this.newNote;
-      if (this.$route.name == "project" && this.currentProject) {
-        note.project = this.currentProject;
-      }
-
-      this.$updateCache(note);
-
-      this.$nextTick(() => {
-        bus.emit("setEdit", note);
-        this.$nextTick(() => {
-          bus.emit("scrollTo", note);
+    updateCache() {
+      if (!this.project.default || (this.notes && this.projects)) {
+        console.log("update cache", this.notes, this.projects);
+        this.$store.commit("cache/update", {
+          key: this.modelValue.id,
+          notes: this.notes,
+          projects: this.projects,
         });
-      });
-      this.$mutateQueue({
-        mutation: CREATE_NOTE,
-        variables: note,
-      });
-    },
-    updateCache(){
-     if(!this.project.default || this.notes && this.projects){
-        console.log('update cache', this.notes, this.projects);
-        this.$store.commit('cache/update', {key: this.modelValue.id, notes: this.notes, projects: this.projects});
         this.projects = null;
         this.notes = null;
       }
-    }
-  },
-  apollo: {
-    $subscribe: {
-      active_notes: {
-        query() {
-          return this.config.notes_subscription;
-        },
-        variables() {
-          return this.config.variables;
-        },
-        skip() {
-          return (
-            !this.config.notes_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = data.active_notes;
-          this.updateCache();
-        },
-      },
-      notes_project: {
-        query() {
-          return this.config.projects_subscription;
-        },
-        variables() {
-          return this.config.variables;
-        },
-        skip() {
-          return (
-            !this.config.projects_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = data.notes_project;
-          this.updateCache();
-        },
-      },
     },
-  },
-});
+  }
+};
 </script>

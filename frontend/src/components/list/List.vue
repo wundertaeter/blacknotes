@@ -30,18 +30,15 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
-import mitt from "mitt";
+// import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
 // import { scroll } from "quasar";
 // const { getScrollTarget, setVerticalScrollPosition } = scroll;
-export const bus = mitt();
+// const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
-const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
-const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 // const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
 // const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
@@ -50,48 +47,19 @@ const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
 const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 // const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
-export default defineComponent({
+export default {
   name: "NoteList",
   components: {
     Item,
     draggable,
   },
   mounted() {
-    bus.on(this.id, this.updateItem);
-    bus.on("sort", this.updatePositions);
-    bus.on("revert", this.revert);
-    bus.on("deleteAll", this.deleteAll);
-    bus.on("scrollTo", this.scrollTo);
-    bus.on("setFocus", this.setFocus);
-    bus.on("setEdit", this.setEdit);
-    bus.on("resetFocus", this.resetFocus);
-    bus.on("trash", this.trashNote);
-    if (this.select) {
-      document.addEventListener("click", this.resetFocus);
-      document.addEventListener("keydown", this.onKeydown);
-    }
-  },
-  unmounted() {
-    bus.off(this.id, this.updateItem);
-    bus.off("sort", this.updatePositions);
-    bus.off("revert", this.revert);
-    bus.off("deleteAll", this.deleteAll);
-    bus.off("scrollTo", this.scrollTo);
-    bus.off("setFocus", this.setFocus);
-    bus.off("setEdit", this.setEdit);
-    bus.off("resetFocus", this.resetFocus);
-    bus.off("trash", this.trashNote);
-    if (this.select) {
-      document.removeEventListener("click", this.resetFocus);
-      document.removeEventListener("keydown", this.onKeydown);
-    }
+    this.$emit('mounted', this);
   },
   data(props) {
-    // console.log(props.items)
     return {
       itemsCopy: JSON.parse(JSON.stringify(props.items)),
       updateId: null,
-      trashNoteTimeout: null,
       focusNote: null,
       editNote: null,
       checkTimeout: null,
@@ -133,11 +101,6 @@ export default defineComponent({
       required: false,
     },
     datePreview: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
-    select: {
       type: Boolean,
       required: false,
       default: true,
@@ -196,9 +159,6 @@ export default defineComponent({
       }
     },
     setFocus(note) {
-      if (this.select) {
-        this.focusNote = note;
-      }
       this.$emit("select", note);
     },
     setEditNote(note) {
@@ -242,125 +202,8 @@ export default defineComponent({
         left + width <= window.pageXOffset + window.innerWidth
       );
     },
-    onKeydown(e) {
-      if (!this.editNote && this.focusNote) {
-        if (e.keyCode === 8) {
-          this.trashNote();
-        } else if (e.keyCode == 38) {
-          e.preventDefault();
-          this.selectionUp();
-          this.scrollTo(this.focusNote);
-        } else if (e.keyCode == 40) {
-          e.preventDefault();
-          this.selectionDown();
-          this.scrollTo(this.focusNote);
-        }
-      }
-    },
-    revert() {
-      const item = this.focusNote;
-      console.log("list revert item", item);
-      if (!item) return;
-      if (item.deleted) {
-        console.log("revert", item);
-        item.deleted = false;
-        item.deleted_at = null;
-        this.$mutateQueue({
-          mutation: item.__typename.includes("_note")
-            ? TRASH_NOTE
-            : TRASH_PROJECT,
-          variables: item,
-        });
-        this.removeItem(item);
-      }
-    },
-    removeItem(item) {
-      let next;
-      const index = this.itemsCopy.findIndex(
-        (it) => it.id == item.id && it.__typename == item.__typename
-      );
-      // console.log("index", index);
-      // console.log(this.itemsCopy);
 
-      this.$updateCache(item);
-
-      this.$nextTick(() => {
-        // console.log(this.itemsCopy);
-        next = this.itemsCopy[index];
-        if (!next) {
-          const length = this.itemsCopy.length;
-          next = this.itemsCopy[length - 1];
-        }
-        this.focusNote = next;
-        // console.log("next item", next);
-      });
-    },
-    deleteAll() {
-      // const itemsToTrash = { notes: [], projects: [] };
-      const itemsToDelete = { notes: [], projects: [] };
-      this.items.forEach((item) => {
-        if (item.deleted) {
-          if (item.__typename.includes("_note")) {
-            itemsToDelete.notes.push(item);
-          } else {
-            itemsToDelete.projects.push(item);
-          }
-        }
-      });
-      if (itemsToDelete.notes.length) {
-        this.$mutateQueue({
-          mutation: DELETE_NOTES,
-          variables: {
-            ids: itemsToDelete.notes.map((note) => note.id),
-          },
-        });
-      }
-      if (itemsToDelete.projects.length) {
-        this.$mutateQueue({
-          mutation: DELETE_PROJECTS,
-          variables: {
-            ids: itemsToDelete.projects.map((note) => note.id),
-          },
-        });
-      }
-    },
-    trashNote() {
-      const item = this.focusNote;
-      console.log("trashNote!!!", item);
-      if (!item) return;
-
-      if (!item.deleted) {
-        console.log("trash note!!");
-        item.deleted = true;
-        item.deleted_at = new Date();
-        this.$mutateQueue({
-          mutation: item.__typename.includes("_note")
-            ? TRASH_NOTE
-            : TRASH_PROJECT,
-          variables: item,
-        });
-        this.removeItem(item);
-      }
-    },
-    selectionDown() {
-      const index = this.itemsCopy.findIndex(
-        (it) =>
-          it.id == this.focusNote.id &&
-          it.__typename == this.focusNote.__typename
-      );
-      const next = this.itemsCopy[index + 1];
-      if (next) this.setFocus(next);
-    },
-    selectionUp() {
-      const index = this.itemsCopy.findIndex(
-        (it) =>
-          it.id == this.focusNote.id &&
-          it.__typename == this.focusNote.__typename
-      );
-      const next = this.itemsCopy[index - 1];
-      if (next) this.setFocus(next);
-    },
-    resetFocus() {
+    reset() {
       // console.log("reset focus");
       this.setFocus(null);
       this.setEdit(null);
@@ -441,7 +284,7 @@ export default defineComponent({
       return this.$store.state.user;
     },
   },
-});
+};
 </script>
 <style lang="scss" scoped>
 .note {

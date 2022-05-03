@@ -20,18 +20,16 @@
           <list
             v-if="project.notes"
             :id="project.title"
-            @select="setFocusNote"
-            @edit="setEditNote"
+            @select="setSelected"
+            @edit="setEdit"
             @add="(e) => addEvent(e, project)"
-            xxremove="(e) => removeEvent(e, project)"
             :project="project"
-            :select="false"
             :position-column="positionColumn"
-            :sortMethod="sortMethod"
             group="people"
-            :items="project.notes"
-            :focused="focusNote"
-            :edited="editNote"
+            :items="project.notes.sort(sortMethod)"
+            :focused="selected"
+            :edited="edit"
+            @mounted="listComponentMounted"
           />
         </div>
       </div>
@@ -45,42 +43,20 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
-const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
-const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
-import List from "src/components/list/List.vue";
-import { bus } from "src/components/list/List.vue";
 import { uuidv4 } from "src/common/utils.js";
-
-export default defineComponent({
-  name: "PageIndex",
-  components: {
-    //Project,
-    List,
-  },
+import Base from "src/components/Base.vue";
+export default {
+  name: "ProjectsComponent",
+  extends: Base,
   data() {
     return {
-      projects: null,
-      notes: null,
       whens: [],
-      watchers: [],
-      focusNote: null,
-      editNote: null,
-      loading: false,
+      selected: null,
+      edit: null,
       dates: [],
     };
   },
   props: {
-    drop: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    sort: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     title: {
       type: String,
       required: true,
@@ -93,23 +69,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    positionColumn: {
-      type: String,
-      required: true,
-    },
     config: {
       type: Object,
       required: false,
     },
-  },
-  mounted() {
-    bus.emit('sort');
-    document.addEventListener("click", this.resetFocusedNote);
-    document.addEventListener("keydown", this.onKeydown);
-  },
-  unmounted() {
-    document.removeEventListener("click", this.resetFocusedNote);
-    document.removeEventListener("keydown", this.onKeydown);
   },
   methods: {
     addEvent(e, project) {
@@ -129,7 +92,7 @@ export default defineComponent({
               item,
             });
           }
-          this.updateFocusNote(item);
+          this.updateSelected(item);
           return;
         }
       }
@@ -139,45 +102,7 @@ export default defineComponent({
       if (b[this.positionColumn] === null) return -1;
       return a[this.positionColumn] - b[this.positionColumn];
     },
-    appendNote(note) {
-      this.$updateCache(note);
-      this.$nextTick(() => {
-        this.editNote = note;
-        this.focusNote = note;
-        this.$nextTick(() => {
-          bus.emit("scrollTo", { item: note, top: true });
-        });
-      });
-    },
-    addNote(e) {
-      e.stopPropagation();
-      // console.log('this.editNote', this.editNote);
-      if (this.editNote) return;
-      const note = this.newNote;
-      this.appendNote(note);
-
-      this.$mutateQueue({
-        mutation: CREATE_NOTE,
-        variables: note,
-      });
-    },
-    onKeydown(e) {
-      // console.log("onKeydown", e.keyCode, this.editNote, this.focusNote);
-      if (!this.editNote && this.focusNote) {
-        if (e.keyCode === 8) {
-          this.trashNote();
-        } else if (e.keyCode == 38) {
-          e.preventDefault();
-          this.selectionUp();
-          bus.emit("scrollTo", this.focusNote);
-        } else if (e.keyCode == 40) {
-          e.preventDefault();
-          this.selectionDown();
-          bus.emit("scrollTo", this.focusNote);
-        }
-      }
-    },
-    removeNote(note) {
+    removeItem(note) {
       const project = this.selectedProject;
       const projectIndex = this.cache.indexOf(project);
       const index = project.notes.findIndex((n) => n.id == note.id);
@@ -204,34 +129,14 @@ export default defineComponent({
             }
           }
         }
-        this.focusNote = next;
+        this.selected = next;
       });
     },
-    trashNote() {
-      const note = { ...this.focusNote };
-      note.deleted = true;
-      note.deleted_at = new Date();
-      this.removeNote(note);
-      this.$mutateQueue({
-        mutation: TRASH_NOTE,
-        variables: note,
-      });
-    },
-    resetFocusedNote() {
-      console.log("resetFocusedNote");
-      bus.emit("resetFocus");
-    },
-    setFocusNote(note) {
-      this.focusNote = note;
-    },
-    updateFocusNote(item) {
-      if(item.id == this.focusNote.id){
-        this.focusNote = item;
+    updateSelected(item) {
+      if(item.id == this.selected.id){
+        this.selected = item;
       }
     },  
-    setEditNote(note) {
-      this.editNote = note;
-    },
     getNextProject(project_index) {
       if (this.cache.length == 0) return;
       let nextProject = this.cache[project_index];
@@ -257,39 +162,39 @@ export default defineComponent({
       }
     },
     selectionDown() {
-      if (this.focusNote) {
+      if (this.selected) {
         const index = this.selectedProject.notes.findIndex(
-          (note) => note.id == this.focusNote.id
+          (note) => note.id == this.selected.id
         );
         let next = this.selectedProject.notes[index + 1];
         if (next) {
-          this.focusNote = next;
+          this.selected = next;
         } else {
           const nextProject = this.getNextProject(
             this.cache.indexOf(this.selectedProject) + 1
           );
           if (nextProject) {
             next = nextProject.notes[0];
-            this.focusNote = next;
+            this.selected = next;
           }
         }
       }
     },
     selectionUp() {
-      if (this.focusNote) {
+      if (this.selected) {
         const index = this.selectedProject.notes.findIndex(
-          (note) => note.id == this.focusNote.id
+          (note) => note.id == this.selected.id
         );
         let next = this.selectedProject.notes[index - 1];
         if (next) {
-          this.focusNote = next;
+          this.selected = next;
         } else {
           const prevProject = this.getPrevProject(
             this.cache.indexOf(this.selectedProject) - 1
           );
           if (prevProject) {
             next = prevProject.notes[prevProject.notes.length - 1];
-            this.focusNote = next;
+            this.selected = next;
           }
         }
       }
@@ -312,30 +217,6 @@ export default defineComponent({
         this.notes = null;
       }
     },
-  },
-  computed: {
-    cache() {
-      return this.$store.state.cache[this.id]?.projects.filter(p => p.notes.length);
-    },
-    user() {
-      return this.$store.state.user;
-    },
-    selectedProject() {
-      const selected = this.focusNote ? this.focusNote : this.editNote;
-      let project;
-      if (selected) {
-        project = this.cache.find((project) =>
-          project.notes.some((note) => note.id == selected.id)
-        );
-      }
-      return project || this.cache[0];
-    },
-    maxPosition() {
-      const positions = this.selectedProject.notes.map(
-        (it) => it[this.positionColumn]
-      );
-      return positions.length ? Math.max(...positions) : 0;
-    },
     newNote() {
       return {
         __typename: "active_notes",
@@ -356,51 +237,28 @@ export default defineComponent({
       };
     },
   },
-  apollo: {
-    $subscribe: {
-      active_notes: {
-        query() {
-          return this.config?.notes_subscription;
-        },
-        variables() {
-          return this.config?.variables;
-        },
-        skip() {
-          return (
-            !this.config?.notes_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("note sub", data);
-          this.notes = JSON.parse(JSON.stringify(data.active_notes));
-          this.updateCache();
-        },
-      },
-      notes_project: {
-        query() {
-          return this.config?.projects_subscription;
-        },
-        variables() {
-          return this.config?.variables;
-        },
-        skip() {
-          return (
-            !this.config?.projects_subscription ||
-            !this.user.id ||
-            this.user.loading
-          );
-        },
-        result({ data }) {
-          console.log("project sub", data);
-          this.projects = JSON.parse(JSON.stringify(data.notes_project));
-          this.updateCache();
-        },
-      },
+  computed: {
+    cache() {
+      return this.$store.state.cache[this.id]?.projects.filter(p => p.notes.length);
+    },
+    selectedProject() {
+      const selected = this.selected ? this.selected : this.edit;
+      let project;
+      if (selected) {
+        project = this.cache.find((project) =>
+          project.notes.some((note) => note.id == selected.id)
+        );
+      }
+      return project || this.cache[0];
+    },
+    maxPosition() {
+      const positions = this.selectedProject.notes.map(
+        (it) => it[this.positionColumn]
+      );
+      return positions.length ? Math.max(...positions) : 0;
     },
   },
-});
+};
 </script>
 <style lang="scss" scoped>
 .project-title {
