@@ -27,11 +27,6 @@ export function updateUser(state, data) {
 }
 
 
-
-export function updateCurrentProject(state, currentProject) {
-    state.currentProject = state.projects.find(p => p.id == currentProject.id);
-}
-
 export function updateLoading(state, loading) {
     state.loading = loading;
 }

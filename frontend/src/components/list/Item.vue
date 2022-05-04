@@ -192,7 +192,7 @@ export default {
             this.edit = true;
             this.focusTitle();
           } else {
-            this.$store.commit("user/updateCurrentProject", this.modelValue);
+            this.$router.push({name: 'project', params: {id: this.modelValue.id}});
             this.$router.push("/");
           }
         }

@@ -64,8 +64,6 @@
           @edit="setEdit"
           :position-column="positionColumn"
           :sort="sort"
-          :done="done"
-          :keep="keep"
           :items="cache"
           :allItems="cache"
           :selected="selectedItems"
@@ -140,9 +138,6 @@ export default {
       return cache
         ? [...cache.notes, ...cache.projects].sort(this.sortMethod)
         : [];
-    },
-    currentProject() {
-      return this.$store.getters["user/getCurrentProject"];
     },
   },
   methods: {
@@ -249,13 +244,12 @@ export default {
       }
     },
     trashProject() {
+      const project = {...this.project, deleted_at: new Date(), deleted: true};
       this.$mutateQueue({
         mutation: TRASH_PROJECT,
-        variables: {
-          id: this.project.id,
-          deleted_at: new Date(),
-        },
-      }).then((resp) => this.nextProject());
+        variables: project,
+      }).then(() => this.nextProject());
+      this.$updateCache(project);
     },
     nextProject() {
       const projects = [...this.user.projects];
@@ -266,7 +260,7 @@ export default {
         next = projects[projects.length - 1] || null;
       }
       console.log("next project", projects, next);
-      this.$store.commit("user/updateCurrentProject", next);
+      this.$router.push({name: 'project', params: {id: next.id}})
       this.$store.commit("user/updateProjects", projects);
       if (!next) {
         this.project = null;
@@ -274,11 +268,10 @@ export default {
     },
     checkProject() {
       this.$loading(true);
-      console.log("projects", this.user.projects);
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
-
+        
         this.project.completed_at = this.project.done
           ? toDatabaseString(today())
           : null;
@@ -286,10 +279,11 @@ export default {
           mutation: CHECK_PROJECT,
           variables: this.project,
         });
+        this.$updateCache(this.project);
         if (this.project.done) {
           this.nextProject();
         } else {
-          this.$store.commit("user/updateCurrentProject", this.project);
+          this.$router.push({name: 'project', params: {id: this.project.id}});
         }
       }, 500);
     },

@@ -138,16 +138,6 @@ export default {
       type: String,
       required: false,
     },
-    done: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    keep: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     items: {
       type: Array,
       required: true,
@@ -327,22 +317,16 @@ export default {
     },
     check(item) {
       console.log("check note", item);
-      const type = item.__typename;
       this.$loading(true);
-      item.done = !item.done;
-      if (item.done) {
-        item.completed_at = new Date();
-      }
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
-        console.log("timeout", this.done, item.done === this.done);
-        if (item.done === this.done && !this.keep) {
-          this.removeItem(item);
-        }
+        item.done = !item.done;
+        item.completed_at = item.done ? toDatabaseString(new Date()) : null;
         this.$mutateQueue({
-          mutation: type.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
+          mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
         });
+        this.$updateCache(item);
       }, 500);
     },
   },

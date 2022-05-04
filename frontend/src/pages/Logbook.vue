@@ -2,7 +2,6 @@
   <timeline
     :config="config"
     backwards
-    select
     :start="today"
     group-by="completed_at"
     icon="assignment_turned_in"

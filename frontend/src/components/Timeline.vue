@@ -24,6 +24,7 @@
               :when="updateWhen ? date.date : undefined"
               :date-preview="false"
               :drop="drop"
+              :drag="drag"
               :sort="sort"
               :sortMethod="sortMethod"
               :selected="selectedItems"

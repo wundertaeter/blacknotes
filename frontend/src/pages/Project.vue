@@ -1,15 +1,14 @@
 <template>
   <project
-    v-if="currentProject"
-    v-model="currentProject"
+    v-if="project"
+    v-model="project"
     more
     sort
-    select
     :config="{
         notes_subscription: SUBSCRIBE_PROJECT,
         variables: {
-          project_id: currentProject.id,
-          done: currentProject.done ? {} : { _eq: false },
+          project_id: id,
+          done: project.done ? {} : { _eq: false },
         },
       }"
     position-column="position"
@@ -30,6 +29,12 @@ export default defineComponent({
   components: {
     Project,
   },
+  props: {
+    id: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
       config: null,
@@ -37,11 +42,14 @@ export default defineComponent({
     };
   },
   created(){
-    if(!this.currentProject) this.$router.push('/today');
+    if(!this.project) this.$router.push('/today');
   },
   computed: {
-    currentProject() {
-      return this.$store.getters["user/getCurrentProject"];
+    project(){
+      return this.projects.find(project => project.id == this.id)
+    },
+    projects() {
+      return this.$store.state.user.projects;
     },
     user() {
       return this.$store.state.user;

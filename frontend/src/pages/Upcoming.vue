@@ -4,8 +4,8 @@
     :start="tomorrow"
     group-by="when"
     drop
+    drag
     sort
-    select
     icon="date_range"
     title="Upcoming"
     id="upcoming"

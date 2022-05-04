@@ -324,8 +324,7 @@ export default defineComponent({
     },
     selectProject(project) {
       console.log('selectProject', project);
-      this.$store.commit("user/updateCurrentProject", project);
-      this.$router.push("/");
+      this.$router.push({name: 'project', params: {id: project.id}});
     },
     updateProjectName(project) {
       if (!project.title) return;
@@ -368,7 +367,7 @@ export default defineComponent({
       return this.user.projects;
     },
     currentProject() {
-      return this.$store.getters["user/getCurrentProject"];
+      return this.$route.name ? this.userProjects.find(project => project.id == this.$route.params.id) : null
     },
     maxPosition() {
       const positions = this.projects.map((project) => project.position);

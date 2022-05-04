@@ -36,27 +36,17 @@ export default {
       type: String,
       required: false,
     },
-    select: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     sort: {
       type: Boolean,
       required: false,
       default: false,
-    },
-    done: {
-      type: Boolean,
-      required: false,
-      default: true,
     },
     drop: {
       type: Boolean,
       required: false,
       default: false,
     },
-    keep: {
+    drag: {
       type: Boolean,
       required: false,
       default: false,
@@ -92,7 +82,7 @@ export default {
         this.removeItem(item);
       });
     },
-    setEditItem(item){
+    setEditItem(item) {
       this.edit = item;
     },
     setSelectedItems(items) {
@@ -113,7 +103,7 @@ export default {
       this.listComponents.forEach((component) => component.reset());
     },
     setEdit(note) {
-      if(note){
+      if (note) {
         this.setSelectedItem(note);
       }
       this.edit = note;
@@ -163,6 +153,7 @@ export default {
       }
     },
     addNote(e) {
+      console.log('addNote', this.edit);
       e.stopPropagation();
       if (this.edit) return;
       const note = this.newNote();

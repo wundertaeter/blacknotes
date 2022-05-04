@@ -5,7 +5,6 @@
     :config="config"
     :when="today"
     sort
-    select
     position-column="today_position"
   >
     <template v-slot:toolbar="{ addNote }">

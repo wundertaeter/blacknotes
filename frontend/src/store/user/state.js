@@ -6,7 +6,6 @@ export default function () {
     active: null,
     projects: [],
     //spaces: [],
-    currentProject: null,
     loading: false
   }
 }

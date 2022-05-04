@@ -5,7 +5,6 @@
     :when="someday"
     :config="config"
     sort
-    select
     position-column="someday_position"
   >
     <template v-slot:toolbar="{ addNote }">

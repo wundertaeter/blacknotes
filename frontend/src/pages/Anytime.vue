@@ -5,7 +5,6 @@
     icon="reorder"
     position-column="anytime_position"
     sort
-    select
     :config="config"
   >
     <template v-slot:toolbar="{ addNote }">
