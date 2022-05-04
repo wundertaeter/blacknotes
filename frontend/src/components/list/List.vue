@@ -90,12 +90,13 @@ export default {
     },
     selected: {
       handler(value) {
+        // console.log('whatch selected', value);
         this.setSelectedItems(value);
       },
     },
     edited: {
       handler(value) {
-        console.log('whatch edited', value, this.itemsCopy);
+        // console.log('whatch edited', value);
         this.editItem = value;
       },
     },
@@ -207,7 +208,7 @@ export default {
       this.$emit("select", items);
     },
     setSelectedItems(items) {
-      console.log('setSelectedItems list', items);
+      // console.log('setSelectedItems list', items);
       this.$refs.multiclick?.setSelectedItems(items);
       this.selectedItems = items;
       if(items.length == 1){

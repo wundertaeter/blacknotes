@@ -96,10 +96,11 @@ export default {
       this.edit = item;
     },
     setSelectedItems(items) {
+      // console.log('setSelectedItems base', items);
       this.selectedItems = items;
     },
     setSelectedItem(item) {
-      this.setSelectedItems([item]);
+      this.setSelectedItems(item ? [item] : []);
     },
     updateSelected(item) {
       const index = this.selectedItems.findIndex((it) => it.id == item.id);
@@ -112,6 +113,9 @@ export default {
       this.listComponents.forEach((component) => component.reset());
     },
     setEdit(note) {
+      if(note){
+        this.setSelectedItem(note);
+      }
       this.edit = note;
     },
     scrollTo(item) {
@@ -166,8 +170,7 @@ export default {
       this.$updateCache(note);
 
       this.$nextTick(() => {
-        this.setSelectedItem(note);
-        this.setEditItem(note);
+        this.setEdit(note);
         this.$nextTick(() => {
           this.scrollTo(note);
         });
