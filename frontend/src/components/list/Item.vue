@@ -187,22 +187,25 @@ export default {
     edited: {
       handler(value) {
         // console.log('edited item handler', value)
-        if(value){
+        if (value) {
           if (this.modelValue.__typename.includes("_note")) {
             this.edit = true;
             this.focusTitle();
           } else {
-            this.$router.push({name: 'project', params: {id: this.modelValue.id}});
+            this.$router.push({
+              name: "project",
+              params: { id: this.modelValue.id },
+            });
             this.$router.push("/");
           }
         }
       },
     },
     edit: {
-      handler(value){
+      handler(value) {
         this.$emit("edit", value ? this.modelValue : null);
-      }
-    }
+      },
+    },
   },
   data() {
     return {
@@ -233,7 +236,8 @@ export default {
     updateNote(note) {
       this.$loading(true);
       if (this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(() => {
+      this.updateId = setTimeout(async () => {
+        await this.$updateCache(note);
         this.$mutateQueue({
           mutation: UPDATE_NOTE,
           variables: {
@@ -321,7 +325,6 @@ export default {
       };
       this.$emit("update:modelValue", note);
       this.updateNote(note);
-      this.$updateCache(note);
     },
   },
 };

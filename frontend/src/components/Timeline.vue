@@ -30,6 +30,7 @@
               :selected="selectedItems"
               :edited="edit"
               @mounted="listComponentMounted"
+              @check="check"
             />
           </q-timeline-entry>
 
@@ -286,29 +287,28 @@ export default {
       }
     },
     removeItem(item) {
-      item = { ...item, deleted: true, deleted_at: new Date() };
       const groupBy = this.formatDate(item[this.groupBy]);
       const index = this.cache[groupBy].findIndex((it) => it.id == item.id);
 
-      this.$updateCache(item);
-
-      this.$nextTick(() => {
-        let next = this.cache[groupBy][index];
-        if (!next) {
-          const length = this.cache[groupBy].length;
-          next = this.cache[groupBy][length - 1];
-        }
-        if (!next) {
-          const dates = [...this.dates].reverse();
-          while (dates[0].title != groupBy) {
-            dates.push(dates.shift());
+      this.$updateCache(item).then(() => {
+        this.$nextTick(() => {
+          let next = this.cache[groupBy][index];
+          if (!next) {
+            const length = this.cache[groupBy].length;
+            next = this.cache[groupBy][length - 1];
           }
-          for (const date of dates) {
-            next = this.cache[date.title][this.cache[date.title].length - 1];
-            if (next) break;
+          if (!next) {
+            const dates = [...this.dates].reverse();
+            while (dates[0].title != groupBy) {
+              dates.push(dates.shift());
+            }
+            for (const date of dates) {
+              next = this.cache[date.title][this.cache[date.title].length - 1];
+              if (next) break;
+            }
           }
-        }
-        this.setSelectedItem(next);
+          this.setSelectedItem(next);
+        });
       });
     },
     newNote() {
@@ -331,9 +331,9 @@ export default {
     },
   },
   computed: {
-    allItems(){
+    allItems() {
       const allItems = [];
-      this.dates.forEach(date => allItems.push(...this.cache[date.title]));
+      this.dates.forEach((date) => allItems.push(...this.cache[date.title]));
       return allItems;
     },
     cache() {

@@ -2,6 +2,8 @@ import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
+const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
+const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
 export default {
   name: "BaseComponent",
@@ -15,6 +17,7 @@ export default {
       selectedItems: [],
       edit: null,
       listComponents: [],
+      checkTimeout: null,
     };
   },
   mounted() {
@@ -135,6 +138,20 @@ export default {
         variables: item,
       });
       this.removeItem(item);
+    },
+    check(item){
+      console.log("check note", item);
+      this.$loading(true);
+      if (this.checkTimeout) clearTimeout(this.checkTimeout);
+      this.checkTimeout = setTimeout(() => {
+        // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
+        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : new Date() }; 
+        this.$mutateQueue({
+          mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
+          variables: item,
+        });
+        this.removeItem(item);
+      }, 500);
     },
     sortMethod(a, b) {
       if (a[this.sortBy.column] === null) return 1;

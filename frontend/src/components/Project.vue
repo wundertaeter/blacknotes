@@ -69,6 +69,7 @@
           :selected="selectedItems"
           :edited="edit"
           @mounted="listComponentMounted"
+          @check="check"
         />
       </div>
     </q-scroll-area>
@@ -166,16 +167,16 @@ export default {
         (it) => it.id == item.id && it.__typename == item.__typename
       );
 
-      this.$updateCache(item);
-
-      this.$nextTick(() => {
-        // console.log(this.cache);
-        next = this.cache[index];
-        if (!next) {
-          const length = this.cache.length;
-          next = this.cache[length - 1];
-        }
-        this.setSelectedItem(next);
+      this.$updateCache(item).then(() => {
+        this.$nextTick(() => {
+          // console.log(this.cache);
+          next = this.cache[index];
+          if (!next) {
+            const length = this.cache.length;
+            next = this.cache[length - 1];
+          }
+          this.setSelectedItem(next);
+        });
       });
     },
     deleteAll() {

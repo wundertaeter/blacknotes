@@ -29,6 +29,7 @@
             :selected="selectedItems"
             :edited="edit"
             @mounted="listComponentMounted"
+            @check="check"
           />
         </div>
       </div>
@@ -83,29 +84,29 @@ export default {
       const projectIndex = this.cache.indexOf(project);
       const index = project.notes.findIndex((n) => n.id == note.id);
 
-      this.$updateCache(note);
-
-      this.$nextTick(() => {
-        const project = this.cache[projectIndex];
-        let next;
-        if (project) {
-          next = project.notes[index];
-          if (!next) {
-            next = project.notes[project.notes.length - 1];
-          }
-        }
-        if (!next) {
-          const nextProject = this.getNextProject(projectIndex + 1);
-          if (nextProject) {
-            next = nextProject.notes[0];
-          } else {
-            const prevProject = this.getPrevProject(projectIndex - 1);
-            if (prevProject) {
-              next = prevProject.notes[prevProject.notes.length - 1];
+      this.$updateCache(note).then(() => {
+        this.$nextTick(() => {
+          const project = this.cache[projectIndex];
+          let next;
+          if (project) {
+            next = project.notes[index];
+            if (!next) {
+              next = project.notes[project.notes.length - 1];
             }
           }
-        }
-        this.setSelectedItem(next);
+          if (!next) {
+            const nextProject = this.getNextProject(projectIndex + 1);
+            if (nextProject) {
+              next = nextProject.notes[0];
+            } else {
+              const prevProject = this.getPrevProject(projectIndex - 1);
+              if (prevProject) {
+                next = prevProject.notes[prevProject.notes.length - 1];
+              }
+            }
+          }
+          this.setSelectedItem(next);
+        });
       });
     },
     updateSelected(item) {

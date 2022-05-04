@@ -43,45 +43,51 @@ export default boot(
         }
 
         app.config.globalProperties.$updateCache = (item) => {
-            console.log('item', item)
-            item = { ...item };
-            if (!item.__typename) throw 'missing typename for item';
-            if (item.deleted) {
-                if (item.permanentDeleted) {
-                    remove('trash', item);
-                } else {
-                    add('trash', item);
-                }
-            }else{
-                remove('trash', item);
-            }
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log('item', item)
+                    item = { ...item };
+                    if (!item.__typename) throw 'missing typename for item';
+                    if (item.deleted) {
+                        if (item.permanentDeleted) {
+                            remove('trash', item);
+                        } else {
+                            add('trash', item);
+                        }
+                    } else {
+                        remove('trash', item);
+                    }
 
-            if (item.done) {
-                if (item.deleted) {
-                    remove('logbook', item);
-                } else {
-                    add('logbook', item);
-                }
-            }else{
-                remove('logbook', item);
-            }
+                    if (item.done) {
+                        if (item.deleted) {
+                            remove('logbook', item);
+                        } else {
+                            add('logbook', item);
+                        }
+                    } else {
+                        remove('logbook', item);
+                    }
 
-            if (item.when) {
-                const dateString = formatDate(item.when);
-                if (dateString == "Today") {
-                    handle('today', item);
-                } else if (dateString == "Someday") {
-                    handle('someday', item);
-                } else {
-                    handle('upcoming', item);
-                }
-            }
+                    if (item.when) {
+                        const dateString = formatDate(item.when);
+                        if (dateString == "Today") {
+                            handle('today', item);
+                        } else if (dateString == "Someday") {
+                            handle('someday', item);
+                        } else {
+                            handle('upcoming', item);
+                        }
+                    }
 
-            if (item.project?.id) {
-                handle(item.project.id, item);
-            }
+                    if (item.project?.id) {
+                        handle(item.project.id, item);
+                    }
 
-            handle('anytime', item);
+                    handle('anytime', item);
+
+                    resolve()
+                })
+            })
 
         }
     }

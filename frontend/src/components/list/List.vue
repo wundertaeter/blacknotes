@@ -50,8 +50,6 @@ const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 // const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
 // const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
-const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
-const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
 const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
@@ -76,7 +74,6 @@ export default {
       itemsCopy: JSON.parse(JSON.stringify(props.items)),
       updateId: null,
       editItem: null,
-      checkTimeout: null,
       selectedItems: [],
       trigger: 0,
       id: uuidv4(),
@@ -316,18 +313,7 @@ export default {
       }
     },
     check(item) {
-      console.log("check note", item);
-      this.$loading(true);
-      if (this.checkTimeout) clearTimeout(this.checkTimeout);
-      this.checkTimeout = setTimeout(() => {
-        item.done = !item.done;
-        item.completed_at = item.done ? new Date() : null;
-        this.$mutateQueue({
-          mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
-          variables: item,
-        });
-        this.$updateCache(item);
-      }, 500);
+      this.$emit('check', item);
     },
   },
   computed: {
