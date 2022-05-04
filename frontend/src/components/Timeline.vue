@@ -60,7 +60,7 @@ import {
   tomorrow,
 } from "src/common/date.js";
 
-import Base from "src/components/Base.vue";
+import Base from "src/generics/Base.js";
 
 export default {
   name: "TimelineComponent",

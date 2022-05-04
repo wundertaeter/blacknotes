@@ -1,4 +1,3 @@
-<script>
 import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
@@ -66,7 +65,7 @@ export default {
   },
   methods: {
     listComponentMounted(component) {
-      component.updatePositions();
+      if(this.sort) component.updatePositions();
       this.listComponents.push(component);
     },
     revert(e) {
@@ -129,8 +128,6 @@ export default {
     },
     trash(item) {
       item = { ...item, deleted: true, deleted_at: new Date() };
-      item.deleted = true;
-      item.deleted_at = new Date();
       this.$mutateQueue({
         mutation: item.__typename.includes("_note")
           ? TRASH_NOTE
@@ -217,4 +214,3 @@ export default {
     },
   },
 };
-</script>

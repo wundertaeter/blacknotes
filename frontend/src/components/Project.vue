@@ -85,7 +85,7 @@ const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
-import Base from "src/components/Base.vue";
+import Base from "src/generics/Base.js";
 
 export default {
   name: "ProjectComponent",
@@ -272,9 +272,7 @@ export default {
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
         
-        this.project.completed_at = this.project.done
-          ? toDatabaseString(today())
-          : null;
+        this.project.completed_at = this.project.done ? new Date() : null;
         this.$mutateQueue({
           mutation: CHECK_PROJECT,
           variables: this.project,

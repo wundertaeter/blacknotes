@@ -43,7 +43,7 @@
 
 <script>
 import { uuidv4 } from "src/common/utils.js";
-import Base from "src/components/Base.vue";
+import Base from "src/generics/Base.js";
 export default {
   name: "ProjectsComponent",
   extends: Base,

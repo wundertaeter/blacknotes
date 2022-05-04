@@ -60,7 +60,7 @@ export function removeProjects(state, { key, item }) {
     }
 }
 
-export function add(state, { key, item }) {
+export function add(state, { key, item, reverse }) {
     console.log('Add item to ' + key, item);
     const cache = state[key];
     if (cache) {
@@ -70,7 +70,9 @@ export function add(state, { key, item }) {
         // console.log('INDEX', index, item);
         if (index >= 0) {
             items[type][index] = item;
-        } else {
+        } else if(reverse){
+            items[type] = [item, ...items[type]];
+        }else {
             items[type].push(item)
         }
         state[key] = items;

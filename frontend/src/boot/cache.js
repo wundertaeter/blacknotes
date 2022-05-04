@@ -10,7 +10,7 @@ export default boot(
     ({ app }) => {
 
         const add = (key, item) => {
-            Store.commit('cache/add', { key, item });
+            Store.commit('cache/add', { key, item, reverse: key === 'logbook' });
         }
 
         const remove = (key, item) => {

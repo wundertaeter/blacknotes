@@ -321,7 +321,7 @@ export default {
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         item.done = !item.done;
-        item.completed_at = item.done ? toDatabaseString(new Date()) : null;
+        item.completed_at = item.done ? new Date() : null;
         this.$mutateQueue({
           mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
