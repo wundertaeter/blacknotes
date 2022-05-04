@@ -67,6 +67,7 @@
           :done="done"
           :keep="keep"
           :items="cache"
+          :allItems="cache"
           :selected="selectedItems"
           :edited="edit"
           @mounted="listComponentMounted"

@@ -20,6 +20,7 @@
               :position-column="positionColumn"
               group="people"
               :items="cache[date.title]"
+              :allItems="allItems"
               :when="updateWhen ? date.date : undefined"
               :date-preview="false"
               :drop="drop"
@@ -329,6 +330,11 @@ export default {
     },
   },
   computed: {
+    allItems(){
+      const allItems = [];
+      this.dates.forEach(date => allItems.push(...this.cache[date.title]));
+      return allItems;
+    },
     cache() {
       const cache = this.$store.state.cache[this.id];
       const items = {};

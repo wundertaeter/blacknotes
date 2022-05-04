@@ -2,7 +2,7 @@
   <vue-multiclick
     @selected="onSelect"
     ref="multiclick"
-    :items="itemsCopy"
+    :items="allItems"
     uid="id"
     v-slot="{ itemIsSelected }"
   >
@@ -41,10 +41,10 @@
 import VueMulticlick from "src/components/VueMulticlick.vue";
 import Item from "src/components/list/Item.vue";
 import draggable from "vuedraggable";
-import mitt from "mitt";
 import { toDatabaseString } from "src/common/date.js";
 // import { scroll } from "quasar";
 // const { getScrollTarget, setVerticalScrollPosition } = scroll;
+import mitt from "mitt";
 const bus = mitt();
 const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
@@ -149,6 +149,10 @@ export default {
       default: false,
     },
     items: {
+      type: Array,
+      required: true,
+    },
+    allItems: {
       type: Array,
       required: true,
     },
@@ -278,7 +282,7 @@ export default {
       if (this.project) update_columns.push("project_id");
       let item;
       for (let i = 0; i < this.itemsCopy.length; i++) {
-        item = this.itemsCopy[i];
+        item = {...this.itemsCopy[i]};
 
         item[this.positionColumn] = i;
 

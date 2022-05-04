@@ -26,6 +26,7 @@
             :position-column="positionColumn"
             group="people"
             :items="[...project.notes].sort(sortMethod)"
+            :allItems="allItems"
             :selected="selectedItems"
             :edited="edit"
             @mounted="listComponentMounted"
@@ -214,6 +215,11 @@ export default {
     },
   },
   computed: {
+    allItems(){
+      const allItems = [];
+      this.cache.forEach(project => allItems.push(...project.notes));
+      return allItems;
+    },
     cache() {
       return this.$store.state.cache[this.id]?.projects.filter(
         (p) => p.notes.length

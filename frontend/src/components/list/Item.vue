@@ -186,7 +186,7 @@ export default {
     },
     edited: {
       handler(value) {
-        console.log('edited item handler', value)
+        // console.log('edited item handler', value)
         if(value){
           if (this.modelValue.__typename.includes("_note")) {
             this.edit = true;
