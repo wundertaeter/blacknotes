@@ -109,7 +109,7 @@ export default {
       required: false,
     },
     when: {
-      type: Object,
+      type: String,
       required: false,
     },
     project: {
@@ -177,9 +177,10 @@ export default {
           (item) => !this.itemsCopy.find((it) => it.id == item.id)
         );
       }
+
       this.itemsCopy = [
         ...model.slice(0, event.newIndex),
-        ...items,
+        ...JSON.parse(JSON.stringify(items)),
         ...model.slice(event.newIndex, model.length),
       ];
       this.updatePositions();
@@ -201,7 +202,7 @@ export default {
       }
     },
     dragStart(e, item) {
-      item[this.positionColumn] = null;
+      item = {...item, [this.positionColumn]: null};
       if (item.__typename.includes("_note")) {
         e.dataTransfer.setData("note", JSON.stringify(item));
       } else {
@@ -273,7 +274,7 @@ export default {
       this.selectNone();
       this.editItem = null;
     },
-    updatePositions() {
+    updatePositions(updateCache) {
       console.log("update positions", this.itemsCopy);
       const notes = [];
       const projects = [];
@@ -281,21 +282,28 @@ export default {
       if (this.when) update_columns.push("when");
       if (this.project) update_columns.push("project_id");
       let item;
-
+      const when = this.when ? toDatabaseString(this.when) : null;
       for (let i = 0; i < this.itemsCopy.length; i++) {
         item = this.itemsCopy[i];
 
         item[this.positionColumn] = i;
 
         const { __typename, project, ...obj } = item;
-        if (this.when) {
-          obj.when = this.when ? toDatabaseString(this.when) : null;
-          item.when = this.when;
+        if (when) {
+          if(when != item.when){
+            item.when = when;
+            // if(updateCache) this.$updateCache(item, true);
+          }
+          obj.when = when;
         }
 
         if (this.project) {
+          if(item.project?.id != this.project?.id){
+            item.prevProjectId = item.project.id;
+            item.project = this.project;
+            // this.$updateCache(item, true);
+          }
           obj.project_id = this.project.id;
-          item.project = this.project;
         }
 
         if (item.__typename.includes("_note")) {

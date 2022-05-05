@@ -136,11 +136,7 @@ export default {
       return positions.length ? Math.max(...positions) : 0;
     },
     cache() {
-      const cache = this.$store.state.cache[this.modelValue.id];
-      console.log("CACHE", cache);
-      return cache
-        ? [...cache.notes, ...cache.projects].sort(this.sortMethod)
-        : [];
+      return this.$store.state.cache[this.modelValue.id]
     },
   },
   methods: {
@@ -302,8 +298,7 @@ export default {
         console.log("update cache", this.notes, this.projects);
         this.$store.commit("cache/update", {
           key: this.modelValue.id,
-          notes: this.notes,
-          projects: this.projects,
+          items: [...this.notes || [], ...this.projects || []].sort(this.sortMethod)
         });
         this.projects = null;
         this.notes = null;

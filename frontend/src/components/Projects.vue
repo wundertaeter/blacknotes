@@ -123,7 +123,7 @@ export default {
       if (!nextProject) {
         return null;
       }
-      if (nextProject.notes) {
+      if (nextProject.notes.length) {
         return nextProject;
       } else {
         return this.getNextProject(project_index + 1);
@@ -135,10 +135,10 @@ export default {
       if (!prevProject) {
         return null;
       }
-      if (prevProject.notes) {
+      if (prevProject.notes.length) {
         return prevProject;
       } else {
-        this.getPrevProject(project_index - 1);
+        return this.getPrevProject(project_index - 1);
       }
     },
     selectionDown() {
@@ -183,7 +183,7 @@ export default {
       if (this.notes && this.projects) {
         this.$store.commit("cache/update", {
           key: this.id,
-          projects: [
+          items: [
             {
               notes: this.notes.map((n) => ({
                 ...n,
@@ -224,7 +224,7 @@ export default {
       return allItems;
     },
     cache() {
-      return this.$store.state.cache[this.id]?.projects.filter(
+      return this.$store.state.cache[this.id]?.filter(
         (p) => p.notes.length
       );
     },

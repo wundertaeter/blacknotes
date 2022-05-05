@@ -1,8 +1,7 @@
 import { boot } from "quasar/wrappers";
 import { formatDate } from "src/common/date";
 
-const projects = ['anytime'];
-const timline = ['logbook', 'upcoming'];
+const projects = ['anytime', 'logbook', 'upcoming'];
 
 
 export default boot(
@@ -25,12 +24,15 @@ export default boot(
         }
 
         const handle = (key, item) => {
-            const current = router.currentRoute.value.name;
+            console.log('handle', key);
             if (key === 'current') {
-                handle(current, item);
+                handle(router.currentRoute.value.name, item);
             } else if (key === 'project') {
                 if (item.project?.id) {
                     handle(item.project.id, item);
+                }
+                if(item.prevProjectId){
+                    remove(item.prevProjectId, item);
                 }
             } else if (key === 'trash') {
                 if (item.deleted) {
@@ -68,30 +70,32 @@ export default boot(
 
         }
 
-        app.config.globalProperties.$updateCache = (item) => {
-            handle('current', item);
+        app.config.globalProperties.$updateCache = (item, skipCurrent) => {
+            if(!skipCurrent) handle('current', item);
             return new Promise((resolve) => {
                 setTimeout(() => {
+                    const current = router.currentRoute.value.name;
+
                     console.log('item', item)
 
-                    handle('trash', item);
+                    if(current !== 'trash') handle('trash', item);
 
-                    handle('logbook', item);
+                    if(current !== 'logbook') handle('logbook', item);
 
                     if (item.when) {
                         const dateString = formatDate(item.when);
                         if (dateString == "Today") {
-                            handle('today', item);
+                            if(current !== 'today') handle('today', item);
                         } else if (dateString == "Someday") {
-                            handle('someday', item);
+                            if(current !== 'someday') handle('someday', item);
                         } else {
-                            handle('upcoming', item);
+                            if(current !== 'upcoming') handle('upcoming', item);
                         }
                     }
 
-                    handle('project', item);
+                    if(current !== 'project') handle('project', item);
 
-                    handle('anytime', item);
+                    if(current !== 'anytime') handle('anytime', item);
 
                     resolve()
                 })
