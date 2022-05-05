@@ -2,7 +2,7 @@
   <vue-multiclick
     @selected="onSelect"
     ref="multiclick"
-    :items="allItems"
+    :items="allItemsCopy"
     uid="id"
     v-slot="{ itemIsSelected }"
   >
@@ -27,6 +27,7 @@
           class="note"
           :ref="`item-${element.id}`"
           v-model="itemsCopy[itemsCopy.indexOf(element)]"
+          @update:modelValue="updateItem"
           @check="check"
           @edit="setEditItem"
           @dblclick="setEdit(element)"
@@ -50,8 +51,6 @@ const SORT_NOTES = require("src/gql/mutations/SortNotes.gql");
 const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 // const DELETE_NOTE = require("src/gql/mutations/DeleteNoteByPk.gql");
 // const DELETE_PROJECT = require("src/gql/mutations/DeleteProjectByPk.gql");
-const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
-const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 // const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
 import { uuidv4 } from "src/common/utils";
@@ -72,6 +71,7 @@ export default {
   data(props) {
     return {
       itemsCopy: JSON.parse(JSON.stringify(props.items)),
+      allItemsCopy: JSON.parse(JSON.stringify(props.allItems)),
       updateId: null,
       editItem: null,
       selectedItems: [],
@@ -83,6 +83,11 @@ export default {
     items: {
       handler(value) {
         this.itemsCopy = JSON.parse(JSON.stringify(value));
+      },
+    },
+    allItems: {
+      handler(value) {
+        this.allItemsCopy = JSON.parse(JSON.stringify(value));
       },
     },
     selected: {
@@ -156,8 +161,13 @@ export default {
     },
   },
   methods: {
+    updateItem(item) {
+      this.$refs.multiclick.selectedItems[
+        this.$refs.multiclick.selectedItems.findIndex((it) => it.id == item.id)
+      ] = item;
+    },
     multiDrop({ event, items }) {
-      console.log("multidrop !!", items);
+      // this.itemsCopy = this.itemsCopy.filter(item => !items.some(it => it.id == item.id))
       var model = this.itemsCopy;
       if (event.from == event.to) {
         model = model.filter((item) => !items.find((it) => it.id == item.id));
@@ -175,11 +185,14 @@ export default {
       this.updatePositions();
     },
     onEnd(e) {
-      console.log("on end", e.to.id, this.selectedItems);
+      console.log("on end", e.to.id, this.selectedItems, this.itemsCopy);
+      this.itemsCopy = this.itemsCopy.filter(
+        (item) => !this.selectedItems.some((it) => it.id == item.id)
+      );
       bus.emit(e.to.id, { event: e, items: this.selectedItems });
     },
     itemClicked(item, event) {
-      console.log('itemClicked', item);
+      // console.log('itemClicked', item);
       const multiclick = this.$refs.multiclick;
       if (!multiclick.itemIsSelected(item)) {
         multiclick.itemClicked(item, event);
@@ -195,19 +208,19 @@ export default {
         e.dataTransfer.setData("project", JSON.stringify(item));
       }
     },
-    onSelect(items){
+    onSelect(items) {
       this.$emit("select", items);
     },
     setSelectedItems(items) {
       // console.log('setSelectedItems list', items);
       this.$refs.multiclick?.setSelectedItems(items);
       this.selectedItems = items;
-      if(items.length == 1){
+      if (items.length == 1) {
         this.$refs.multiclick?.setLastSelected(items[0]);
       }
     },
     setSelectedItem(item) {
-      console.log('setSelectedItem ???????', item);
+      console.log("setSelectedItem ???????", item);
       this.setSelectedItems([item]);
       this.$refs.multiclick?.setLastSelected(item);
     },
@@ -252,7 +265,7 @@ export default {
         left + width <= window.pageXOffset + window.innerWidth
       );
     },
-    selectNone(){
+    selectNone() {
       this.$refs.multiclick?.selectNone();
     },
     reset() {
@@ -268,8 +281,9 @@ export default {
       if (this.when) update_columns.push("when");
       if (this.project) update_columns.push("project_id");
       let item;
+
       for (let i = 0; i < this.itemsCopy.length; i++) {
-        item = {...this.itemsCopy[i]};
+        item = this.itemsCopy[i];
 
         item[this.positionColumn] = i;
 
@@ -289,8 +303,6 @@ export default {
         } else {
           projects.push(obj);
         }
-
-        this.$updateCache(item);
       }
 
       if (notes.length) {
@@ -313,7 +325,7 @@ export default {
       }
     },
     check(item) {
-      this.$emit('check', item);
+      this.$emit("check", item);
     },
   },
   computed: {

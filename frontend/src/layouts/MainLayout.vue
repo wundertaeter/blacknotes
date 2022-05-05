@@ -287,7 +287,9 @@ export default defineComponent({
           mutation: UPDATE_NOTE_PROJECT,
           variables: note,
         });
+
         this.$updateCache(note);
+        
       } else {
         let project = e.dataTransfer.getData("project");
         if (project) {

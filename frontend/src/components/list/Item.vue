@@ -236,8 +236,7 @@ export default {
     updateNote(note) {
       this.$loading(true);
       if (this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(async () => {
-        await this.$updateCache(note);
+      this.updateId = setTimeout(() => {
         this.$mutateQueue({
           mutation: UPDATE_NOTE,
           variables: {
@@ -325,6 +324,7 @@ export default {
       };
       this.$emit("update:modelValue", note);
       this.updateNote(note);
+      this.$updateCache(note);
     },
   },
 };

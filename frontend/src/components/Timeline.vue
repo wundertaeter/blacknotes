@@ -287,28 +287,40 @@ export default {
       }
     },
     removeItem(item) {
+      // Do not work as expected
       const groupBy = this.formatDate(item[this.groupBy]);
       const index = this.cache[groupBy].findIndex((it) => it.id == item.id);
 
-      this.$updateCache(item).then(() => {
-        this.$nextTick(() => {
-          let next = this.cache[groupBy][index];
-          if (!next) {
-            const length = this.cache[groupBy].length;
-            next = this.cache[groupBy][length - 1];
+      this.$updateCache(item);
+      
+      this.$nextTick(() => {
+        let next = this.cache[groupBy][index];
+        if (!next) {
+          const length = this.cache[groupBy].length;
+          next = this.cache[groupBy][length - 1];
+        }
+        if (!next) {
+          const startDateIndex = this.dates.findIndex(
+            (date) => date.title == groupBy
+          );
+          const dates = [...this.dates];
+          while (dates[0].title != groupBy) {
+            dates.push(dates.shift());
           }
-          if (!next) {
-            const dates = [...this.dates].reverse();
-            while (dates[0].title != groupBy) {
-              dates.push(dates.shift());
-            }
-            for (const date of dates) {
+          console.log("startDateIndex", startDateIndex);
+
+          let index; // not working
+          for (const date of dates) {
+            index = this.dates.indexOf(date);
+            if (index > startDateIndex) {
+              next = this.cache[date.title][0];
+            } else {
               next = this.cache[date.title][this.cache[date.title].length - 1];
-              if (next) break;
             }
+            if (next) break;
           }
-          this.setSelectedItem(next);
-        });
+        }
+        this.setSelectedItem(next);
       });
     },
     newNote() {

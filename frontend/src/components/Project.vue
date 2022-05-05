@@ -84,6 +84,8 @@
 <script>
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
+const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
+const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
 import Base from "src/generics/Base.js";
@@ -167,19 +169,19 @@ export default {
         (it) => it.id == item.id && it.__typename == item.__typename
       );
 
-      this.$updateCache(item).then(() => {
-        this.$nextTick(() => {
-          // console.log(this.cache);
-          next = this.cache[index];
-          if (!next) {
-            const length = this.cache.length;
-            next = this.cache[length - 1];
-          }
-          this.setSelectedItem(next);
-        });
+      this.$updateCache(item);
+
+      this.$nextTick(() => {
+        // console.log(this.cache);
+        next = this.cache[index];
+        if (!next) {
+          const length = this.cache.length;
+          next = this.cache[length - 1];
+        }
+        this.setSelectedItem(next);
       });
     },
-    deleteAll() {
+    deleteAll(e) {
       e.stopPropagation();
       // const itemsToTrash = { notes: [], projects: [] };
       const itemsToDelete = { notes: [], projects: [] };
@@ -245,7 +247,11 @@ export default {
       }
     },
     trashProject() {
-      const project = {...this.project, deleted_at: new Date(), deleted: true};
+      const project = {
+        ...this.project,
+        deleted_at: new Date(),
+        deleted: true,
+      };
       this.$mutateQueue({
         mutation: TRASH_PROJECT,
         variables: project,
@@ -261,7 +267,7 @@ export default {
         next = projects[projects.length - 1] || null;
       }
       console.log("next project", projects, next);
-      this.$router.push({name: 'project', params: {id: next.id}})
+      this.$router.push({ name: "project", params: { id: next.id } });
       this.$store.commit("user/updateProjects", projects);
       if (!next) {
         this.project = null;
@@ -272,17 +278,22 @@ export default {
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         console.log("project.done", this.project.done);
-        
+
         this.project.completed_at = this.project.done ? new Date() : null;
         this.$mutateQueue({
           mutation: CHECK_PROJECT,
           variables: this.project,
         });
+
         this.$updateCache(this.project);
+        
         if (this.project.done) {
           this.nextProject();
         } else {
-          this.$router.push({name: 'project', params: {id: this.project.id}});
+          this.$router.push({
+            name: "project",
+            params: { id: this.project.id },
+          });
         }
       }, 500);
     },

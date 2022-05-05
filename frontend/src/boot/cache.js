@@ -1,5 +1,4 @@
 import { boot } from "quasar/wrappers";
-import { Store } from "src/store";
 import { formatDate } from "src/common/date";
 
 const projects = ['anytime'];
@@ -7,26 +6,53 @@ const timline = ['logbook', 'upcoming'];
 
 
 export default boot(
-    ({ app }) => {
+    ({ app, router, store }) => {
 
         const add = (key, item) => {
-            Store.commit('cache/add', { key, item, reverse: key === 'logbook' });
+            store.commit('cache/add', { key, item, reverse: key === 'logbook' });
         }
 
         const remove = (key, item) => {
-            Store.commit('cache/remove', { key, item });
+            store.commit('cache/remove', { key, item });
         }
 
         const addProjects = (key, item) => {
-            Store.commit('cache/addProjects', { key, item });
+            store.commit('cache/addProjects', { key, item });
         }
 
         const removeProjects = (key, item) => {
-            Store.commit('cache/removeProjects', { key, item });
+            store.commit('cache/removeProjects', { key, item });
         }
 
         const handle = (key, item) => {
-            if (projects.includes(key)) {
+            const current = router.currentRoute.value.name;
+            if (key === 'current') {
+                handle(current, item);
+            } else if (key === 'project') {
+                if (item.project?.id) {
+                    handle(item.project.id, item);
+                }
+            } else if (key === 'trash') {
+                if (item.deleted) {
+                    if (item.permanentDeleted) {
+                        remove('trash', item);
+                    } else {
+                        add('trash', item);
+                    }
+                } else {
+                    remove('trash', item);
+                }
+            } else if (key === 'logbook') {
+                if (item.done) {
+                    if (item.deleted) {
+                        remove('logbook', item);
+                    } else {
+                        add('logbook', item);
+                    }
+                } else {
+                    remove('logbook', item);
+                }
+            } else if (projects.includes(key)) {
                 if (item.deleted || item.done) {
                     removeProjects(key, item);
                 } else {
@@ -43,30 +69,14 @@ export default boot(
         }
 
         app.config.globalProperties.$updateCache = (item) => {
+            handle('current', item);
             return new Promise((resolve) => {
                 setTimeout(() => {
                     console.log('item', item)
-                    item = { ...item };
-                    if (!item.__typename) throw 'missing typename for item';
-                    if (item.deleted) {
-                        if (item.permanentDeleted) {
-                            remove('trash', item);
-                        } else {
-                            add('trash', item);
-                        }
-                    } else {
-                        remove('trash', item);
-                    }
 
-                    if (item.done) {
-                        if (item.deleted) {
-                            remove('logbook', item);
-                        } else {
-                            add('logbook', item);
-                        }
-                    } else {
-                        remove('logbook', item);
-                    }
+                    handle('trash', item);
+
+                    handle('logbook', item);
 
                     if (item.when) {
                         const dateString = formatDate(item.when);
@@ -79,9 +89,7 @@ export default boot(
                         }
                     }
 
-                    if (item.project?.id) {
-                        handle(item.project.id, item);
-                    }
+                    handle('project', item);
 
                     handle('anytime', item);
 

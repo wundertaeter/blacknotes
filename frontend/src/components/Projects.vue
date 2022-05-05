@@ -23,8 +23,9 @@
             @edit="setEdit"
             :project="project"
             :position-column="positionColumn"
+            :cache-key="id"
             group="people"
-            :items="[...project.notes].sort(sortMethod)"
+            :items="project.notes"
             :allItems="allItems"
             :selected="selectedItems"
             :edited="edit"
@@ -74,39 +75,41 @@ export default {
     },
   },
   methods: {
-    sortMethod(a, b) {
-      if (a[this.positionColumn] === null) return 1;
-      if (b[this.positionColumn] === null) return -1;
-      return a[this.positionColumn] - b[this.positionColumn];
-    },
+   //updatePositions(projectIndex, items){
+   //  console.log('projectIndex', projectIndex)
+   //  const cacheItems = [...this.cache];
+   //  cacheItems[projectIndex] = {...cacheItems[projectIndex], notes: items};
+
+   //  this.$store.commit("cache/update", {projects: cacheItems});
+   //},
     removeItem(note) {
       const project = this.selectedProject;
       const projectIndex = this.cache.indexOf(project);
       const index = project.notes.findIndex((n) => n.id == note.id);
 
-      this.$updateCache(note).then(() => {
-        this.$nextTick(() => {
-          const project = this.cache[projectIndex];
-          let next;
-          if (project) {
-            next = project.notes[index];
-            if (!next) {
-              next = project.notes[project.notes.length - 1];
-            }
-          }
+      this.$updateCache(note);
+      
+      this.$nextTick(() => {
+        const project = this.cache[projectIndex];
+        let next;
+        if (project) {
+          next = project.notes[index];
           if (!next) {
-            const nextProject = this.getNextProject(projectIndex + 1);
-            if (nextProject) {
-              next = nextProject.notes[0];
-            } else {
-              const prevProject = this.getPrevProject(projectIndex - 1);
-              if (prevProject) {
-                next = prevProject.notes[prevProject.notes.length - 1];
-              }
+            next = project.notes[project.notes.length - 1];
+          }
+        }
+        if (!next) {
+          const nextProject = this.getNextProject(projectIndex + 1);
+          if (nextProject) {
+            next = nextProject.notes[0];
+          } else {
+            const prevProject = this.getPrevProject(projectIndex - 1);
+            if (prevProject) {
+              next = prevProject.notes[prevProject.notes.length - 1];
             }
           }
-          this.setSelectedItem(next);
-        });
+        }
+        this.setSelectedItem(next);
       });
     },
     updateSelected(item) {
@@ -215,9 +218,9 @@ export default {
     },
   },
   computed: {
-    allItems(){
+    allItems() {
       const allItems = [];
-      this.cache.forEach(project => allItems.push(...project.notes));
+      this.cache.forEach((project) => allItems.push(...project.notes));
       return allItems;
     },
     cache() {

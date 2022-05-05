@@ -68,7 +68,14 @@ export default {
   },
   methods: {
     listComponentMounted(component) {
-      if(this.sort) component.updatePositions();
+      if (this.sort){
+        if(this.positionColumn && component.items.some(item => item[this.positionColumn] === null)){
+          console.log('update POSITIONS from base', this.positionColumn, component.items);
+          component.updatePositions();
+        }
+        //setTimeout(() => {
+        //})
+      }
       this.listComponents.push(component);
     },
     revert(e) {
@@ -139,32 +146,19 @@ export default {
       });
       this.removeItem(item);
     },
-    check(item){
+    check(item) {
       console.log("check note", item);
       this.$loading(true);
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
-        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : new Date() }; 
+        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : new Date() };
         this.$mutateQueue({
           mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
         });
         this.removeItem(item);
       }, 500);
-    },
-    sortMethod(a, b) {
-      if (a[this.sortBy.column] === null) return 1;
-      if (b[this.sortBy.column] === null) return -1;
-      if (this.sortBy.date) {
-        return this.sortBy.desc
-          ? new Date(b[this.sortBy.column]) - new Date(a[this.sortBy.column])
-          : new Date(a[this.sortBy.column]) - new Date(b[this.sortBy.column]);
-      } else {
-        return this.sortBy.desc
-          ? b[this.sortBy.column] - a[this.sortBy.column]
-          : a[this.sortBy.column] - b[this.sortBy.column];
-      }
     },
     addNote(e) {
       console.log('addNote', this.edit);
@@ -173,7 +167,7 @@ export default {
       const note = this.newNote();
 
       this.$updateCache(note);
-
+      
       this.$nextTick(() => {
         this.setEdit(note);
         this.$nextTick(() => {
@@ -184,6 +178,7 @@ export default {
         mutation: CREATE_NOTE,
         variables: note,
       });
+
     },
   },
   apollo: {

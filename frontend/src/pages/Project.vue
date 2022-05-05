@@ -5,12 +5,12 @@
     more
     sort
     :config="{
-        notes_subscription: SUBSCRIBE_PROJECT,
-        variables: {
-          project_id: id,
-          done: project.done ? {} : { _eq: false },
-        },
-      }"
+      notes_subscription: SUBSCRIBE_PROJECT,
+      variables: {
+        project_id: id,
+        done: project.done ? {} : { _eq: false },
+      },
+    }"
     position-column="position"
   >
     <template v-slot:toolbar="{ addNote }">
@@ -32,21 +32,19 @@ export default defineComponent({
   props: {
     id: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
       config: null,
-      SUBSCRIBE_PROJECT
+      SUBSCRIBE_PROJECT,
+      unwatch: null,
     };
   },
-  created(){
-    if(!this.project) this.$router.push('/today');
-  },
   computed: {
-    project(){
-      return this.projects.find(project => project.id == this.id)
+    project() {
+      return this.projects.find((project) => project.id == this.id);
     },
     projects() {
       return this.$store.state.user.projects;

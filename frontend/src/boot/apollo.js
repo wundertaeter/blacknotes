@@ -69,7 +69,7 @@ export default boot(
       } else {
         updateLoadingTimeout = setTimeout(() => {
           Store.commit("user/updateLoading", false);
-        }, 5000);
+        }, 500);
       }
     }
 

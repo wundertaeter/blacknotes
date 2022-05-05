@@ -70,9 +70,9 @@ export function add(state, { key, item, reverse }) {
         // console.log('INDEX', index, item);
         if (index >= 0) {
             items[type][index] = item;
-        } else if(reverse){
+        } else if (reverse) {
             items[type] = [item, ...items[type]];
-        }else {
+        } else {
             items[type].push(item)
         }
         state[key] = items;
@@ -97,16 +97,12 @@ export function remove(state, { key, item }) {
 }
 
 
-
 export function load(state) {
-    //return new Promise(resolve => {
-    //    setTimeout(() => {
-    // const cacheString = localStorage.getItem('cache');
-    // if (cacheString) {
-    //     const cache = JSON.parse(cacheString);
-    //     Object.keys(cache).forEach(key => state[key] = cache[key]);
-    // }
-    //        resolve(state);
-    //    })
-    //})
+    const cacheString = localStorage.getItem('cache');
+    if (cacheString) {
+        const cache = JSON.parse(cacheString);
+        for (const key in cache) {
+            state[key] = cache[key];
+        }
+    }
 }
