@@ -322,7 +322,7 @@ export default {
         title: this.title,
         content: this.content,
       };
-      // this.$emit("update:modelValue", note);
+      this.$emit("update:modelValue", note);
       this.updateNote(note);
       this.$updateCache(note);
     },

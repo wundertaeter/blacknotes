@@ -254,7 +254,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    console.log('Layout.vue mounted');
+    console.log("Layout.vue mounted");
     this.projects = JSON.parse(JSON.stringify(this.userProjects));
     this.$q.loading.hide();
   },
@@ -267,7 +267,7 @@ export default defineComponent({
   },
   methods: {
     onDragover(e, project) {
-      if(e.dataTransfer.types[1] == 'note'){
+      if (e.dataTransfer.types[1] == "notes") {
         this.focusedProject = project;
       }
     },
@@ -275,29 +275,23 @@ export default defineComponent({
       this.focusedProject = null;
     },
     onDrop(e) {
+      e.stopPropagation();
       console.log("onDrop", e);
-      let note = e.dataTransfer.getData("note");
-      if (note) {
-        note = JSON.parse(note);
-        console.log("drop note: ", note);
-        note.prevProject = {...note.project};
-        note.project_id = this.focusedProject.id;
-        note.project = this.focusedProject;
-        this.$mutateQueue({
-          mutation: UPDATE_NOTE_PROJECT,
-          variables: note,
+      const notes = e.dataTransfer.getData("notes");
+      if (notes) {
+        JSON.parse(notes).forEach((note) => {
+          console.log("drop note: ", note);
+          note.prevProject = { ...note.project };
+          note.project_id = this.focusedProject.id;
+          note.project = this.focusedProject;
+          this.$mutateQueue({
+            mutation: UPDATE_NOTE_PROJECT,
+            variables: note,
+          });
+
+          this.$updateCache(note);
         });
-
-        this.$updateCache(note);
-        
-      } else {
-        let project = e.dataTransfer.getData("project");
-        if (project) {
-          project = JSON.parse(project);
-          console.log("drop project: ", project);
-        }
       }
-
       this.onDragleave(e);
       e.dataTransfer.clearData();
     },
@@ -320,13 +314,13 @@ export default defineComponent({
         mutation: SORT_PROJECTS,
         variables: {
           objects: this.projects,
-          update_columns: ['position']
+          update_columns: ["position"],
         },
       });
     },
     selectProject(project) {
-      console.log('selectProject', project);
-      this.$router.push({name: 'project', params: {id: project.id}});
+      console.log("selectProject", project);
+      this.$router.push({ name: "project", params: { id: project.id } });
     },
     updateProjectName(project) {
       if (!project.title) return;
@@ -369,7 +363,11 @@ export default defineComponent({
       return this.user.projects;
     },
     currentProject() {
-      return this.$route.name ? this.userProjects.find(project => project.id == this.$route.params.id) : null
+      return this.$route.name
+        ? this.userProjects.find(
+            (project) => project.id == this.$route.params.id
+          )
+        : null;
     },
     maxPosition() {
       const positions = this.projects.map((project) => project.position);

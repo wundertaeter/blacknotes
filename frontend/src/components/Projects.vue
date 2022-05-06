@@ -23,7 +23,6 @@
             @edit="setEdit"
             :project-index="index"
             :update-project="true"
-            :cach-key="id"
             :project="project"
             :position-column="positionColumn"
             :cache-key="id"

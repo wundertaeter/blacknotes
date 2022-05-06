@@ -3,7 +3,7 @@ import { Store } from "../index";
 function save(state) {
     return new Promise(resolve => {
         setTimeout(() => {
-            console.log('safe state', state);
+            console.log('save state', state);
             localStorage.setItem('cache', JSON.stringify(state));
             resolve(state);
         })
@@ -31,11 +31,11 @@ export function addProjects(state, { key, item }) {
     if (cache) {
         // let added = false;
         const items = JSON.parse(JSON.stringify(cache));
-        console.log('items', items);
+        // console.log('items', items);
         for (const project of items) {
-            console.log('project', project);
+            // console.log('project', project);
             const index = project.notes.findIndex(it => it.id == item.id);
-            console.log('index', index);
+            // console.log('index', index);
             if (item.project?.id == project.id || item.when && item.when == project.when) { // Dont select when in project subscription !!!
                 if (index >= 0) {
                     project.notes[index] = item;

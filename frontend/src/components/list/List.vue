@@ -20,7 +20,7 @@
         <item
           :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
           :id="element.id"
-          @dragstart="(e) => dragStart(e, element)"
+          @dragstart="dragStart"
           @click.stop
           @mousedown="itemClicked(element, $event)"
           :selected="itemIsSelected(element)"
@@ -182,7 +182,15 @@ export default {
       ] = item;
     },
     multiDrop({ event, items }) {
-      console.log("multiDrop", items);
+      console.log("multiDrop", event, items, event.to.id);
+
+      if (event.from === event.to) {
+        if (event.newIndex === event.oldIndex) {
+          return;
+        }
+      } else {
+        items.forEach(this.$refs.multiclick.appendToSelection);
+      }
 
       const model = this.itemsCopy.filter(
         (item) => !items.find((it) => it.id == item.id)
@@ -195,10 +203,6 @@ export default {
         });
       });
 
-      if (event.from !== event.to) {
-        items.forEach(this.$refs.multiclick.appendToSelection);
-      }
-
       this.itemsCopy = JSON.parse(
         JSON.stringify([
           ...model.slice(0, event.newIndex),
@@ -210,9 +214,9 @@ export default {
     },
     onEnd(e) {
       console.log("on end", e.to.id, this.selectedItems, this.itemsCopy);
-      this.itemsCopy = this.itemsCopy.filter(
-        (item) => !this.selectedItems.some((it) => it.id == item.id)
-      );
+      // this.itemsCopy = this.itemsCopy.filter(
+      //   (item) => !this.selectedItems.some((it) => it.id == item.id)
+      // );
       bus.emit(e.to.id, { event: e, items: this.selectedItems });
     },
     itemClicked(item, event) {
@@ -224,13 +228,11 @@ export default {
         multiclick.removeFromSelection(item, event);
       }
     },
-    dragStart(e, item) {
-      item = { ...item, [this.positionColumn]: null };
-      if (item.__typename.includes("_note")) {
-        e.dataTransfer.setData("note", JSON.stringify(item));
-      } else {
-        e.dataTransfer.setData("project", JSON.stringify(item));
-      }
+    dragStart(e) {
+      const notes = this.selectedItems
+        .filter((item) => item.__typename.includes("_note"))
+        .map((item) => ({ ...item, [this.positionColumn]: null }));
+      e.dataTransfer.setData("notes", JSON.stringify(notes));
     },
     onSelect(items) {
       this.$emit("select", items);
