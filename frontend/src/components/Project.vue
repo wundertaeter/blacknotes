@@ -62,6 +62,7 @@
           v-if="cache"
           @select="setSelectedItems"
           @edit="setEdit"
+          :cache-key="modelValue.id"
           :position-column="positionColumn"
           :sort="sort"
           :items="cache"

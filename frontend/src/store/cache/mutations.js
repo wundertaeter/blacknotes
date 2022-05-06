@@ -3,6 +3,7 @@ import { Store } from "../index";
 function save(state) {
     return new Promise(resolve => {
         setTimeout(() => {
+            console.log('safe state', state);
             localStorage.setItem('cache', JSON.stringify(state));
             resolve(state);
         })
@@ -15,10 +16,14 @@ export function update(state, { key, items }) {
     save(state);
 }
 
-// export function updatePositions(state, {key, project, when}){
-//     const cache = state[key];
-//     cache.notes
-// }
+// CACHE sollte ein object sein {project_id: {notes: [], title: '', id: ''}}
+
+
+export function updateOnIndex(state, {key, index, items}){
+    console.log('key', key, 'index', index, 'items', items);
+    state[key][index].notes = items;
+    save(state);
+}
 
 export function addProjects(state, { key, item }) {
     console.log('Add item to ' + key, item);
@@ -31,7 +36,7 @@ export function addProjects(state, { key, item }) {
             console.log('project', project);
             const index = project.notes.findIndex(it => it.id == item.id);
             console.log('index', index);
-            if (item.project?.id == project.id || item.when == project.when) { // Dont select when in project subscription !!!
+            if (item.project?.id == project.id || item.when && item.when == project.when) { // Dont select when in project subscription !!!
                 if (index >= 0) {
                     project.notes[index] = item;
                 } else {
@@ -104,11 +109,11 @@ export function remove(state, { key, item }) {
 
 
 export function load(state) {
-    // const cacheString = localStorage.getItem('cache');
-    // if (cacheString) {
-    //     const cache = JSON.parse(cacheString);
-    //     for (const key in cache) {
-    //         state[key] = cache[key];
-    //     }
-    // }
+    const cacheString = localStorage.getItem('cache');
+    if (cacheString) {
+        const cache = JSON.parse(cacheString);
+        for (const key in cache) {
+            state[key] = cache[key];
+        }
+    }
 }

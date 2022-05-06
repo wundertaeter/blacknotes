@@ -11,6 +11,7 @@
       v-model="itemsCopy"
       :sort="sort"
       :drop="drop"
+      xxremove="onRemove"
       @end="onEnd"
       :group="{ name: group, pull: drag, put: drop }"
       item-key="id"
@@ -108,14 +109,6 @@ export default {
       type: String,
       required: false,
     },
-    when: {
-      type: String,
-      required: false,
-    },
-    project: {
-      type: Object,
-      required: false,
-    },
     datePreview: {
       type: Boolean,
       required: false,
@@ -159,6 +152,28 @@ export default {
     edited: {
       required: false,
     },
+    projectIndex: {
+      required: false
+    },
+    cacheKey: {
+      required: true
+    },
+    when: {
+      type: String,
+      required: false,
+    },
+    updateWhen: {
+      required: false,
+      default: false
+    },
+    project: {
+      type: Object,
+      required: false,
+    },
+    updateProject: {
+      required: false,
+      default: false
+    }
   },
   methods: {
     updateItem(item) {
@@ -166,23 +181,22 @@ export default {
         this.$refs.multiclick.selectedItems.findIndex((it) => it.id == item.id)
       ] = item;
     },
+    // onRemove(e){
+    //   console.log('onRemove', e, this.selectedItems);
+    // },
     multiDrop({ event, items }) {
       // this.itemsCopy = this.itemsCopy.filter(item => !items.some(it => it.id == item.id))
       var model = this.itemsCopy;
-      if (event.from == event.to) {
-        model = model.filter((item) => !items.find((it) => it.id == item.id));
-      } else {
+      model = model.filter((item) => !items.find((it) => it.id == item.id));
+      if (event.from !== event.to) {
         items.forEach(this.$refs.multiclick.appendToSelection);
-        items = items.filter(
-          (item) => !this.itemsCopy.find((it) => it.id == item.id)
-        );
       }
 
-      this.itemsCopy = [
+      this.itemsCopy = JSON.parse(JSON.stringify([
         ...model.slice(0, event.newIndex),
-        ...JSON.parse(JSON.stringify(items)),
+        ...items,
         ...model.slice(event.newIndex, model.length),
-      ];
+      ]));
       this.updatePositions();
     },
     onEnd(e) {
@@ -202,7 +216,7 @@ export default {
       }
     },
     dragStart(e, item) {
-      item = {...item, [this.positionColumn]: null};
+      item = { ...item, [this.positionColumn]: null };
       if (item.__typename.includes("_note")) {
         e.dataTransfer.setData("note", JSON.stringify(item));
       } else {
@@ -274,43 +288,52 @@ export default {
       this.selectNone();
       this.editItem = null;
     },
-    updatePositions(updateCache) {
-      console.log("update positions", this.itemsCopy);
+    updatePositions() {
+      console.log("update positions", this.itemsCopy, this.updateWhen, this.when);
       const notes = [];
       const projects = [];
       const update_columns = [this.positionColumn];
-      if (this.when) update_columns.push("when");
-      if (this.project) update_columns.push("project_id");
+      if(this.updateProject) update_columns.push('project_id');
+      var when;
+      if(this.updateWhen) {
+        when = toDatabaseString(this.when)
+        update_columns.push('when');
+      }
       let item;
-      const when = this.when ? toDatabaseString(this.when) : null;
       for (let i = 0; i < this.itemsCopy.length; i++) {
         item = this.itemsCopy[i];
 
         item[this.positionColumn] = i;
 
+        if(this.updateProject){
+          item.project = {title: this.project.title, id: this.project.id};
+          item.project_id = this.project.id;
+        }
+
+        if(this.updateWhen){
+          item.when = when;
+        }
+
         const { __typename, project, ...obj } = item;
-        if (when) {
-          if(when != item.when){
-            item.when = when;
-            // if(updateCache) this.$updateCache(item, true);
-          }
-          obj.when = when;
-        }
 
-        if (this.project) {
-          if(item.project?.id != this.project?.id){
-            item.prevProjectId = item.project.id;
-            item.project = this.project;
-            // this.$updateCache(item, true);
-          }
-          obj.project_id = this.project.id;
-        }
-
-        if (item.__typename.includes("_note")) {
+        if (__typename.includes("_note")) {
           notes.push(obj);
         } else {
           projects.push(obj);
         }
+      }
+      
+      if (this.projectIndex === undefined) {
+        this.$store.commit("cache/update", {
+          key: this.cacheKey,
+          items: this.itemsCopy,
+        });
+      } else {
+        this.$store.commit("cache/updateOnIndex", {
+          key: this.cacheKey,
+          index: this.projectIndex,
+          items: this.itemsCopy,
+        });
       }
 
       if (notes.length) {

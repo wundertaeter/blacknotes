@@ -7,7 +7,7 @@
           {{ title }}
         </h4>
         <div
-          v-for="project in cache"
+          v-for="(project, index) in cache"
           :key="project.id"
           style="margin-top: 50px"
         >
@@ -21,6 +21,9 @@
             v-if="project.notes"
             @select="setSelectedItems"
             @edit="setEdit"
+            :project-index="index"
+            :update-project="true"
+            :cach-key="id"
             :project="project"
             :position-column="positionColumn"
             :cache-key="id"
@@ -185,6 +188,8 @@ export default {
           key: this.id,
           items: [
             {
+              id: null,
+              title: null,
               notes: this.notes.map((n) => ({
                 ...n,
                 project: { title: null, id: null },

@@ -8,7 +8,7 @@
         </h4>
         <q-timeline color="secondary">
           <q-timeline-entry
-            v-for="project in cache"
+            v-for="(project, index) in cache"
             :key="project.id"
             :subtitle="project.id"
             xxavatar="https://cdn.quasar.dev/img/avatar2.jpg"
@@ -17,10 +17,13 @@
               @select="setSelectedItems"
               @edit="setEdit"
               :position-column="positionColumn"
+              :project-index="index"
               group="people"
               :items="project.notes"
+              :update-when="updateWhen"
+              :cache-key="id"
               :allItems="allItems"
-              :when="updateWhen ? project.when : undefined"
+              :when="project.when"
               :date-preview="false"
               :drop="drop"
               :drag="drag"
