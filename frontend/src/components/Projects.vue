@@ -230,7 +230,7 @@ export default {
     },
     cache() {
       return this.$store.state.cache[this.id]?.filter(
-        (p) => p.notes.length
+        (p) => !p.id || p.notes.length
       );
     },
     selectedProject() {

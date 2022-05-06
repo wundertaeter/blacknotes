@@ -153,10 +153,10 @@ export default {
       required: false,
     },
     projectIndex: {
-      required: false
+      required: false,
     },
     cacheKey: {
-      required: true
+      required: true,
     },
     when: {
       type: String,
@@ -164,7 +164,7 @@ export default {
     },
     updateWhen: {
       required: false,
-      default: false
+      default: false,
     },
     project: {
       type: Object,
@@ -172,8 +172,8 @@ export default {
     },
     updateProject: {
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
     updateItem(item) {
@@ -181,22 +181,31 @@ export default {
         this.$refs.multiclick.selectedItems.findIndex((it) => it.id == item.id)
       ] = item;
     },
-    // onRemove(e){
-    //   console.log('onRemove', e, this.selectedItems);
-    // },
     multiDrop({ event, items }) {
-      // this.itemsCopy = this.itemsCopy.filter(item => !items.some(it => it.id == item.id))
-      var model = this.itemsCopy;
-      model = model.filter((item) => !items.find((it) => it.id == item.id));
+      console.log("multiDrop", items);
+
+      const model = this.itemsCopy.filter(
+        (item) => !items.find((it) => it.id == item.id)
+      );
+
+      items.forEach((item) => {
+        this.$store.commit("cache/removeProjects", {
+          key: this.cacheKey,
+          item,
+        });
+      });
+
       if (event.from !== event.to) {
         items.forEach(this.$refs.multiclick.appendToSelection);
       }
 
-      this.itemsCopy = JSON.parse(JSON.stringify([
-        ...model.slice(0, event.newIndex),
-        ...items,
-        ...model.slice(event.newIndex, model.length),
-      ]));
+      this.itemsCopy = JSON.parse(
+        JSON.stringify([
+          ...model.slice(0, event.newIndex),
+          ...items,
+          ...model.slice(event.newIndex, model.length),
+        ])
+      );
       this.updatePositions();
     },
     onEnd(e) {
@@ -288,41 +297,7 @@ export default {
       this.selectNone();
       this.editItem = null;
     },
-    updatePositions() {
-      console.log("update positions", this.itemsCopy, this.updateWhen, this.when);
-      const notes = [];
-      const projects = [];
-      const update_columns = [this.positionColumn];
-      if(this.updateProject) update_columns.push('project_id');
-      var when;
-      if(this.updateWhen) {
-        when = toDatabaseString(this.when)
-        update_columns.push('when');
-      }
-      let item;
-      for (let i = 0; i < this.itemsCopy.length; i++) {
-        item = this.itemsCopy[i];
-
-        item[this.positionColumn] = i;
-
-        if(this.updateProject){
-          item.project = {title: this.project.title, id: this.project.id};
-          item.project_id = this.project.id;
-        }
-
-        if(this.updateWhen){
-          item.when = when;
-        }
-
-        const { __typename, project, ...obj } = item;
-
-        if (__typename.includes("_note")) {
-          notes.push(obj);
-        } else {
-          projects.push(obj);
-        }
-      }
-      
+    cacheCommit() {
       if (this.projectIndex === undefined) {
         this.$store.commit("cache/update", {
           key: this.cacheKey,
@@ -335,6 +310,48 @@ export default {
           items: this.itemsCopy,
         });
       }
+    },
+    updatePositions() {
+      console.log(
+        "update positions",
+        this.itemsCopy,
+        this.updateWhen,
+        this.when
+      );
+      const notes = [];
+      const projects = [];
+      const update_columns = [this.positionColumn];
+      if (this.updateProject) update_columns.push("project_id");
+      var when;
+      if (this.updateWhen) {
+        when = toDatabaseString(this.when);
+        update_columns.push("when");
+      }
+      let item;
+      for (let i = 0; i < this.itemsCopy.length; i++) {
+        item = this.itemsCopy[i];
+
+        item[this.positionColumn] = i;
+
+        if (this.updateProject) {
+          item.project = { title: this.project.title, id: this.project.id };
+          item.project_id = this.project.id;
+        }
+
+        if (this.updateWhen) {
+          item.when = when;
+        }
+
+        const { __typename, project, multiclickId, ...obj } = item;
+
+        if (__typename.includes("_note")) {
+          notes.push(obj);
+        } else {
+          projects.push(obj);
+        }
+      }
+
+      this.cacheCommit();
 
       if (notes.length) {
         this.$mutateQueue({
