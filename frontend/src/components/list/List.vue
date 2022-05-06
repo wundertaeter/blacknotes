@@ -336,8 +336,10 @@ export default {
         item[this.positionColumn] = i;
 
         if (this.updateProject) {
+          this.$store.commit('cache/remove', {key: item.project.id, item});
           item.project = { title: this.project.title, id: this.project.id };
           item.project_id = this.project.id;
+          this.$store.commit('cache/add', {key: item.project.id, item});
         }
 
         if (this.updateWhen) {
