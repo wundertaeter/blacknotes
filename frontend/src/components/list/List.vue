@@ -214,9 +214,9 @@ export default {
     },
     onEnd(e) {
       console.log("on end", e.to.id, this.selectedItems, this.itemsCopy);
-      // this.itemsCopy = this.itemsCopy.filter(
-      //   (item) => !this.selectedItems.some((it) => it.id == item.id)
-      // );
+      this.itemsCopy = this.itemsCopy.filter(
+        (item) => !this.selectedItems.some((it) => it.id == item.id)
+      );
       bus.emit(e.to.id, { event: e, items: this.selectedItems });
     },
     itemClicked(item, event) {
