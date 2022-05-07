@@ -201,7 +201,7 @@ export default {
         result({ data }) {
           console.log("note sub", data);
           this.notes = data.active_notes;
-          // this.updateCache();
+          this.updateCache();
         },
       },
       notes_project: {
@@ -221,7 +221,7 @@ export default {
         result({ data }) {
           console.log("project sub", data);
           this.projects = data.notes_project;
-          // this.updateCache();
+          this.updateCache();
         },
       },
     },
