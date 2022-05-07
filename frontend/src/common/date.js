@@ -54,7 +54,7 @@ export function formatDate(timestamp, format) {
     return date.formatDate(timestamp, format);
 }
 
-export function timelineDates(timeline) {
+export function timelineDays(timeline) {
     const dates = [];
     let next;
     for (let i = 0; i <= timeline; i++) {
@@ -64,13 +64,23 @@ export function timelineDates(timeline) {
     return dates;
 }
 
-export function formatDateForward(timestamp, timelineDates) {
-    if (isTomorrow(timestamp)) {
-        return "Tomorrow";
+export function timelineMonths(timeline) {
+    const dates = [];
+    let next;
+    for (let i = 0; i <= timeline; i++) {
+        next = date.addToDate(today(), { month: i });
+        dates.push({ date: next, title: date.formatDate(next, "dddd") });
     }
-    let dateString = date.formatDate(timestamp, "dddd");
+    return dates;
+}
+
+export function formatDateForward(timestamp, timelineDays) {
+    if (isTomorrow(timestamp)) {
+        return date.formatDate(timestamp, "D") + " Tomorrow";
+    }
+    let dateString = date.formatDate(timestamp, "D dddd");
     if (
-        timelineDates.some((d) =>
+        timelineDays.some((d) =>
             date.isSameDate(d.date, timestamp, "day")
         )
     ) {

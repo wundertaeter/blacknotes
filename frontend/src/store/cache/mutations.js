@@ -47,12 +47,13 @@ export function addProjects(state, { key, item }) {
                     project.notes.push(item);
                 }
                 added = true;
+                console.log('ADDED', project, index);
             } else if (index >= 0) {
                 project.notes.splice(index, 1);
             }
         }
         if (!added) {
-            // items['new'] = item;
+            items['new'] = item;
         }
         state[key] = items;
     }

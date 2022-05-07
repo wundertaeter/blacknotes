@@ -56,7 +56,8 @@ import {
   toDatabaseString,
   formatDateBackwards,
   formatDateForward,
-  timelineDates,
+  timelineDays,
+  timelineMonths,
   date,
   today,
   yesterday,
@@ -93,38 +94,44 @@ export default {
   },
   mounted() {
     let nextDate;
+    let nextMonth;
+    let nextDateString;
+
+    // Add 7 Days
     for (let d = 0; d < this.timeline; d++) {
       if (this.backwards) {
         nextDate = date.subtractFromDate(this.start, { day: d });
       } else {
         nextDate = date.addToDate(this.start, { day: d });
       }
-      // console.log("nextDate", this.formatDate(nextDate));
-      if (!this.dates.some((d) => d.title == this.formatDate(nextDate))) {
-        this.dates.push({ title: this.formatDate(nextDate), date: nextDate });
+
+      nextDateString = this.formatDate(nextDate);
+      if (!this.dates.some((d) => d.title == nextDateString)) {
+        this.dates.push({ title: nextDateString, date: nextDate });
+      }
+    }
+
+    // current month rest days
+    nextMonth = date.addToDate(this.end, { day: 1 });
+    nextDateString = this.formatDate(nextMonth);
+    if (!this.dates.some((d) => d.title == nextDateString)) {
+      this.dates.push({ title: nextDateString, date: nextMonth });
+    }
+
+    // add next 7 months
+    const monethsStart = date.startOfDate(this.end, "month");
+    for (let d = 1; d < this.timeline; d++) {
+      if (this.backwards) {
+        nextMonth = date.subtractFromDate(monethsStart, { month: d });
+      } else {
+        nextMonth = date.addToDate(monethsStart, { month: d });
+      }
+      nextDateString = this.formatDate(nextMonth);
+      if (!this.dates.some((d) => d.title == nextDateString)) {
+        this.dates.push({ title: nextDateString, date: nextMonth });
       }
     }
   },
-  // watch: {
-  //   "cache.new": {
-  //     handler(newItem) {
-  //       if (newItem) {
-  //         const newProject = {
-  //           title: this.formatDate(newItem[this.groupBy]),
-  //           notes: [newItem],
-  //           [`_${this.groupBy}`]: toDatabaseString(newItem[this.groupBy]),
-  //         };
-// 
-  //         this.$store.commit("cache/update", {
-  //           key: this.id,
-  //           items: this.backwards
-  //             ? [newProject, ...cache]
-  //             : [...cache, newProject],
-  //         });
-  //       }
-  //     },
-  //   },
-  // },
   methods: {
     sortMethod(a, b) {
       if (this.positionColumn) {
@@ -239,7 +246,23 @@ export default {
       let cache = this.$store.state.cache[this.id];
       if (this.backwards) {
         cache = cache.filter((p) => p.notes.length > 0);
+      } else {
+        const newItem = cache.new;
+        if (newItem) {
+          this.$store.commit("cache/update", {
+            key: this.id,
+            items: [
+              ...cache,
+              {
+                title: this.formatDate(newItem[this.groupBy]),
+                notes: [newItem],
+                [`_${this.groupBy}`]: toDatabaseString(newItem[this.groupBy]),
+              },
+            ],
+          });
+        }
       }
+
       return cache || [];
     },
     orderdDates() {
@@ -252,7 +275,7 @@ export default {
     },
     //this.dates.some(d => date.isSameDate(d.date, timestamp, 'day'))
     timelineDates() {
-      return timelineDates(this.timeline);
+      return [...timelineDays(this.timeline), ...timelineMonths(this.timeline)];
     },
     end() {
       return this.orderdDates[this.orderdDates.length - 1].date;
