@@ -24,7 +24,7 @@
               :cache-key="id"
               :allItems="allItems"
               :when="project._when"
-              :date-preview="false"
+              :date-preview="!this.backwards"
               :drop="drop"
               :drag="drag"
               :sort="sort"
@@ -93,42 +93,44 @@ export default {
     },
   },
   mounted() {
-    let nextDate;
-    let nextMonth;
-    let nextDateString;
+    if (!this.backwards) {
+      let nextDate;
+      let nextMonth;
+      let nextDateString;
 
-    // Add 7 Days
-    for (let d = 0; d < this.timeline; d++) {
-      if (this.backwards) {
-        nextDate = date.subtractFromDate(this.start, { day: d });
-      } else {
-        nextDate = date.addToDate(this.start, { day: d });
+      // Add 7 Days
+      for (let d = 0; d < this.timeline; d++) {
+        if (this.backwards) {
+          nextDate = date.subtractFromDate(this.start, { day: d });
+        } else {
+          nextDate = date.addToDate(this.start, { day: d });
+        }
+
+        nextDateString = this.formatDate(nextDate);
+        if (!this.dates.some((d) => d.title == nextDateString)) {
+          this.dates.push({ title: nextDateString, date: nextDate });
+        }
       }
 
-      nextDateString = this.formatDate(nextDate);
-      if (!this.dates.some((d) => d.title == nextDateString)) {
-        this.dates.push({ title: nextDateString, date: nextDate });
-      }
-    }
-
-    // current month rest days
-    nextMonth = date.addToDate(this.end, { day: 1 });
-    nextDateString = this.formatDate(nextMonth);
-    if (!this.dates.some((d) => d.title == nextDateString)) {
-      this.dates.push({ title: nextDateString, date: nextMonth });
-    }
-
-    // add next 7 months
-    const monethsStart = date.startOfDate(this.end, "month");
-    for (let d = 1; d < this.timeline; d++) {
-      if (this.backwards) {
-        nextMonth = date.subtractFromDate(monethsStart, { month: d });
-      } else {
-        nextMonth = date.addToDate(monethsStart, { month: d });
-      }
+      // current month rest days
+      nextMonth = date.addToDate(this.end, { day: 1 });
       nextDateString = this.formatDate(nextMonth);
       if (!this.dates.some((d) => d.title == nextDateString)) {
         this.dates.push({ title: nextDateString, date: nextMonth });
+      }
+
+      // add next 7 months
+      const monethsStart = date.startOfDate(this.end, "month");
+      for (let d = 1; d < this.timeline; d++) {
+        if (this.backwards) {
+          nextMonth = date.subtractFromDate(monethsStart, { month: d });
+        } else {
+          nextMonth = date.addToDate(monethsStart, { month: d });
+        }
+        nextDateString = this.formatDate(nextMonth);
+        if (!this.dates.some((d) => d.title == nextDateString)) {
+          this.dates.push({ title: nextDateString, date: nextMonth });
+        }
       }
     }
   },
