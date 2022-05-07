@@ -184,11 +184,7 @@ export default {
     multiDrop({ event, items }) {
       console.log("multiDrop", event, items, event.to.id);
 
-      if (event.from === event.to) {
-        if (event.newIndex === event.oldIndex) {
-          return;
-        }
-      } else {
+      if (event.from !== event.to) {
         items.forEach(this.$refs.multiclick.appendToSelection);
       }
 
@@ -214,6 +210,9 @@ export default {
     },
     onEnd(e) {
       console.log("on end", e.to.id, this.selectedItems, this.itemsCopy);
+      if (e.from === e.to && e.newIndex === e.oldIndex) {
+        return;
+      }
       this.itemsCopy = this.itemsCopy.filter(
         (item) => !this.selectedItems.some((it) => it.id == item.id)
       );
@@ -300,6 +299,7 @@ export default {
       this.editItem = null;
     },
     cacheCommit() {
+      // Update 'current' cache
       if (this.projectIndex === undefined) {
         this.$store.commit("cache/update", {
           key: this.cacheKey,
@@ -336,10 +336,11 @@ export default {
         item[this.positionColumn] = i;
 
         if (this.updateProject) {
-          this.$store.commit('cache/remove', {key: item.project.id, item});
+          // Update 'project' cache
+          this.$store.commit("cache/remove", { key: item.project.id, item });
           item.project = { title: this.project.title, id: this.project.id };
           item.project_id = this.project.id;
-          this.$store.commit('cache/add', {key: item.project.id, item});
+          this.$store.commit("cache/add", { key: item.project.id, item });
         }
 
         if (this.updateWhen) {

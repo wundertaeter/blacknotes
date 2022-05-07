@@ -10,7 +10,6 @@
     title="Upcoming"
     id="upcoming"
     position-column="upcoming_position"
-    update-when
   >
     <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />

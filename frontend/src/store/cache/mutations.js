@@ -1,6 +1,6 @@
 import { Store } from "../index";
 
-function save(state) {
+export function save(state) {
     return new Promise(resolve => {
         setTimeout(() => {
             console.log('save state', state);
@@ -12,53 +12,54 @@ function save(state) {
 
 export function update(state, { key, items }) {
     state[key] = items;
+    delete state[key].new;
     console.log('commit to store', state[key]);
     save(state);
 }
 
 // CACHE sollte ein object sein {project_id: {notes: [], title: '', id: ''}}
 
-
-export function updateOnIndex(state, {key, index, items}){
+export function updateOnIndex(state, { key, index, items }) {
     console.log('key', key, 'index', index, 'items', items);
     state[key][index].notes = items;
+    delete state[key].new;
     save(state);
 }
 
 export function addProjects(state, { key, item }) {
-    console.log('Add item to ' + key, item);
+    console.log('Add item to projects' + key, item);
     const cache = state[key];
     if (cache) {
-        // let added = false;
+        let added = false;
         const items = JSON.parse(JSON.stringify(cache));
         // console.log('items', items);
         for (const project of items) {
             // console.log('project', project);
             const index = project.notes.findIndex(it => it.id == item.id);
             // console.log('index', index);
-            if (item.project?.id == project.id || item.when && item.when == project.when) { // Dont select when in project subscription !!!
+            if (project.id && item.project?.id == project.id ||
+                project._when && item.when == project._when ||
+                project._completed_at && item.completed_at == project._completed_at
+            ) { // Dont select when in project subscription !!!
                 if (index >= 0) {
                     project.notes[index] = item;
                 } else {
                     project.notes.push(item);
                 }
-                // added = true;
+                added = true;
             } else if (index >= 0) {
                 project.notes.splice(index, 1);
             }
         }
-        // if (!added) {
-        //     const project = { ...Store.state.user.projects.find(project => item.project.id == project.id) };
-        //     project.notes = [item];
-        //     items.push(project);
-        // }
+        if (!added) {
+            // items['new'] = item;
+        }
         state[key] = items;
-        save(state);
     }
 }
 
 export function removeProjects(state, { key, item }) {
-    console.log('Remove item from ' + key, item);
+    console.log('Remove item from projects' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));
@@ -69,7 +70,6 @@ export function removeProjects(state, { key, item }) {
             }
         }
         state[key] = items;
-        save(state);
     }
 }
 
@@ -77,7 +77,7 @@ export function add(state, { key, item, reverse }) {
     console.log('Add item to ' + key, item);
     const cache = state[key];
     if (cache) {
-        const items = JSON.parse(JSON.stringify(cache));
+        let items = JSON.parse(JSON.stringify(cache));
         const index = items.findIndex(it => it.id == item.id);
         // console.log('INDEX', index, item);
         if (index >= 0) {
@@ -88,7 +88,6 @@ export function add(state, { key, item, reverse }) {
             items.push(item)
         }
         state[key] = items;
-        save(state);
     }
 }
 
@@ -103,7 +102,6 @@ export function remove(state, { key, item }) {
             items.splice(index, 1);
         }
         state[key] = items;
-        save(state);
     }
 }
 

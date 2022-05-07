@@ -1,3 +1,4 @@
+import { toDatabaseString } from "src/common/date";
 import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
@@ -68,8 +69,8 @@ export default {
   },
   methods: {
     listComponentMounted(component) {
-      if (this.sort){
-        if(this.positionColumn && component.items.some(item => item[this.positionColumn] === null)){
+      if (this.sort) {
+        if (this.positionColumn && component.items.some(item => item[this.positionColumn] === null)) {
           console.log('update POSITIONS from base', this.positionColumn, component.items);
           component.updatePositions();
         }
@@ -152,7 +153,7 @@ export default {
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
-        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : new Date() };
+        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : toDatabaseString(new Date()) };
         this.$mutateQueue({
           mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
@@ -167,7 +168,7 @@ export default {
       const note = this.newNote();
 
       this.$updateCache(note);
-      
+
       this.$nextTick(() => {
         this.setEdit(note);
         this.$nextTick(() => {
@@ -200,7 +201,7 @@ export default {
         result({ data }) {
           console.log("note sub", data);
           this.notes = data.active_notes;
-          this.updateCache();
+          // this.updateCache();
         },
       },
       notes_project: {
@@ -220,7 +221,7 @@ export default {
         result({ data }) {
           console.log("project sub", data);
           this.projects = data.notes_project;
-          this.updateCache();
+          // this.updateCache();
         },
       },
     },

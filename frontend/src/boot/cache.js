@@ -8,19 +8,19 @@ export default boot(
     ({ app, router, store }) => {
 
         const add = (key, item) => {
-            store.commit('cache/add', { key, item, reverse: key === 'logbook' });
+            store.commit('cache/add', { key, item, reverse: key === 'logbook', save: false });
         }
 
         const remove = (key, item) => {
-            store.commit('cache/remove', { key, item });
+            store.commit('cache/remove', { key, item, save: false });
         }
 
         const addProjects = (key, item) => {
-            store.commit('cache/addProjects', { key, item });
+            store.commit('cache/addProjects', { key, item, save: false });
         }
 
         const removeProjects = (key, item) => {
-            store.commit('cache/removeProjects', { key, item });
+            store.commit('cache/removeProjects', { key, item, save: false });
         }
 
         const handle = (key, item) => {
@@ -47,12 +47,12 @@ export default boot(
             } else if (key === 'logbook') {
                 if (item.done) {
                     if (item.deleted) {
-                        remove('logbook', item);
+                        removeProjects('logbook', item);
                     } else {
-                        add('logbook', item);
+                        addProjects('logbook', item);
                     }
                 } else {
-                    remove('logbook', item);
+                    removeProjects('logbook', item);
                 }
             } else if (projects.includes(key)) {
                 if (item.deleted || item.done) {
@@ -98,6 +98,8 @@ export default boot(
                     if(current !== 'anytime') handle('anytime', item);
 
                     resolve()
+
+                    store.commit('cache/save');
                 })
             })
 

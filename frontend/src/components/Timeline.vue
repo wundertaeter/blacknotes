@@ -9,8 +9,8 @@
         <q-timeline color="secondary">
           <q-timeline-entry
             v-for="(project, index) in cache"
-            :key="project.id"
-            :subtitle="project.id"
+            :key="project.title"
+            :subtitle="project.title"
             xxavatar="https://cdn.quasar.dev/img/avatar2.jpg"
           >
             <list
@@ -20,10 +20,10 @@
               :project-index="index"
               group="people"
               :items="project.notes"
-              :update-when="updateWhen"
+              :update-when="!!project._when"
               :cache-key="id"
               :allItems="allItems"
-              :when="project.when"
+              :when="project._when"
               :date-preview="false"
               :drop="drop"
               :drag="drag"
@@ -90,11 +90,6 @@ export default {
       type: String,
       required: true,
     },
-    updateWhen: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   mounted() {
     let nextDate;
@@ -110,6 +105,26 @@ export default {
       }
     }
   },
+  // watch: {
+  //   "cache.new": {
+  //     handler(newItem) {
+  //       if (newItem) {
+  //         const newProject = {
+  //           title: this.formatDate(newItem[this.groupBy]),
+  //           notes: [newItem],
+  //           [`_${this.groupBy}`]: toDatabaseString(newItem[this.groupBy]),
+  //         };
+// 
+  //         this.$store.commit("cache/update", {
+  //           key: this.id,
+  //           items: this.backwards
+  //             ? [newProject, ...cache]
+  //             : [...cache, newProject],
+  //         });
+  //       }
+  //     },
+  //   },
+  // },
   methods: {
     sortMethod(a, b) {
       if (this.positionColumn) {
@@ -186,9 +201,9 @@ export default {
         const cacheItems = [];
         for (const dateString in items) {
           cacheItems.push({
-            id: dateString,
+            title: dateString,
             notes: items[dateString],
-            when: toDatabaseString(dateMap[dateString]),
+            [`_${this.groupBy}`]: toDatabaseString(dateMap[dateString]),
           });
         }
 
@@ -221,7 +236,11 @@ export default {
   },
   computed: {
     cache() {
-      return this.$store.state.cache[this.id] || [];
+      let cache = this.$store.state.cache[this.id];
+      if (this.backwards) {
+        cache = cache.filter((p) => p.notes.length > 0);
+      }
+      return cache || [];
     },
     orderdDates() {
       const dates = [...this.dates]; //.filter(d => this.cache[d.title].length);

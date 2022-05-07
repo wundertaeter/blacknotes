@@ -280,18 +280,28 @@ export default defineComponent({
       const notes = e.dataTransfer.getData("notes");
       if (notes) {
         JSON.parse(notes).forEach((note) => {
-          console.log("drop note: ", note);
-          this.$store.commit('cache/remove', {key: note.project.id, item: note});
+          // console.log("drop note: ", note);
+          this.$store.commit("cache/remove", {
+            key: note.project.id,
+            item: note,
+          });
+          this.$store.commit("cache/removeProjects", {
+            key: "anytime",
+            item: note,
+          });
           note.project_id = this.focusedProject.id;
           note.project = this.focusedProject;
-          this.$store.commit('cache/add', {key: note.project.id, item: note});
+          this.$store.commit("cache/add", { key: note.project.id, item: note });
+          this.$store.commit("cache/addProjects", {
+            key: "anytime",
+            item: note,
+          });
           this.$mutateQueue({
             mutation: UPDATE_NOTE_PROJECT,
             variables: note,
           });
-
-          this.$updateCache(note);
         });
+        this.$store.commit("cache/save");
       }
       this.onDragleave(e);
       e.dataTransfer.clearData();
