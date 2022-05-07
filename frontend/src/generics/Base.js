@@ -138,14 +138,16 @@ export default {
       }
     },
     trash(item) {
-      item = { ...item, deleted: true, deleted_at: new Date() };
-      this.$mutateQueue({
-        mutation: item.__typename.includes("_note")
-          ? TRASH_NOTE
-          : TRASH_PROJECT,
-        variables: item,
-      });
-      this.removeItem(item);
+      if(!item.deleted){
+        item = { ...item, deleted: true, deleted_at: new Date() };
+        this.$mutateQueue({
+          mutation: item.__typename.includes("_note")
+            ? TRASH_NOTE
+            : TRASH_PROJECT,
+          variables: item,
+        });
+        this.removeItem(item);
+      }
     },
     check(item) {
       console.log("check note", item);
@@ -166,6 +168,8 @@ export default {
       e.stopPropagation();
       if (this.edit) return;
       const note = this.newNote();
+
+      console.log('new note', note);
 
       this.$updateCache(note);
 

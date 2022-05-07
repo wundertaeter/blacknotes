@@ -141,10 +141,6 @@ export default {
       type: Array,
       required: true,
     },
-    sortMethod: {
-      type: Function,
-      required: false,
-    },
     selected: {
       type: Array,
       required: false,
@@ -337,7 +333,9 @@ export default {
 
         if (this.updateProject) {
           // Update 'project' cache
-          this.$store.commit("cache/remove", { key: item.project.id, item });
+          if(item.project){
+            this.$store.commit("cache/remove", { key: item.project.id, item });
+          }
           item.project = { title: this.project.title, id: this.project.id };
           item.project_id = this.project.id;
           this.$store.commit("cache/add", { key: item.project.id, item });

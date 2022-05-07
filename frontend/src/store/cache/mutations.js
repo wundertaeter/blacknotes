@@ -37,9 +37,9 @@ export function addProjects(state, { key, item }) {
             // console.log('project', project);
             const index = project.notes.findIndex(it => it.id == item.id);
             // console.log('index', index);
-            if (project.id && item.project?.id == project.id ||
-                project._when && item.when == project._when ||
-                project._completed_at && item.completed_at == project._completed_at
+            if (key === 'anytime' && item.project?.id == project.id ||
+                key === 'upcoming' && item.when == project._when ||
+                key === 'logbook' && item.completed_at == project._completed_at
             ) { // Dont select when in project subscription !!!
                 if (index >= 0) {
                     project.notes[index] = item;

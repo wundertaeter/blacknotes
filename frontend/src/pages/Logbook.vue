@@ -1,7 +1,6 @@
 <template>
-  <timeline
+  <logbook
     :config="config"
-    backwards
     :start="today"
     group-by="completed_at"
     icon="assignment_turned_in"
@@ -14,13 +13,13 @@
 import { defineComponent } from "vue";
 const SUBSCRIBE_LOGBOOK_NOTES = require("src/gql/subscriptions/SubscribeLogbookNotes.gql");
 const SUBSCRIBE_LOGBOOK_PROJECTS = require("src/gql/subscriptions/SubscribeLogbookProjects.gql");
-import Timeline from "src/components/Timeline.vue";
+import Logbook from "src/components/Logbook.vue";
 import { today } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Timeline,
+    Logbook,
   },
   data() {
     return {

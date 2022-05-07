@@ -1,11 +1,8 @@
 <template>
-  <timeline
+  <upcoming
     :config="config"
     :start="tomorrow"
     group-by="when"
-    drop
-    drag
-    sort
     icon="date_range"
     title="Upcoming"
     id="upcoming"
@@ -14,20 +11,20 @@
     <template v-slot:toolbar="{ addNote }">
       <q-btn icon="add" @click="addNote" />
     </template>
-  </timeline>
+  </upcoming>
 </template>
 
 <script>
 import { defineComponent } from "vue";
 const SUBSCRIBE_UPCOMING_NOTES = require("src/gql/subscriptions/SubscribeUpcomingNotes.gql");
 const SUBSCRIBE_UPCOMING_PROJECTS = require("src/gql/subscriptions/SubscribeUpcomingProjects.gql");
-import Timeline from "src/components/Timeline.vue";
+import Upcoming from "src/components/Upcoming.vue";
 import { toDatabaseString, today, tomorrow } from "src/common/date.js";
 
 export default defineComponent({
   name: "PageIndex",
   components: {
-    Timeline,
+    Upcoming,
   },
   data() {
     return {
