@@ -1,8 +1,8 @@
 import { toDatabaseString } from "src/common/date";
 import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
-const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
-const TRASH_NOTE = require("src/gql/mutations/TrashNote.gql");
+const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
+const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
@@ -79,18 +79,43 @@ export default {
       }
       this.listComponents.push(component);
     },
-    revert(e) {
+    trash(e, set) {
       e.stopPropagation();
+      const notes = [];
+      const projects = [];
       this.selectedItems.forEach((item) => {
-        item = { ...item, deleted: false, deleted_at: null };
+        item = { ...item, ...set }
+        const { __typename, project, ...obj } = item;
+        if (__typename.includes('_note')) {
+          notes.push(obj);
+        } else {
+          projects.push(obj);
+        }
+        this.removeItem(item, false);
+      })
+
+      this.$store.commit('cache/save');
+
+      if (notes.length) {
         this.$mutateQueue({
-          mutation: item.__typename.includes("_note")
-            ? TRASH_NOTE
-            : TRASH_PROJECT,
-          variables: item,
+          mutation: TRASH_NOTES,
+          variables: {
+            objects: notes
+          },
         });
-        this.removeItem(item);
-      });
+      }
+
+      if (projects.length) {
+        this.$mutateQueue({
+          mutation: TRASH_PROJECTS,
+          variables: {
+            objects: projects
+          },
+        });
+      }
+    },
+    revert(e) {
+      this.trash(e, { deleted: false, deleted_at: null });
     },
     setEditItem(item) {
       this.edit = item;
@@ -124,8 +149,7 @@ export default {
     onKeydown(e) {
       if (!this.edit && this.selectedItem) {
         if (e.keyCode === 8) {
-          e.stopPropagation();
-          this.selectedItems.forEach((item) => this.trash(item));
+          this.trash(e, { deleted: true, deleted_at: new Date() })
         } else if (e.keyCode == 38) {
           e.preventDefault();
           this.selectionUp();
@@ -135,18 +159,6 @@ export default {
           this.selectionDown();
           this.scrollTo(this.selectedItem);
         }
-      }
-    },
-    trash(item) {
-      if(!item.deleted){
-        item = { ...item, deleted: true, deleted_at: new Date() };
-        this.$mutateQueue({
-          mutation: item.__typename.includes("_note")
-            ? TRASH_NOTE
-            : TRASH_PROJECT,
-          variables: item,
-        });
-        this.removeItem(item);
       }
     },
     check(item) {

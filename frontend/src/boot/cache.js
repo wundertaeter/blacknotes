@@ -70,8 +70,8 @@ export default boot(
 
         }
 
-        app.config.globalProperties.$updateCache = (item, skipCurrent) => {
-            if(!skipCurrent) handle('current', item);
+        app.config.globalProperties.$updateCache = (item, commit) => {
+            handle('current', item);
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const current = router.currentRoute.value.name;
@@ -99,7 +99,9 @@ export default boot(
 
                     resolve()
 
-                    store.commit('cache/save');
+                    if(commit || commit === undefined){
+                        store.commit('cache/save');
+                    }
                 })
             })
 

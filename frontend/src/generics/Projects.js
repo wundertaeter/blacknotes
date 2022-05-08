@@ -36,12 +36,12 @@ export default {
 
    //  this.$store.commit("cache/update", {projects: cacheItems});
    //},
-    removeItem(note) {
+    removeItem(note, commit) {
       const project = this.selectedProject;
       const projectIndex = this.cache.indexOf(project);
       const index = project.notes.findIndex((n) => n.id == note.id);
 
-      this.$updateCache(note);
+      this.$updateCache(note, commit);
       
       this.$nextTick(() => {
         const project = this.cache[projectIndex];

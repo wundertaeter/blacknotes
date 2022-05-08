@@ -76,7 +76,7 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <slot name="toolbar" v-bind="{ addNote, revert, deleteAll }" />
+        <slot name="toolbar" v-bind="{ addNote, revert }" />
       </q-toolbar>
     </q-footer>
   </q-page>
@@ -85,8 +85,6 @@
 <script>
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
-const DELETE_PROJECTS = require("src/gql/mutations/DeleteProjects.gql");
-const DELETE_NOTES = require("src/gql/mutations/DeleteNotes.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
 import Base from "src/generics/Base.js";
@@ -160,13 +158,13 @@ export default {
         when: this.when ? toDatabaseString(this.when) : null,
       };
     },
-    removeItem(item) {
+    removeItem(item, commit) {
       let next;
       const index = this.cache.findIndex(
         (it) => it.id == item.id && it.__typename == item.__typename
       );
 
-      this.$updateCache(item);
+      this.$updateCache(item, commit);
 
       this.$nextTick(() => {
         // console.log(this.cache);
@@ -176,40 +174,6 @@ export default {
           next = this.cache[length - 1];
         }
         this.setSelectedItem(next);
-      });
-    },
-    deleteAll(e) {
-      e.stopPropagation();
-      // const itemsToTrash = { notes: [], projects: [] };
-      const itemsToDelete = { notes: [], projects: [] };
-      this.cache.forEach((item) => {
-        if (item.deleted) {
-          if (item.__typename.includes("_note")) {
-            itemsToDelete.notes.push(item);
-          } else {
-            itemsToDelete.projects.push(item);
-          }
-        }
-      });
-      if (itemsToDelete.notes.length) {
-        this.$mutateQueue({
-          mutation: DELETE_NOTES,
-          variables: {
-            ids: itemsToDelete.notes.map((note) => note.id),
-          },
-        });
-      }
-      if (itemsToDelete.projects.length) {
-        this.$mutateQueue({
-          mutation: DELETE_PROJECTS,
-          variables: {
-            ids: itemsToDelete.projects.map((note) => note.id),
-          },
-        });
-      }
-      this.$store.commit("cache/update", {
-        key: this.modelValue.id,
-        items: [],
       });
     },
     selectionDown() {
