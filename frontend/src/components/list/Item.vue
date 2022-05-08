@@ -76,15 +76,30 @@
           :flat="!btnHover"
           @mouseleave="btnHover = false"
           @mouseover="btnHover = true"
-          @click="removewhen"
           v-if="when"
+          icon="today"
+          :label="formatDate(when, 'ddd D. MMM')"
         >
-          <q-icon name="today" />
-          {{ formatDate(when, "ddd D. MMM") }}
-          <q-icon name="close" v-if="btnHover" style="margin-left: 10px" />
+          <q-menu v-model="showMenu">
+            <q-date
+              mask="YYYY-MM-DD"
+              @click.stop
+              v-model="when"
+              :options="dateOptions"
+              minimal
+              @update:modelValue="updatewhen"
+            />
+          </q-menu>
+          <q-icon
+            name="close"
+            @click="removewhen"
+            v-if="btnHover"
+            style="margin-left: 10px"
+          />
         </q-btn>
 
         <q-btn
+          v-if="!when"
           flat
           :disable="readonly"
           icon="calendar_month"
@@ -92,6 +107,8 @@
         >
           <q-menu v-model="showMenu">
             <q-date
+              mask="YYYY-MM-DD"
+              @click.stop
               v-model="when"
               :options="dateOptions"
               minimal
@@ -233,20 +250,18 @@ export default {
     },
   },
   methods: {
-    updateNote(note) {
-      this.$loading(true);
-      if (this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(() => {
-        this.$mutateQueue({
-          mutation: UPDATE_NOTE,
-          variables: {
-            id: note.id,
-            title: note.title ?? "",
-            content: note.content ?? "",
-            when: note.when ? toDatabaseString(note.when) : null,
-          },
-        });
-      }, 500);
+    update(note) {
+      this.$mutateQueue({
+        mutation: UPDATE_NOTE,
+        variables: {
+          id: note.id,
+          title: note.title ?? "",
+          content: note.content ?? "",
+          when: note.when,
+        },
+      });
+      this.$emit("update:modelValue", note);
+      this.$updateCache(note);
     },
     dateOptions(timestamp) {
       return isToday(timestamp) || isFuture(timestamp);
@@ -256,11 +271,11 @@ export default {
     },
     removewhen() {
       this.when = null;
-      this.updateModelValue();
+      this.updatewhen();
     },
     updatewhen() {
       this.showMenu = false;
-      this.updateModelValue();
+      this.update({ ...this.modelValue, when: this.when });
     },
     onContentFocus() {
       this.contentFocused = true;
@@ -316,15 +331,18 @@ export default {
       }
     },
     updateModelValue() {
-      const note = {
-        ...this.modelValue,
-        when: this.when,
-        title: this.title,
-        content: this.content,
-      };
-      this.$emit("update:modelValue", note);
-      this.updateNote(note);
-      this.$updateCache(note);
+      this.$loading(true);
+      if (this.updateId) clearTimeout(this.updateId);
+      this.updateId = setTimeout(
+        () =>
+          update({
+            ...this.modelValue,
+            when: this.when,
+            title: this.title,
+            content: this.content,
+          }),
+        500
+      );
     },
   },
 };

@@ -1,5 +1,5 @@
 import { Store } from "../index";
-
+import { formatDateForward, formatDateBackwards } from "src/common/date";
 export function save(state) {
     return new Promise(resolve => {
         setTimeout(() => {
@@ -34,12 +34,12 @@ export function addProjects(state, { key, item }) {
         const items = JSON.parse(JSON.stringify(cache));
         // console.log('items', items);
         for (const project of items) {
-            // console.log('project', project);
+            console.log('project', project);
             const index = project.notes.findIndex(it => it.id == item.id);
-            // console.log('index', index);
+            console.log('index', index);
             if (key === 'anytime' && item.project?.id == project.id ||
-                key === 'upcoming' && item.when == project._when ||
-                key === 'logbook' && item.completed_at == project._completed_at
+                key === 'upcoming' && formatDateForward(item.when) == project.title ||
+                key === 'logbook' && formatDateBackwards(item.completed_at) == project.title
             ) { // Dont select when in project subscription !!!
                 if (index >= 0) {
                     project.notes[index] = item;

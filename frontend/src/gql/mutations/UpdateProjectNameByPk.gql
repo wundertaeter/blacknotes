@@ -1,6 +1,5 @@
 mutation UpdateProjectNameByPk($id: uuid!, $title: String!) {
   update_notes_project_by_pk(pk_columns: {id: $id}, _set: {title: $title}) {
-    id
     title
   }
 }

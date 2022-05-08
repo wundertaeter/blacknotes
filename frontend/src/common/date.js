@@ -54,37 +54,34 @@ export function formatDate(timestamp, format) {
     return date.formatDate(timestamp, format);
 }
 
-export function timelineDays(timeline) {
-    const dates = [];
-    let next;
-    for (let i = 0; i <= timeline; i++) {
-        next = date.addToDate(today(), { day: i });
-        dates.push({ date: next, title: date.formatDate(next, "dddd") });
-    }
-    return dates;
-}
+// export function timelineDays(timeline) {
+//     const dates = [];
+//     let next;
+//     for (let i = 0; i <= timeline; i++) {
+//         next = date.addToDate(today(), { day: i });
+//         dates.push({ date: next, title: date.formatDate(next, "dddd") });
+//     }
+//     return dates;
+// }
+// 
+// export function timelineMonths(timeline) {
+//     const dates = [];
+//     let next;
+//     for (let i = 0; i <= timeline; i++) {
+//         next = date.addToDate(today(), { month: i });
+//         dates.push({ date: next, title: date.formatDate(next, "dddd") });
+//     }
+//     return dates;
+// }
 
-export function timelineMonths(timeline) {
-    const dates = [];
-    let next;
-    for (let i = 0; i <= timeline; i++) {
-        next = date.addToDate(today(), { month: i });
-        dates.push({ date: next, title: date.formatDate(next, "dddd") });
-    }
-    return dates;
-}
-
-export function formatDateForward(timestamp, timelineDays) {
+export function formatDateForward(timestamp) {
     if (isTomorrow(timestamp)) {
         return date.formatDate(timestamp, "D") + " Tomorrow";
     }
-    let dateString = date.formatDate(timestamp, "D dddd");
-    if (
-        timelineDays.some((d) =>
-            date.isSameDate(d.date, timestamp, "day")
-        )
-    ) {
-        return dateString;
+    const todayD = today();
+    const nextWeek = date.addToDate(todayD, { day: 7 });
+    if (date.isBetweenDates(timestamp, todayD, nextWeek)) {
+        return date.formatDate(timestamp, "D dddd");
     }
     return date.formatDate(timestamp, "MMMM");
 }

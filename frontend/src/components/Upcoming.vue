@@ -112,7 +112,7 @@ export default {
       return b[this.positionColumn] - a[this.positionColumn];
     },
     formatDate(timestamp) {
-      return formatDateForward(timestamp, this.timelineDates);
+      return formatDateForward(timestamp);
     },
   },
   computed: {
@@ -141,9 +141,6 @@ export default {
       return dates.sort((a, b) => a.date - b.date);
     },
     //this.dates.some(d => date.isSameDate(d.date, timestamp, 'day'))
-    timelineDates() {
-      return [...timelineDays(this.timeline), ...timelineMonths(this.timeline)];
-    },
     end() {
       return this.orderdDates[this.orderdDates.length - 1].date;
     },
