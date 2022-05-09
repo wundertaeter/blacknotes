@@ -105,6 +105,8 @@ export default {
         this.frequencyValue = { [every]: unit };
 
         this.updateRepeat();
+      }else{
+        this.frequencyValue = null;
       }
     },
     updateRepeat(endDate) {
