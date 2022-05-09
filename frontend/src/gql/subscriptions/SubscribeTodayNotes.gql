@@ -7,6 +7,7 @@ subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
     when
     user_id
     position
+    frequency
     anytime_position
     today_position
     someday_position

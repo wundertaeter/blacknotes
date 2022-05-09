@@ -70,52 +70,39 @@
 
     <q-card-actions class="actions-card" v-if="edit && selected">
       <div class="editor-actions">
-        <q-btn
+        <when-picker
           :disable="readonly"
           :outline="btnHover"
           :flat="!btnHover"
+          :frequency="frequency"
           @mouseleave="btnHover = false"
           @mouseover="btnHover = true"
           v-if="when"
+          v-model="when"
           icon="today"
+          @update:modelValue="updatewhen"
+          @update:frequency="updateFrequency"
           :label="formatDate(when, 'ddd D. MMM')"
         >
-          <q-menu v-model="showMenu">
-            <q-date
-              mask="YYYY-MM-DD"
-              @click.stop
-              v-model="when"
-              :options="dateOptions"
-              minimal
-              @update:modelValue="updatewhen"
-            />
-          </q-menu>
           <q-icon
             name="close"
             @click="removewhen"
             v-if="btnHover"
             style="margin-left: 10px"
           />
-        </q-btn>
+        </when-picker>
 
-        <q-btn
+        <when-picker
           v-if="!when"
           flat
           :disable="readonly"
+          v-model="when"
+          :frequency="frequency"
+          @update:modelValue="updatewhen"
+          @update:frequency="updateFrequency"
           icon="calendar_month"
           class="float-right"
-        >
-          <q-menu v-model="showMenu">
-            <q-date
-              mask="YYYY-MM-DD"
-              @click.stop
-              v-model="when"
-              :options="dateOptions"
-              minimal
-              @update:modelValue="updatewhen"
-            />
-          </q-menu>
-        </q-btn>
+        />
       </div>
     </q-card-actions>
   </q-card>
@@ -123,17 +110,17 @@
 
 <script>
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
-import { toDatabaseString } from "src/common/date.js";
+import WhenPicker from "src/components/WhenPicker.vue";
 import {
   formatDate,
   today,
   someday,
-  isToday,
-  isFuture,
 } from "src/common/date.js";
 
 export default {
-  components: {},
+  components: {
+    WhenPicker
+  },
   props: {
     modelValue: {
       type: Object,
@@ -192,6 +179,10 @@ export default {
       if (this.when !== value.when) {
         this.when = value.when;
       }
+
+      if (this.frequency !== value.frequency) {
+        this.frequency = value.frequency;
+      }
     },
     selected: {
       handler(value) {
@@ -229,7 +220,7 @@ export default {
       edit: false,
       when: this.modelValue.when,
       done: this.modelValue.done,
-      showMenu: false,
+      frequency: this.modelValue.frequency,
       btnHover: false,
       content: this.modelValue.content,
       title: this.modelValue.title,
@@ -253,18 +244,10 @@ export default {
     update(note) {
       this.$mutateQueue({
         mutation: UPDATE_NOTE,
-        variables: {
-          id: note.id,
-          title: note.title ?? "",
-          content: note.content ?? "",
-          when: note.when,
-        },
+        variables: note,
       });
       this.$emit("update:modelValue", note);
       this.$updateCache(note);
-    },
-    dateOptions(timestamp) {
-      return isToday(timestamp) || isFuture(timestamp);
     },
     formatDate(timestamp, format) {
       return formatDate(timestamp, format);
@@ -276,6 +259,16 @@ export default {
     updatewhen() {
       this.showMenu = false;
       this.update({ ...this.modelValue, when: this.when });
+    },
+    updateFrequency(frequency){
+      this.frequency = frequency;
+      this.update({
+            ...this.modelValue,
+            when: this.when,
+            title: this.title,
+            content: this.content,
+            frequency: frequency
+          });
     },
     onContentFocus() {
       this.contentFocused = true;
@@ -335,11 +328,12 @@ export default {
       if (this.updateId) clearTimeout(this.updateId);
       this.updateId = setTimeout(
         () =>
-          update({
+          this.update({
             ...this.modelValue,
             when: this.when,
             title: this.title,
             content: this.content,
+            frequency: this.frequency
           }),
         500
       );

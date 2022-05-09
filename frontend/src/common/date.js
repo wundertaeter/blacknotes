@@ -96,3 +96,18 @@ export function formatDateBackwards(timestamp) {
     }
     return date.formatDate(timestamp, "MMMM");
 }
+
+export function repeat(startDate, endDate, frequency) {
+    const dates = [];
+    let nextDate = startDate;
+    dates.push(toDatabaseString(nextDate));
+    while (true) {
+        nextDate = date.addToDate(nextDate, frequency);
+        if (Date.parse(nextDate) > Date.parse(endDate)) {
+            break;
+        }
+        dates.push(toDatabaseString(nextDate));
+    }
+    console.log("date", dates);
+    return dates;
+}

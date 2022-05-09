@@ -34,6 +34,7 @@ class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notes')
     content = models.TextField()
     title = models.CharField(max_length=256)
+    frequency = models.CharField(max_length=64, null=True, blank=True)
     position = models.IntegerField(null=True, blank=True)
     upcoming_position = models.IntegerField(null=True, blank=True)
     today_position = models.IntegerField(null=True, blank=True)

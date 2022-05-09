@@ -133,9 +133,11 @@ export default {
         this.selectedItems[index] = item;
       }
     },
-    reset() {
-      console.log("reset");
-      this.listComponents.forEach((component) => component.reset());
+    reset(e) {
+      console.log("reset", e);
+      // if(e.target.classList.contains('reset') || e.target.classList.contains('q-scrollarea__content')){
+        this.listComponents.forEach((component) => component.reset());
+      // }
     },
     setEdit(note) {
       if (note) {

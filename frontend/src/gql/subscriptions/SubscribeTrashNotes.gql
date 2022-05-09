@@ -8,6 +8,7 @@ subscription SubscribeTrashNotes($user_id: Int!) {
     user_id
     deleted
     deleted_at
+    frequency
     position
     anytime_position
     today_position
