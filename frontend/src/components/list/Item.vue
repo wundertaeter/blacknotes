@@ -1,20 +1,20 @@
 <template>
   <q-card flat :class="{ selected: selected, item: true }">
     <q-checkbox
-      v-if="modelValue.icon"
-      v-model="done"
+      v-if="item.icon"
+      v-model="item.done"
       size="lg"
       color="orange"
       checked-icon="radio_button_checked"
-      :unchecked-icon="modelValue.icon"
+      :unchecked-icon="item.icon"
       indeterminate-icon="help"
       class="icon-checkbox"
-      @update:modelValue="$emit('check', modelValue)"
+      @update:modelValue="$emit('check', item)"
     />
     <q-checkbox
       v-else
-      v-model="done"
-      @update:modelValue="$emit('check', modelValue)"
+      v-model="item.done"
+      @update:modelValue="$emit('check', item)"
       class="checkbox"
       color="orange"
     />
@@ -26,16 +26,16 @@
             'display-project': renderProjectTitle,
           }"
         >
-          {{ title ? title : "New To-Do" }}
+          {{ item.title || "New To-Do" }}
           <br />
           <span v-if="renderProjectTitle" class="project-title">
-            {{ modelValue.project.title }}
+            {{ item.project.title }}
           </span>
         </div>
         <div class="col-6 text-right self-center ellipsis">
-          <span class="when" v-if="when && datePreview">
+          <span class="when" v-if="item.when && datePreview">
             <q-icon name="today" />
-            {{ formatDate(when, "D. MMM") }}
+            {{ formatDate(item.when, "D. MMM") }}
           </span>
         </div>
       </div>
@@ -45,12 +45,12 @@
           borderless
           ref="title"
           :autofocus="autofocus"
-          v-model="title"
-          @update:modelValue="updateModelValue"
+          v-model="item.title"
+          @update:modelValue="updateModelValueLazy"
           placeholder="New To-Do"
         />
         <q-input
-          v-model="content"
+          v-model="item.content"
           borderless
           @focus="onContentFocus"
           @blur="onContentBlur"
@@ -58,7 +58,7 @@
           class="content-area"
           type="textarea"
           placeholder="Notes"
-          @update:modelValue="updateModelValue"
+          @update:modelValue="updateModelValueLazy"
         />
       </div>
       <!--editor
@@ -74,15 +74,13 @@
           :disable="readonly"
           :outline="btnHover"
           :flat="!btnHover"
-          :frequency="frequency"
           @mouseleave="btnHover = false"
           @mouseover="btnHover = true"
-          v-if="when"
-          v-model="when"
+          v-if="item.when"
+          v-model="item"
           icon="today"
-          @update:modelValue="updatewhen"
-          @update:frequency="updateFrequency"
-          :label="formatDate(when, 'ddd D. MMM')"
+          @update:modelValue="updateModelValue"
+          :label="formatDate(item.when, 'ddd D. MMM')"
         >
           <q-icon
             name="close"
@@ -93,13 +91,11 @@
         </when-picker>
 
         <when-picker
-          v-if="!when"
+          v-if="!item.when"
           flat
           :disable="readonly"
-          v-model="when"
-          :frequency="frequency"
-          @update:modelValue="updatewhen"
-          @update:frequency="updateFrequency"
+          v-model="item"
+          @update:modelValue="updateModelValue"
           icon="calendar_month"
           class="float-right"
         />
@@ -164,25 +160,7 @@ export default {
   },
   watch: {
     modelValue(value) {
-      if (this.content !== value.content) {
-        this.content = value.content;
-      }
-
-      if (this.title !== value.title) {
-        this.title = value.title;
-      }
-
-      if (this.done !== value.done) {
-        this.done = value.done;
-      }
-
-      if (this.when !== value.when) {
-        this.when = value.when;
-      }
-
-      if (this.frequency !== value.frequency) {
-        this.frequency = value.frequency;
-      }
+      this.item = {...value};
     },
     selected: {
       handler(value) {
@@ -196,13 +174,13 @@ export default {
       handler(value) {
         // console.log('edited item handler', value)
         if (value) {
-          if (this.modelValue.__typename.includes("_note")) {
+          if (this.item.__typename.includes("_note")) {
             this.edit = true;
             this.focusTitle();
           } else {
             this.$router.push({
               name: "project",
-              params: { id: this.modelValue.id },
+              params: { id: this.item.id },
             });
             this.$router.push("/");
           }
@@ -211,19 +189,15 @@ export default {
     },
     edit: {
       handler(value) {
-        this.$emit("edit", value ? this.modelValue : null);
+        this.$emit("edit", value ? this.item : null);
       },
     },
   },
-  data() {
+  data(props) {
     return {
       edit: false,
-      when: this.modelValue.when,
-      done: this.modelValue.done,
-      frequency: this.modelValue.frequency,
+      item: {...props.modelValue},
       btnHover: false,
-      content: this.modelValue.content,
-      title: this.modelValue.title,
       checkNoteTimeout: null,
       contentFocused: false,
       updateId: null,
@@ -237,7 +211,7 @@ export default {
       return someday();
     },
     renderProjectTitle() {
-      return this.$route.name != "project" && this.modelValue.project;
+      return this.$route.name != "project" && this.item.project;
     },
   },
   methods: {
@@ -253,22 +227,8 @@ export default {
       return formatDate(timestamp, format);
     },
     removewhen() {
-      this.when = null;
-      this.updatewhen();
-    },
-    updatewhen() {
-      this.showMenu = false;
-      this.update({ ...this.modelValue, when: this.when });
-    },
-    updateFrequency(frequency){
-      this.frequency = frequency;
-      this.update({
-            ...this.modelValue,
-            when: this.when,
-            title: this.title,
-            content: this.content,
-            frequency: frequency
-          });
+      this.item.when = null;
+      this.updateModelValue();
     },
     onContentFocus() {
       this.contentFocused = true;
@@ -290,7 +250,7 @@ export default {
           this.$refs.content.$el.getElementsByTagName("textarea")[0];
         if (e.keyCode == 40) {
           e.preventDefault();
-          const firstLineLen = this.content.split("\n")[0].length;
+          const firstLineLen = this.item.content.split("\n")[0].length;
           this.$refs.content.focus();
           textarea.setSelectionRange(firstLineLen, firstLineLen);
         } else if (e.keyCode == 38) {
@@ -301,7 +261,7 @@ export default {
             e.preventDefault();
             this.$refs.title.focus();
             const title = this.$refs.title.$el.getElementsByTagName("input")[0];
-            title.setSelectionRange(this.title.length, this.title.length);
+            title.setSelectionRange(this.item.title.length, this.item.title.length);
           }
         }
       }
@@ -323,18 +283,15 @@ export default {
         this.edit = true;
       }
     },
-    updateModelValue() {
+    updateModelValue(){
+      this.update(this.item);
+    },
+    updateModelValueLazy() {
       this.$loading(true);
       if (this.updateId) clearTimeout(this.updateId);
       this.updateId = setTimeout(
         () =>
-          this.update({
-            ...this.modelValue,
-            when: this.when,
-            title: this.title,
-            content: this.content,
-            frequency: this.frequency
-          }),
+          this.update(this.note),
         500
       );
     },

@@ -13,16 +13,14 @@
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
-      <q-toolbar>
-       
-      </q-toolbar>
+      <q-toolbar> </q-toolbar>
     </q-footer>
   </q-page>
 </template>
 
 <script>
 import { defineComponent } from "vue";
-
+import { CSRF } from "src/common/csrf_token.js";
 export default defineComponent({
   name: "PageIndex",
   data() {
@@ -37,10 +35,20 @@ export default defineComponent({
       console.log("login", this.username, this.password);
       // we still nedd the api service CSRF
       this.$axios
-        .post("/login_view", {
-          username: this.username,
-          password: this.password,
-        })
+        .post(
+          "/login_view",
+          {
+            username: this.username,
+            password: this.password,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              "content-type": "application/json",
+              "X-CSRFTOKEN": CSRF(),
+            },
+          }
+        )
         .then((resp) => {
           console.log("login_view", resp);
           this.$store.commit("user/initUser", resp.data.user);

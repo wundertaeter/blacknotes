@@ -142,7 +142,7 @@ export default {
     },
     //this.dates.some(d => date.isSameDate(d.date, timestamp, 'day'))
     end() {
-      return this.orderdDates[this.orderdDates.length - 1].date;
+      return this.orderdDates[this.orderdDates.length - 1]?.date;
     },
   },
 };

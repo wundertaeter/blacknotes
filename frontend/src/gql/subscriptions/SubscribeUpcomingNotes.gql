@@ -8,7 +8,8 @@ subscription SubscribeUpcomingNotes($user_id: Int!, $today: date!) {
     user_id
     position
     anytime_position
-    frequency
+    repeat
+    completed_at
     today_position
     someday_position
     anytime_position

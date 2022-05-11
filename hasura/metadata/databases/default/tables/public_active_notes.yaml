@@ -11,25 +11,3 @@ object_relationships:
       remote_table:
         name: notes_project
         schema: public
-select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - content
-    - title
-    - user_id
-    - deleted
-    - when
-    - completed_at
-    - done
-    - position
-    - today_position
-    - upcoming_position
-    - deleted_at
-    - anytime_position
-    - someday_position
-    - id
-    - project_id
-    - frequency
-    filter: {}
-  role: user

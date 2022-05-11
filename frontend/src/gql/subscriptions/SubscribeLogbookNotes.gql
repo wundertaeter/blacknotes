@@ -7,7 +7,7 @@ subscription SubscribeLogbookNotes($user_id: Int!) {
     when
     user_id
     deleted
-    frequency
+    repeat
     completed_at
     position
     anytime_position

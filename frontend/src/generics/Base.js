@@ -1,4 +1,5 @@
-import { toDatabaseString } from "src/common/date";
+import { date, toDatabaseString } from "src/common/date";
+import { uuidv4 } from "src/common/utils";
 import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
@@ -136,7 +137,7 @@ export default {
     reset(e) {
       console.log("reset", e);
       // if(e.target.classList.contains('reset') || e.target.classList.contains('q-scrollarea__content')){
-        this.listComponents.forEach((component) => component.reset());
+      this.listComponents.forEach((component) => component.reset());
       // }
     },
     setEdit(note) {
@@ -169,13 +170,33 @@ export default {
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
-        item = { ...item, done: !item.done, completed_at: item.done ? item.completed_at : toDatabaseString(new Date()) };
+        item = { ...item, completed_at: item.done ? toDatabaseString(new Date()) : item.completed_at };
         this.$mutateQueue({
           mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
         });
         this.removeItem(item);
+        if (item.__typename.includes('_note') && item.done && !item.deleted) {
+          this.repeatNote(item);
+        }
+
       }, 500);
+    },
+    repeatNote(note) {
+      if (note.repeat) {
+        const [unit, count] = note.repeat.split(':');
+        const repeat = unit === 'week' ? { day: 7 * count } : { [unit]: count };
+        const newNote = { ...note, id: uuidv4(), done: false, completed_at: null, when: date.addToDate(note.completed_at, repeat) };
+        this.$updateCache(newNote);
+        this.createNote(newNote);
+      }
+    },
+    createNote(note) {
+      const { __typename, project, ...object } = note;
+      this.$mutateQueue({
+        mutation: CREATE_NOTE,
+        variables: { object },
+      });
     },
     addNote(e) {
       console.log('addNote', this.edit);
@@ -193,10 +214,7 @@ export default {
           this.scrollTo(note);
         });
       });
-      this.$mutateQueue({
-        mutation: CREATE_NOTE,
-        variables: note,
-      });
+      this.createNote(note);
 
     },
   },

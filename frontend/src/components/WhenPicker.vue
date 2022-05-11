@@ -4,39 +4,38 @@
       <q-date
         color="orange"
         mask="YYYY-MM-DD"
-        @navigation="onNavigation"
         @click.stop
-        v-model="value"
+        v-model="item.when"
         :options="dateOptions"
         minimal
         @update:modelValue="updateModelValue"
       >
         <q-btn
-          :flat="!repeat"
-          :outlines="!!repeat"
+          :flat="!item.repeat"
+          :outlines="!!item.repeat"
           style="width: 100%"
           v-if="!addRepeat"
           @click.stop
           align="left"
         >
-          <span v-if="repeat"> <q-icon name="repeat" /> {{ repeat }} </span>
+          <span v-if="item.repeat"> <q-icon name="repeat" /> {{ item.repeat }} </span>
           <span v-else> <q-icon name="add" /> Repeat </span>
 
           <q-menu v-model="showRepeatMenu" fit>
             <q-list>
               <q-item
                 v-for="option in repeatOptions"
-                :key="option.title"
+                :key="option.unit"
                 clickable
                 @click.stop="changeRepeat(option)"
               >
-                Every {{ option.title }}
+                {{ displayOption(option) }}
               </q-item>
             </q-list>
           </q-menu>
 
           <q-space />
-          <span v-if="repeat">
+          <span v-if="item.repeat">
             <q-icon name="close" @click.stop="removeRepeat" />
           </span>
         </q-btn>
@@ -54,106 +53,55 @@ export default {
   data(props) {
     return {
       showMenu: false,
-      value: props.modelValue,
-      repeat: null,
-      frequencyValue: null,
+      item: {...props.modelValue},
       repeatOptions: [
-        { title: "Day", value: { day: 1 } },
-        { title: "Week", value: { week: 1 } },
-        { title: "Month", value: { month: 1 } },
-        { title: "Year", value: { year: 1 } },
+        { unit: 'day', count: 1  },
+        { unit: 'week', count: 1  },
+        { unit: 'month', count: 1  },
+        { unit: 'year', count: 1  },
       ],
       addRepeat: false,
       showRepeatMenu: false,
     };
   },
-  mounted() {
-    this.handleFrequency();
-  },
   watch: {
     modelValue: {
       handler(value) {
-        this.value = value;
-        this.updateRepeat();
-      },
-    },
-    frequency: {
-      handler() {
-        this.handleFrequency();
+        this.item = {...value};
       },
     },
   },
-  props: ["modelValue", "frequency"],
+  props: {
+    modelValue: {
+      type: Object,
+      required: true
+    }
+  },
   methods: {
-    onNavigation(view) {
-      if (this.frequencyValue) {
-        const endDate = date.endOfDate(date.buildDate(view), "month");
-        if (Date.parse(endDate) > Date.parse(this.modelValue)) {
-          this.updateRepeat(endDate);
-        }
-      }
+    multiply(string, number){
+      return number > 1 ? string + s : string;
     },
-    handleFrequency() {
-      if (this.frequency) {
-        let [every, unit] = this.frequency.split(":");
-        if (every == "week") {
-          every = "day";
-          unit = unit * 7;
-        }
-
-        this.repeat = every;
-        this.frequencyValue = { [every]: unit };
-
-        this.updateRepeat();
-      }else{
-        this.frequencyValue = null;
-      }
-    },
-    updateRepeat(endDate) {
-      const startDate = new Date(this.modelValue);
-      if (!endDate) {
-        endDate = date.endOfDate(startDate, "month");
-      }
-      this.value = repeat(startDate, endDate, this.frequencyValue);
+    displayOption(option){
+      return `${option.count} ${this.multiply(option.unit, option.count)}`;
     },
     dateOptions(timestamp) {
       return isToday(timestamp) || isFuture(timestamp);
     },
     updateModelValue() {
-      console.log("update model value ", this.value);
-      this.$emit("update:modelValue", this.value);
+      console.log("update model value ", this.item);
+      this.$emit("update:modelValue", this.item);
     },
     removeRepeat() {
-      console.log("changeRepeat", this.value);
-      this.repeat = null;
-      this.value = Array.isArray(this.value) ? this.value[0] : this.value;
-      this.updateFrequency(null);
-    },
-    updateFrequency(value) {
-      if (value) {
-        Object.keys(value).forEach((key) => {
-          this.$emit("update:frequency", `${key}:${value[key]}`);
-        });
-      } else {
-        this.$emit("update:frequency", null);
-      }
+      console.log("changeRepeat", this.item);
+      this.item.repeat = null;
+      this.updateModelValue();
     },
     changeRepeat(option) {
       console.log("changeRepeat", this.value, option.value);
-      const value = option.value;
-      this.repeat = option.title;
+      this.item.repeat = `${option.unit}:${option.count}`;
       this.showRepeatMenu = false;
 
-      if (value.week) {
-        delete value.week;
-        value.day = 7;
-      }
-
-      this.frequencyValue = value;
-      this.updateRepeat();
-
-      this.updateFrequency(option.value);
-      // this.updateModelValue();
+      this.updateModelValue();
     },
   },
 };

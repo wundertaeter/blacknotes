@@ -100,7 +100,6 @@ export function formatDateBackwards(timestamp) {
 export function repeat(startDate, endDate, frequency) {
     const dates = [];
     let nextDate = startDate;
-    dates.push(toDatabaseString(nextDate));
     while (true) {
         nextDate = date.addToDate(nextDate, frequency);
         if (Date.parse(nextDate) > Date.parse(endDate)) {
@@ -108,6 +107,14 @@ export function repeat(startDate, endDate, frequency) {
         }
         dates.push(toDatabaseString(nextDate));
     }
-    console.log("date", dates);
     return dates;
+}
+
+export function parseRepeat(string){
+    let [every, unit] = string.split(":");
+    if (every == "week") {
+        every = "day";
+        unit = unit * 7;
+    }
+    return {[every]: unit};
 }

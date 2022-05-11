@@ -7,7 +7,8 @@ subscription SubscribeSomedayNotes($user_id: Int!) {
     when
     user_id
     deleted
-    frequency
+    repeat
+    completed_at
     position
     anytime_position
     today_position

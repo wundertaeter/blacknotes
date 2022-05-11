@@ -1,5 +1,5 @@
-mutation UpdateNote($id: uuid!, $title: String = "", $content: String = "", $when: date = "", $frequency: String = "") {
-  update_notes_note_by_pk(pk_columns: {id: $id}, _set: {title: $title, content: $content, when: $when, frequency: $frequency}) {
+mutation UpdateNote($id: uuid!, $title: String = "", $content: String = "", $when: date = "", $repeat: String = "") {
+  update_notes_note_by_pk(pk_columns: {id: $id}, _set: {title: $title, content: $content, when: $when, repeat: $repeat}) {
     content
     when
     title
