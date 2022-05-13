@@ -137,8 +137,7 @@ export default {
       return cache || [];
     },
     orderdDates() {
-      const dates = [...this.dates]; //.filter(d => this.cache[d.title].length);
-      return dates.sort((a, b) => a.date - b.date);
+      return [...this.dates].sort((a, b) => a.date - b.date);
     },
     //this.dates.some(d => date.isSameDate(d.date, timestamp, 'day'))
     end() {

@@ -67,13 +67,11 @@ export default {
   computed: {
     cache() {
       return (
-        this.$store.state.cache[this.id].filter((p) => p.notes.length > 0) || []
+        this.$store.state.cache[this.id].filter((p) => p.notes?.length > 0) || []
       );
     },
     orderdDates() {
-      return [...this.dates]
-        .filter((d) => this.cache && this.cache[d.title]?.length)
-        .sort((a, b) => b.date - a.date);
+      return [...this.dates].sort((a, b) => b.date - a.date);
     },
   },
 };
