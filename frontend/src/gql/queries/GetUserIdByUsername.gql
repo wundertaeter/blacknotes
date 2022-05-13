@@ -1,0 +1,8 @@
+query GetUserIdByUsername($username: String!) {
+  users: auth_user(where: {username: {_eq: $username}}) {
+    id
+    profile {
+      id
+    }
+  }
+}

@@ -1,0 +1,5 @@
+mutation AddFriend($objects: [users_profile_friends_insert_input!]!) {
+  friend: insert_users_profile_friends(objects: $objects) {
+    affected_rows
+  }
+}

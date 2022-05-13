@@ -5,6 +5,8 @@ export default function () {
     admin: null,
     active: null,
     projects: [],
+    friends: [],
+    profile: null,
     //spaces: [],
     loading: false
   }

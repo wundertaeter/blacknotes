@@ -1,0 +1,15 @@
+subscription SubscribeFriends($user_id: Int!) {
+  friends: users_profile_friends(where: {profile: {user_id: {_eq: $user_id}}}) {
+    id
+    user {
+      id
+      username
+      profile{
+        id
+      }
+    }
+    profile {
+      avatar
+    }
+  }
+}

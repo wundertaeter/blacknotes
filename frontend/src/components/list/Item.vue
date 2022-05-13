@@ -291,7 +291,7 @@ export default {
       if (this.updateId) clearTimeout(this.updateId);
       this.updateId = setTimeout(
         () =>
-          this.update(this.note),
+          this.update(this.item),
         500
       );
     },

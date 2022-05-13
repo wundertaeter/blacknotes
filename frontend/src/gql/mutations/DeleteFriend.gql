@@ -1,0 +1,5 @@
+mutation DeleteFriend($profile_id: bigint!, $user_id: Int!) {
+  delete_users_profile_friends(where: {_and: {user_id: {_eq: $user_id}, profile_id: {_eq: $profile_id}}}) {
+    affected_rows
+  }
+}

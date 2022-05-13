@@ -3,8 +3,25 @@ query GetUserData($id: Int!) {
     id
     username
     admin: is_superuser
+    profile{
+      id
+      avatar
+    }
   }
-  projects: notes_project(order_by: {position: asc_nulls_last}, where: {_and: {user_id: {_eq: $id}}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
+  friends: users_profile_friends(where: {profile: {user_id: {_eq: $id}}}) {
+    id
+    user {
+      id
+      username
+      profile{
+        id
+      }
+    }
+    profile {
+      avatar
+    }
+  }
+  projects: notes_project(order_by: {position: asc_nulls_last}, where: {_and: {_or: [{user_id: {_eq: $id}}, {friends: {user_id: {_eq: $id}}}]}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
     title
     icon
     id
@@ -17,5 +34,14 @@ query GetUserData($id: Int!) {
     someday_position
     anytime_position
     upcoming_position
+    friends {
+      user {
+        id
+        username
+        profile {
+          avatar
+        }
+      }
+    }
   }
 }

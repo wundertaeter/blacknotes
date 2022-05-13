@@ -15,7 +15,7 @@
             @update:modelValue="checkProject"
           />
           {{ project.title ? project.title : "New Project" }}
-          <q-btn icon="more_vert" class="float-right" v-if="more">
+          <q-btn icon="more_vert" class="float-right" v-if="more" @click.stop>
             <q-menu v-model="moreShowing">
               <q-list style="min-width: 100px">
                 <q-item clickable v-close-popup @click="trashProject">
@@ -44,7 +44,11 @@
                   </q-item-section>
                 </q-item>
                 <q-separator />
-                <q-item clickable v-close-popup>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click.stop="shareDialog = true"
+                >
                   <q-item-section avatar>
                     <q-icon name="share" />
                   </q-item-section>
@@ -79,12 +83,63 @@
         <slot name="toolbar" v-bind="{ addNote, revert }" />
       </q-toolbar>
     </q-footer>
+    <q-dialog v-model="shareDialog">
+      <q-card style="min-width: 50vw">
+        <q-card-section>
+          <div class="text-h6">Share</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <div>
+            <q-list bordered separator v-if="shares.length">
+              <q-item
+                xxclickable
+                xxv-ripple
+                v-for="friend in shares"
+                :key="friend.id"
+              >
+                <q-item-section>{{ friend.user.username }}</q-item-section>
+                <q-item-section side>
+                  <q-toggle flat v-model="friend.isConnected" color="orange" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+            <div v-else>You do not have any friends... Go find some!</div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions v-if="shares.length" align="right">
+          <q-btn
+            v-if="shares.length"
+            flat
+            label="Share"
+            @click.stop="shareProject"
+            v-close-popup
+          />
+        </q-card-actions>
+
+        <q-card-actions v-else>
+          <div class="row" style="width: 100%">
+            <q-btn flat label="Cancle" v-close-popup />
+            <q-space />
+            <q-btn
+              flat
+              label="Find Some"
+              v-close-popup
+              @click.stop="$router.push('profile')"
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script>
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
+const SHARE_PROJECT = require("src/gql/mutations/ShareProject.gql");
+const UNSHARE_PROJECT = require("src/gql/mutations/UnshareProject.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
 import Base from "src/generics/Base.js";
@@ -97,7 +152,12 @@ export default {
       project: JSON.parse(JSON.stringify(this.modelValue)),
       timeout: null,
       moreShowing: false,
+      shareDialog: null,
+      shares: [],
     };
+  },
+  mounted() {
+    this.buildShares();
   },
   props: {
     modelValue: {
@@ -127,6 +187,18 @@ export default {
       },
       deep: true,
     },
+    "user.friends": {
+      handler(){
+        this.buildShares();
+      },
+      deep: true,
+    },
+    "project.friends": {
+      handler(){
+        this.buildShares();
+      },
+      deep: true,
+    },
   },
   computed: {
     maxPosition() {
@@ -135,10 +207,20 @@ export default {
       return positions.length ? Math.max(...positions) : 0;
     },
     cache() {
-      return this.$store.state.cache[this.modelValue.id]
+      return this.$store.state.cache[this.modelValue.id] || [];
     },
   },
   methods: {
+    buildShares() {
+      if(this.user?.friends && this.project.friends){
+        this.shares = this.user.friends.map((friend) => ({
+          ...friend,
+          isConnected: this.project.friends.some(
+            (f) => f.user.id === friend.user.id
+          ),
+        }));
+      }
+    },
     newNote() {
       return {
         __typename: "active_notes",
@@ -157,6 +239,33 @@ export default {
         project: this.project.default ? null : this.project,
         when: this.when ? toDatabaseString(this.when) : null,
       };
+    },
+    shareProject() {
+      const addFriends = [];
+      const removeFriendIds = [];
+      this.shares.forEach((friend) =>
+        friend.isConnected
+          ? addFriends.push({
+              project_id: this.project.id,
+              user_id: friend.user.id,
+            })
+          : removeFriendIds.push(friend.user.id)
+      );
+      if (addFriends.length) {
+        this.$mutateQueue({
+          mutation: SHARE_PROJECT,
+          variables: { objects: addFriends },
+        });
+      }
+      if (removeFriendIds.length) {
+        this.$mutateQueue({
+          mutation: UNSHARE_PROJECT,
+          variables: {
+            project_id: this.project.id,
+            friend_ids: removeFriendIds,
+          },
+        });
+      }
     },
     removeItem(item, commit) {
       let next;
@@ -247,7 +356,7 @@ export default {
         });
 
         this.$updateCache(this.project);
-        
+
         if (this.project.done) {
           this.nextProject();
         } else {
@@ -263,7 +372,9 @@ export default {
         console.log("update cache", this.notes, this.projects);
         this.$store.commit("cache/update", {
           key: this.modelValue.id,
-          items: [...this.notes || [], ...this.projects || []].sort(this.sortMethod)
+          items: [...(this.notes || []), ...(this.projects || [])].sort(
+            this.sortMethod
+          ),
         });
         this.projects = null;
         this.notes = null;

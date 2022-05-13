@@ -10,6 +10,12 @@ export function save(state) {
     })
 }
 
+export function clear(state) {
+    state = {};
+    localStorage.setItem('cache', JSON.stringify(state));
+}
+
+
 export function update(state, { key, items }) {
     state[key] = items;
     delete state[key].new;

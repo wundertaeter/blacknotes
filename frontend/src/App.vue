@@ -6,7 +6,7 @@ import { defineComponent } from "vue";
 import { QSpinnerFacebook } from "quasar";
 const GET_USER_DATA = require("src/gql/queries/GetUserData.gql");
 const SUBSCRIBE_PROJECTS = require("src/gql/subscriptions/SubscribeProjects.gql");
-
+const SUBSCRIBE_FRIENDS = require("src/gql/subscriptions/SubscribeFriends.gql");
 export default defineComponent({
   name: "App",
   created() {
@@ -18,7 +18,7 @@ export default defineComponent({
       // message: 'Some important process is in progress. Hang on...',
       // messageColor: 'black'
     });
-    this.$store.commit('cache/load');
+    this.$store.commit("cache/load");
     this.$q.dark.set(true);
   },
   computed: {
@@ -43,8 +43,10 @@ export default defineComponent({
       skip() {
         return !this.userId;
       },
-      subscribeToMore: {
-        document: SUBSCRIBE_PROJECTS,
+    },
+    $subscribe: {
+      projects: {
+        query: SUBSCRIBE_PROJECTS,
         variables() {
           return {
             user_id: this.userId,
@@ -53,17 +55,25 @@ export default defineComponent({
         skip() {
           return !this.userId || !this.user;
         },
-        result(data) {
-          if (data.projects) {
-            this.$store.commit("user/updateProjects", data.projects);
+        result(result) {
+          if (result.data.projects) {
+            this.$store.commit("user/updateUser", result.data);
           }
         },
-        updateQuery: (previousResult, { subscriptionData }) => {
-          if (previousResult.projects && previousResult.user) {
-            return {
-              ...previousResult,
-              projects: subscriptionData.data.projects,
-            };
+      },
+      friends: {
+        query: SUBSCRIBE_FRIENDS,
+        variables() {
+          return {
+            user_id: this.userId,
+          };
+        },
+        skip() {
+          return !this.userId || !this.user;
+        },
+        result(result) {
+          if (result.data.friends) {
+            this.$store.commit("user/updateUser", result.data);
           }
         },
       },

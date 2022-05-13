@@ -1,7 +1,22 @@
 table:
   name: auth_user
   schema: public
+object_relationships:
+- name: profile
+  using:
+    foreign_key_constraint_on:
+      column: user_id
+      table:
+        name: users_profile
+        schema: public
 array_relationships:
+- name: friends
+  using:
+    foreign_key_constraint_on:
+      column: user_id
+      table:
+        name: users_profile_friends
+        schema: public
 - name: notes
   using:
     foreign_key_constraint_on:

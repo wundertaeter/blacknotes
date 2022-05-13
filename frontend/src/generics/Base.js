@@ -170,7 +170,7 @@ export default {
       if (this.checkTimeout) clearTimeout(this.checkTimeout);
       this.checkTimeout = setTimeout(() => {
         // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
-        item = { ...item, completed_at: item.done ? toDatabaseString(new Date()) : item.completed_at };
+        item = { ...item, completed_at: item.done ? new Date() : item.completed_at };
         this.$mutateQueue({
           mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
           variables: item,
@@ -186,7 +186,7 @@ export default {
       if (note.repeat) {
         const [unit, count] = note.repeat.split(':');
         const repeat = unit === 'week' ? { day: 7 * count } : { [unit]: count };
-        const newNote = { ...note, id: uuidv4(), done: false, completed_at: null, when: date.addToDate(note.completed_at, repeat) };
+        const newNote = { ...note, id: uuidv4(), done: false, completed_at: null, when: toDatabaseString(date.addToDate(note.completed_at, repeat)) };
         this.$updateCache(newNote);
         this.createNote(newNote);
       }

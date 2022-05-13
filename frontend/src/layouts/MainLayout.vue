@@ -187,6 +187,10 @@
                   />
                   <span v-else>{{ element.title }}</span>
                 </q-item-section>
+
+                <q-item-section side v-if="element.user_id !== user.id">
+                  <q-icon name="share" />
+                </q-item-section>
               </q-item>
             </template>
           </draggable>

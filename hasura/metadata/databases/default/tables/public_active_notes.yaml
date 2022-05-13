@@ -11,3 +11,73 @@ object_relationships:
       remote_table:
         name: notes_project
         schema: public
+insert_permissions:
+- permission:
+    backend_only: false
+    check: {}
+    columns:
+    - deleted
+    - done
+    - repeat
+    - title
+    - when
+    - anytime_position
+    - position
+    - someday_position
+    - today_position
+    - upcoming_position
+    - user_id
+    - content
+    - completed_at
+    - deleted_at
+    - id
+    - project_id
+  role: user
+select_permissions:
+- permission:
+    allow_aggregations: true
+    columns:
+    - deleted
+    - done
+    - repeat
+    - title
+    - when
+    - anytime_position
+    - position
+    - someday_position
+    - today_position
+    - upcoming_position
+    - user_id
+    - content
+    - completed_at
+    - deleted_at
+    - id
+    - project_id
+    filter: {}
+  role: user
+update_permissions:
+- permission:
+    check: {}
+    columns:
+    - deleted
+    - done
+    - repeat
+    - title
+    - when
+    - anytime_position
+    - position
+    - someday_position
+    - today_position
+    - upcoming_position
+    - user_id
+    - content
+    - completed_at
+    - deleted_at
+    - id
+    - project_id
+    filter: {}
+  role: user
+delete_permissions:
+- permission:
+    filter: {}
+  role: user

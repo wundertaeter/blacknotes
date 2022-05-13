@@ -10,7 +10,6 @@ export default {
       whens: [],
       dates: [],
       timeline: 7,
-      dateMap: {},
     };
   },
   props: {
@@ -27,10 +26,8 @@ export default {
     updateCache() {
       if (this.projects && this.notes) {
         const items = {};
-        const dateMap = {};
         this.dates.forEach((date) => {
           items[date.title] = [];
-          dateMap[date.title] = date.date;
         });
 
         let date;
@@ -44,7 +41,6 @@ export default {
               date,
             });
             items[dateString] = [];
-            dateMap[dateString] = date;
           }
           items[dateString].push(note);
         });
@@ -57,20 +53,20 @@ export default {
               date,
             });
             items[dateString] = [];
-            dateMap[dateString] = date;
           }
           items[dateString].push(note);
         });
-        for (const date in items) {
-          items[date] = items[date].sort(this.sortMethod);
-        }
+        
+        // for (const date in items) {
+        //   items[date] = items[date].sort(this.sortMethod);
+        // }
 
         const cacheItems = [];
-        for (const dateString in items) {
+        for (const date of this.orderdDates) {
           cacheItems.push({
-            title: dateString,
-            notes: items[dateString],
-            [`_${this.groupBy}`]: toDatabaseString(dateMap[dateString]),
+            title: date.title,
+            notes: items[date.title],
+            [`_${this.groupBy}`]: toDatabaseString(date.date),
           });
         }
 

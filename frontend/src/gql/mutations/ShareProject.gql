@@ -1,0 +1,5 @@
+mutation ShareProject($objects: [notes_project_friends_insert_input!]!) {
+  insert_notes_project_friends(objects: $objects, on_conflict: {constraint: notes_project_friends_project_id_user_id_43906f1a_uniq}) {
+    affected_rows
+  }
+}

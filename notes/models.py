@@ -23,6 +23,7 @@ class Project(models.Model):
     someday_position = models.IntegerField(null=True, blank=True)
     anytime_position = models.IntegerField(null=True, blank=True)
     done = models.BooleanField(default=False)
+    friends = models.ManyToManyField(User)
     # deadline = models.DateField(null=True, blank=True)
     when = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)

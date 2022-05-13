@@ -1,0 +1,5 @@
+mutation UnshareProject($friend_ids: [Int!]!, $project_id: uuid!) {
+  delete_notes_project_friends(where: {project_id: {_eq: $project_id}, user_id: {_in: $friend_ids}}) {
+    affected_rows
+  }
+}
