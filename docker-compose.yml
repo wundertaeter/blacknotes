@@ -45,6 +45,8 @@ services:
       DJANGO_SECRET: $DJANGO_SECRET
     depends_on:
       - "postgres"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   db_data:

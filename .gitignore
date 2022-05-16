@@ -17,3 +17,7 @@ __pycache__/
 *.ipynb
 
 sec/
+
+# Logs
+*.log
+*.error
