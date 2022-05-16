@@ -159,7 +159,7 @@ module.exports = configure(function (ctx) {
 
     // https://quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxPluginMode: "GenerateSW", // 'GenerateSW' or 'InjectManifest'
+      workboxPluginMode: "InjectManifest", // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
 
       // for the custom service worker ONLY (/src-pwa/custom-service-worker.[js|ts])
@@ -176,8 +176,8 @@ module.exports = configure(function (ctx) {
         description: `Set your returns on fire`,
         display: "standalone",
         orientation: "portrait",
-        background_color: "#ffffff",
-        theme_color: "#027be3",
+        background_color: "#1d1d1d",
+        theme_color: "#1d1d1d",
         icons: [
           {
             src: "icons/icon-128x128.png",

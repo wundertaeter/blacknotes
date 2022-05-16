@@ -22,7 +22,7 @@
 import { defineComponent } from "vue";
 import { CSRF } from "src/common/csrf_token.js";
 export default defineComponent({
-  name: "PageIndex",
+  name: "LoginView",
   data() {
     return {
       username: null,
@@ -50,7 +50,6 @@ export default defineComponent({
         )
         .then((resp) => {
           console.log("login_view", resp);
-          this.$store.commit("user/initUser", resp.data.user);
           this.$router.push("today");
         });
     },

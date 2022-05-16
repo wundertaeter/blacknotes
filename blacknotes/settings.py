@@ -45,7 +45,11 @@ INSTALLED_APPS = [
 
 ]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080"]
+CORS_ALLOWED_ORIGINS = []
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^http://localhost\:\d{4}$',
+]
 
 CORS_ALLOW_METHODS = [
     'DELETE',
