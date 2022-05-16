@@ -9,7 +9,6 @@
 /* eslint-env node */
 const ESLintPlugin = require("eslint-webpack-plugin");
 const { configure } = require("quasar/wrappers");
-const BundleTracker = require("webpack-bundle-tracker");
 
 module.exports = configure(function (ctx) {
   return {
@@ -68,13 +67,6 @@ module.exports = configure(function (ctx) {
         chain
           .plugin("eslint-webpack-plugin")
           .use(ESLintPlugin, [{ extensions: ["js", "vue"] }]);
-
-        chain
-          .output
-          .publicPath('http://localhost:8080/')
-        chain
-          .plugin('BundleTracker')
-          .use(BundleTracker, [{ filename: './webpack-stats.json' }])
     
         chain.output
           .filename('bundle.js')

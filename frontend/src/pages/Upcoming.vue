@@ -9,7 +9,7 @@
     position-column="upcoming_position"
   >
     <template v-slot:toolbar="{ addNote }">
-      <q-btn icon="add" @click="addNote" />
+      <q-btn icon="add" flat @click="addNote" />
     </template>
   </upcoming>
 </template>

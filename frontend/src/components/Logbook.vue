@@ -67,7 +67,7 @@ export default {
   computed: {
     cache() {
       return (
-        this.$store.state.cache[this.id].filter((p) => p.notes?.length > 0) || []
+        this.$store.state.cache[this.id]?.filter((p) => p.notes?.length > 0) || []
       );
     },
     orderdDates() {

@@ -41,7 +41,7 @@ export default route(function (/* { store, ssrContext } */) {
     let user = Store.state.user;
     if (!user.id) {
       try {
-        const resp = await axios.get("/get_user")
+        const resp = await axios.get(process.env.DJANGO_URL + "/get_user", {withCredentials: true})
         Store.commit("user/initUser", resp.data.user);
       } catch { }
     }

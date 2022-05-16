@@ -246,7 +246,7 @@ export default defineComponent({
   // mounted() {
   //   console.log('Layout.vue mounted');
   //   if (this.$route.name == "project" && !this.currentProject) {
-  //     this.$router.push("/today");
+  //     this.$router.push("today");
   //   }
   // },
   data() {

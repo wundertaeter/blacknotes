@@ -119,6 +119,8 @@ export default {
     cache() {
       let cache = this.$store.state.cache[this.id];
 
+      if(!cache) return [];
+
       const newItem = cache.new;
       if (newItem) {
         this.$store.commit("cache/update", {
@@ -134,7 +136,7 @@ export default {
         });
       }
 
-      return cache || [];
+      return cache;
     },
     orderdDates() {
       return [...this.dates].sort((a, b) => a.date - b.date);

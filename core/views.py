@@ -33,7 +33,6 @@ def login_view(request):
     username = data.get('username')
     password = data.get('password')
     user = authenticate(username=username, password=password)
-    print(username, password, data, user)
     if not user:
         return JsonResponse({'user': None}, status=401)
     login(request, user)
@@ -48,12 +47,3 @@ def logout_view(request):
         logout(request)
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=401)
-
-class IndexTemplateView(TemplateView):
-
-    def get_template_names(self):
-        if settings.DEBUG:
-            template_name = "index-dev.html"
-        else:
-            template_name = "index.html"
-        return template_name

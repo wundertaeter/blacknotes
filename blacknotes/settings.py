@@ -38,18 +38,37 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',
+
     'notes',
-    'users'
+    'users',
+
 ]
 
-if DEBUG:
-    INSTALLED_APPS.append('webpack_loader') # npm install --save-dev webpack-bundle-tracker@0.4.3
-    WEBPACK_LOADER = {
-        'DEFAULT': {
-            'BUNDLE_DIR_NAME': 'dist/',
-            'STATS_FILE': os.path.join(BASE_DIR, 'frontend', 'webpack-stats.json'),
-        }
-    }
+CORS_ALLOWED_ORIGINS = ["http://localhost:8080"]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -59,6 +78,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'blacknotes.urls'
@@ -85,7 +107,7 @@ WSGI_APPLICATION = 'blacknotes.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = { 
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_NAME'),
@@ -93,7 +115,7 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': 'host.docker.internal',
         'PORT': '5555',
-    }   
+    }
 }
 
 

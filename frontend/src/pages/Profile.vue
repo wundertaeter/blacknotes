@@ -30,9 +30,14 @@
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <q-btn @click="addFriendDialog = true" label="Add Friend" icon="add" />
+        <q-btn
+          @click="addFriendDialog = true"
+          flat
+          label="Add Friend"
+          icon="add"
+        />
         <q-space />
-        <q-btn icon="logout" label="Logout" @click="logout" />
+        <q-btn icon="logout" flat label="Logout" @click="logout" />
       </q-toolbar>
     </q-footer>
 
@@ -68,13 +73,15 @@ export default {
   },
   methods: {
     logout() {
-      this.$axios.get("/logout_view").then((resp) => {
-        console.log("logout", resp);
-        this.$store.commit("user/initUser", {});
-        this.$store.commit("user/updateProjects", []);
-        this.$store.commit("cache/clear");
-        this.$router.push("/login");
-      });
+      this.$axios
+        .get(process.env.DJANGO_URL + "/logout_view", { withCredentials: true })
+        .then((resp) => {
+          console.log("logout", resp);
+          this.$store.commit("user/initUser", {});
+          this.$store.commit("user/updateProjects", []);
+          this.$router.push("login");
+          this.$store.commit("cache/clear");
+        });
     },
     getUserByUsername(username) {
       return this.$apollo.query({
@@ -101,12 +108,12 @@ export default {
             return this.$mutateQueue({
               mutation: ADD_FRIEND,
               variables: {
-                objects
+                objects,
               },
             });
           })
           .then((resp) => {
-            console.log('resp', resp);
+            console.log("resp", resp);
             if (resp.data?.friend) {
               this.addFriendDialog = false;
             }
@@ -118,24 +125,23 @@ export default {
         mutation: DELETE_FRIEND,
         variables: {
           user_id: friend.user.id,
-          profile_id: this.user.profile.id
+          profile_id: this.user.profile.id,
         },
       });
       this.$mutateQueue({
         mutation: DELETE_FRIEND,
         variables: {
           user_id: this.user.id,
-          profile_id: friend.user.profile.id
+          profile_id: friend.user.profile.id,
         },
       });
       this.$mutateQueue({
         mutation: UNSHARE_PROJECTS,
         variables: {
           user_id: this.user.id,
-          friend_id: friend.user.id
+          friend_id: friend.user.id,
         },
       });
-      
     },
   },
   computed: {

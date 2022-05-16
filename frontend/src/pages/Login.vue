@@ -32,11 +32,10 @@ export default defineComponent({
   methods: {
     login() {
       if (!this.username || !this.password) return;
-      console.log("login", this.username, this.password);
       // we still nedd the api service CSRF
       this.$axios
         .post(
-          "/login_view",
+          process.env.DJANGO_URL + "/login_view",
           {
             username: this.username,
             password: this.password,
@@ -52,7 +51,7 @@ export default defineComponent({
         .then((resp) => {
           console.log("login_view", resp);
           this.$store.commit("user/initUser", resp.data.user);
-          this.$router.push("/");
+          this.$router.push("today");
         });
     },
   },

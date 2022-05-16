@@ -182,7 +182,6 @@ export default {
               name: "project",
               params: { id: this.item.id },
             });
-            this.$router.push("/");
           }
         }
       },

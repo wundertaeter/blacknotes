@@ -6,9 +6,9 @@
     :sort-by="sortBy"
   >
     <template v-slot:toolbar="{ revert }">
-      <q-btn icon="replay" @click="revert" />
+      <q-btn icon="replay" flat @click="revert" />
       <q-space />
-      <q-btn icon="delete" @click="deleteAll" />
+      <q-btn icon="delete" flat @click="deleteAll" />
     </template>
   </project>
 </template>
