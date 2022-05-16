@@ -35,7 +35,7 @@ export default defineComponent({
       // we still nedd the api service CSRF
       this.$axios
         .post(
-          process.env.DJANGO_URL + "/login_view",
+          process.env.DJANGO_URL + "/token/",
           {
             username: this.username,
             password: this.password,
@@ -44,15 +44,23 @@ export default defineComponent({
             withCredentials: true,
             headers: {
               "content-type": "application/json",
-              "X-CSRFTOKEN": CSRF(),
             },
           }
         )
-        .then((resp) => {
-          console.log("login_view", resp);
+        .then(({data}) => {
+          console.log("user tokens", data);
+          this.$store.commit('user/updateTokens', data)
           this.$router.push("today");
         });
     },
   },
 });
+/*
+this.$axios.get(process.env.DJANGO_URL + "/user/me/", {
+            headers: {
+              "content-type": "application/json",
+              "Authorization": `Bearer ${tokens.access}`
+            },
+          })
+          */
 </script>

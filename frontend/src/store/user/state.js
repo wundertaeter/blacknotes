@@ -7,6 +7,8 @@ export default function () {
     projects: [],
     friends: [],
     profile: null,
+    access: null,
+    refresh: null,
     //spaces: [],
     loading: false
   }

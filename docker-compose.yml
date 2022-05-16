@@ -29,7 +29,8 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: $HASURA_SECRET
-      HASURA_GRAPHQL_AUTH_HOOK: "http://web:8000/validate_request"
+      # HASURA_GRAPHQL_AUTH_HOOK: "http://web:8000/validate_request"
+      HASURA_GRAPHQL_JWT_SECRET: '{ "type": "HS256", "key": "${DJANGO_SECRET}" }'
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000

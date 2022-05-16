@@ -39,11 +39,16 @@ export default route(function (/* { store, ssrContext } */) {
 
   Router.beforeEach(async (to, from, next) => {
     let user = Store.state.user;
-    if (!user.id) {
-      try {
-        const resp = await axios.get(process.env.DJANGO_URL + "/get_user", {withCredentials: true})
-        Store.commit("user/initUser", resp.data.user);
-      } catch { }
+    console.log('user!!', user);
+    if (!user.id && user.access) {
+      const resp = await axios.get(process.env.DJANGO_URL + "/user/me/", {
+        headers: {
+          "content-type": "application/json",
+          "Authorization": `Bearer ${user.access}`
+        },
+      })
+      console.log('RESP', resp);
+      Store.commit("user/initUser", resp.data);
     }
     if (!user.id && !to.matched.some(record => record.meta.public)) {
       next('/login');

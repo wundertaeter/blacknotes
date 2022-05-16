@@ -20,5 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #path('shares/', include('shares.urls')),
     
-    path('', include('core.urls')), # has to be last
+    path('', include('core.api.urls')), # has to be last
 ]

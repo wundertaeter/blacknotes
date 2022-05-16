@@ -73,15 +73,11 @@ export default {
   },
   methods: {
     logout() {
-      this.$axios
-        .get(process.env.DJANGO_URL + "/logout_view", { withCredentials: true })
-        .then((resp) => {
-          console.log("logout", resp);
-          this.$store.commit("user/initUser", {});
-          this.$store.commit("user/updateProjects", []);
-          this.$router.push("login");
-          this.$store.commit("cache/clear");
-        });
+      this.$store.commit("user/initUser", {});
+      this.$store.commit("user/updateTokens", {});
+      this.$store.commit("user/updateProjects", []);
+      this.$store.commit("cache/clear");
+      this.$router.push("login");
     },
     getUserByUsername(username) {
       return this.$apollo.query({

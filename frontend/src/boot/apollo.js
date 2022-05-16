@@ -6,16 +6,15 @@ import { ApolloLink, concat, split } from "apollo-link";
 import { WebSocketLink } from "apollo-link-ws";
 import { getMainDefinition } from "apollo-utilities";
 import { createApolloProvider } from "@vue/apollo-option";
-import { Store } from "src/store";
 
 let updateLoadingTimeout = null;
 export default boot(
-  /*async*/ ({ app }) => {
+  /*async*/ ({ app, store }) => {
     const httpLink = createHttpLink({ uri: process.env.GRAPHQL_URI });
 
     const authMiddleware = new ApolloLink(async (operation, forward) => {
       operation.setContext({
-        credentials: 'include'
+        headers: { "Authorization": `Bearer ${store.state.user.access}` } 
       });
       return forward(operation);
     });
@@ -27,7 +26,7 @@ export default boot(
         lazy: true,
         connectionParams: () => (
           new Promise((resolve) => {
-            return resolve({ credentials: 'include' })
+            return resolve({ headers: { "Authorization": `Bearer ${store.state.user.access}` } })
           })
         )
       }
@@ -65,10 +64,10 @@ export default boot(
     app.config.globalProperties.$loading = (loading) => {
       if (updateLoadingTimeout) clearTimeout(updateLoadingTimeout);
       if (loading) {
-        Store.commit("user/updateLoading", true);
+        store.commit("user/updateLoading", true);
       } else {
         updateLoadingTimeout = setTimeout(() => {
-          Store.commit("user/updateLoading", false);
+          store.commit("user/updateLoading", false);
         }, 5000);
       }
     }
