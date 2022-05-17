@@ -37,6 +37,9 @@
             <q-icon name="today" />
             {{ formatDate(item.when, "D. MMM") }}
           </span>
+          <span v-else-if="item.user_id !== user.id">
+            <q-icon name="share" />
+          </span>
         </div>
       </div>
       <div v-else>
@@ -107,15 +110,11 @@
 <script>
 const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 import WhenPicker from "src/components/WhenPicker.vue";
-import {
-  formatDate,
-  today,
-  someday,
-} from "src/common/date.js";
+import { formatDate, today, someday } from "src/common/date.js";
 
 export default {
   components: {
-    WhenPicker
+    WhenPicker,
   },
   props: {
     modelValue: {
@@ -160,7 +159,7 @@ export default {
   },
   watch: {
     modelValue(value) {
-      this.item = {...value};
+      this.item = { ...value };
     },
     selected: {
       handler(value) {
@@ -195,7 +194,7 @@ export default {
   data(props) {
     return {
       edit: false,
-      item: {...props.modelValue},
+      item: { ...props.modelValue },
       btnHover: false,
       checkNoteTimeout: null,
       contentFocused: false,
@@ -203,6 +202,9 @@ export default {
     };
   },
   computed: {
+    user() {
+      return this.$store.state.user;
+    },
     today() {
       return today();
     },
@@ -260,7 +262,10 @@ export default {
             e.preventDefault();
             this.$refs.title.focus();
             const title = this.$refs.title.$el.getElementsByTagName("input")[0];
-            title.setSelectionRange(this.item.title.length, this.item.title.length);
+            title.setSelectionRange(
+              this.item.title.length,
+              this.item.title.length
+            );
           }
         }
       }
@@ -282,17 +287,13 @@ export default {
         this.edit = true;
       }
     },
-    updateModelValue(){
+    updateModelValue() {
       this.update(this.item);
     },
     updateModelValueLazy() {
       this.$loading(true);
       if (this.updateId) clearTimeout(this.updateId);
-      this.updateId = setTimeout(
-        () =>
-          this.update(this.item),
-        500
-      );
+      this.updateId = setTimeout(() => this.update(this.item), 500);
     },
   },
 };
