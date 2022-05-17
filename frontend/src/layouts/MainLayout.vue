@@ -18,6 +18,7 @@
       persistent
       bordered
       :width="this.small ? $q.screen.width : 300"
+      behavior="desktop"
     >
       <div>
         <q-list class="menu-section">
