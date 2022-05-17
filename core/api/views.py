@@ -17,10 +17,9 @@ class HasuraTokenObtainPairView(TokenObtainPairView):
             resp.set_cookie('access', tokens['access'], domain='localhost', samesite=None, httponly=True)
             resp.set_cookie('refresh', tokens['refresh'], domain='localhost', samesite=None, httponly=True)
         else:
-            for origin in settings.CORS_ALLOWED_ORIGINS:
-                domain = origin.replace('http://', '').replace('https://', '')
-                resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True)
-                resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True)
+            domain = '.' + '.'.join(request.get_host().split('.')[1:])
+            resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True)
+            resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True)
         return resp
 
 
@@ -52,10 +51,9 @@ class LogoutView(generics.GenericAPIView):
             resp.set_cookie('access', domain='localhost', samesite=None, httponly=True, expires=yesterday)
             resp.set_cookie('refresh', domain='localhost', samesite=None, httponly=True, expires=yesterday)
         else:
-            for origin in settings.CORS_ALLOWED_ORIGINS:
-                domain = origin.replace('http://', '').replace('https://', '')
-                resp.set_cookie('access', domain=domain, samesite=None, httponly=True, expires=yesterday)
-                resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, expires=yesterday)
+            domain = '.' + '.'.join(request.get_host().split('.')[1:])
+            resp.set_cookie('access', domain=domain, samesite=None, httponly=True, expires=yesterday)
+            resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, expires=yesterday)
         return resp
 
 class CreateUserView(generics.CreateAPIView):
