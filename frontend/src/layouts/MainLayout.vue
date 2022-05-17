@@ -13,13 +13,18 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" persistent bordered>
+    <q-drawer
+      v-model="leftDrawerOpen"
+      persistent
+      bordered
+      :width="this.small ? $q.screen.width : 300"
+    >
       <div>
         <q-list class="menu-section">
           <q-item
             v-if="user.id"
             clickable
-            to="profile"
+            @click="navigateTo('profile')"
             active-class="text-orange"
             :active="projectActive('profile')"
           >
@@ -34,7 +39,7 @@
           <q-item
             v-else
             clickable
-            to="login"
+            @click="navigateTo('login')"
             active-class="text-orange"
             :active="projectActive('login')"
           >
@@ -53,7 +58,7 @@
         <q-list class="menu-section">
           <q-item
             clickable
-            to="today"
+            @click="navigateTo('today')"
             active-class="text-orange"
             :active="projectActive('today')"
           >
@@ -68,7 +73,7 @@
 
           <q-item
             clickable
-            to="upcoming"
+            @click="navigateTo('upcoming')"
             active-class="text-orange"
             :active="projectActive('upcoming')"
           >
@@ -83,7 +88,7 @@
 
           <q-item
             clickable
-            to="anytime"
+            @click="navigateTo('anytime')"
             active-class="text-orange"
             :active="projectActive('anytime')"
           >
@@ -98,7 +103,7 @@
 
           <q-item
             clickable
-            to="someday"
+            @click="navigateTo('someday')"
             active-class="text-orange"
             :active="projectActive('someday')"
           >
@@ -117,7 +122,7 @@
         <q-list class="menu-section">
           <q-item
             clickable
-            to="logbook"
+            @click="navigateTo('logbook')"
             active-class="text-orange"
             :active="projectActive('logbook')"
           >
@@ -131,7 +136,7 @@
           </q-item>
           <q-item
             clickable
-            to="trash"
+            @click="navigateTo('trash')"
             active-class="text-orange"
             :active="projectActive('trash')"
           >
@@ -251,7 +256,7 @@ export default defineComponent({
   // },
   data() {
     return {
-      leftDrawerOpen: true,
+      leftDrawerOpen: this.small,
       drag: false,
       projects: [],
       focusedProject: null,
@@ -335,7 +340,15 @@ export default defineComponent({
     },
     selectProject(project) {
       console.log("selectProject", project);
-      this.$router.push({ name: "project", params: { id: project.id } });
+      this.navigateTo("project", { id: project.id });
+    },
+    navigateTo(name, params) {
+      this.$router.push({ name, params });
+      if (this.small) {
+        this.$nextTick(() => {
+          this.leftDrawerOpen = false;
+        })
+      }
     },
     updateProjectName(project) {
       if (!project.title) return;
@@ -371,6 +384,12 @@ export default defineComponent({
     },
   },
   computed: {
+    isMobile() {
+      return this.$q.platform.is.mobile;
+    },
+    small() {
+      return this.$q.screen.width <= 1023;
+    },
     user() {
       return this.$store.state.user;
     },

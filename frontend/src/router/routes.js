@@ -11,8 +11,8 @@ const routes = [
       { path: "someday", name: "someday", component: () => import("pages/Someday.vue") },
       { path: "anytime", name: "anytime", component: () => import("pages/Anytime.vue") },
       { path: "logbook", name: "logbook", component: () => import("pages/Logbook.vue") },
-      { path: "login", meta: { public: true }, component: () => import("pages/Login.vue") },
-      { path: "profile", component: () => import("pages/Profile.vue") },
+      { path: "login", name: "login", meta: { public: true }, component: () => import("pages/Login.vue") },
+      { path: "profile", name: "profile", component: () => import("pages/Profile.vue") },
     ],
   },
 
