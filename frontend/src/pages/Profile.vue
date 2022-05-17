@@ -74,10 +74,18 @@ export default {
   methods: {
     logout() {
       this.$store.commit("user/initUser", {});
-      this.$store.commit("user/updateTokens", {});
+      this.$store.commit("user/updateAccessToken", null);
       this.$store.commit("user/updateProjects", []);
       this.$store.commit("cache/clear");
-      this.$router.push("login");
+      this.$axios
+        .post(
+          process.env.DJANGO_URL + "/user/logout/",
+          {},
+          { withCredentials: true }
+        )
+        .then(() => {
+          this.$router.push("login");
+        });
     },
     getUserByUsername(username) {
       return this.$apollo.query({

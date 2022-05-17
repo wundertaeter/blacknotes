@@ -38,7 +38,6 @@ export function updateLoading(state, loading) {
     state.loading = loading;
 }
 
-export function updateTokens(state, {access, refresh}) {
+export function updateAccessToken(state, access) {
     state.access = access;
-    state.refresh = refresh;
 }

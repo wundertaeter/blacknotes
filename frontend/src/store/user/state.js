@@ -8,7 +8,6 @@ export default function () {
     friends: [],
     profile: null,
     access: null,
-    refresh: null,
     //spaces: [],
     loading: false
   }
