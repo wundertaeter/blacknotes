@@ -7,19 +7,19 @@ from django.conf import settings
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from datetime import date, timedelta
 
+
+def get_cookie_domain(request):
+    return 'localhost' if settings.DEBUG else '.' + '.'.join(request.get_host().split('.')[1:])
+
 class HasuraTokenObtainPairView(TokenObtainPairView):
     serializer_class = HasuraTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
         resp = super().post(request, *args, **kwargs)
         tokens = resp.data
-        if settings.DEBUG:
-            resp.set_cookie('access', tokens['access'], domain='localhost', samesite=None, httponly=True)
-            resp.set_cookie('refresh', tokens['refresh'], domain='localhost', samesite=None, httponly=True)
-        else:
-            domain = '.' + '.'.join(request.get_host().split('.')[1:])
-            resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True)
-            resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True)
+        domain = get_cookie_domain(request)
+        resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True)
+        resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True)
         return resp
 
 
@@ -47,13 +47,9 @@ class LogoutView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         resp = Response({}, status=status.HTTP_200_OK)
         yesterday = date.today() - timedelta(days=1)
-        if settings.DEBUG:
-            resp.set_cookie('access', domain='localhost', samesite=None, httponly=True, expires=yesterday)
-            resp.set_cookie('refresh', domain='localhost', samesite=None, httponly=True, expires=yesterday)
-        else:
-            domain = '.' + '.'.join(request.get_host().split('.')[1:])
-            resp.set_cookie('access', domain=domain, samesite=None, httponly=True, expires=yesterday)
-            resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, expires=yesterday)
+        domain = get_cookie_domain(request)
+        resp.set_cookie('access', domain=domain, samesite=None, httponly=True, expires=yesterday)
+        resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, expires=yesterday)
         return resp
 
 class CreateUserView(generics.CreateAPIView):
