@@ -1,5 +1,5 @@
 subscription SubscribeTodayNotes($user_id: Int!, $today: date!) {
-  active_notes(where: {_and: {user_id: {_eq: $user_id}, when: {_lte: $today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc_nulls_last}) {
+  active_notes(where: {_and: {_or: [{user_id: {_eq: $user_id}}, {project: {friends: {user_id: {_eq: $user_id}}}}], when: {_lte: $today, _gt: "1970-01-01"}, deleted: {_eq: false}, done: {_eq: false}}}, order_by: {today_position: asc_nulls_last}) {
     id
     title
     content
