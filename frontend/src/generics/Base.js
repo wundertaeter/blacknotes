@@ -23,11 +23,11 @@ export default {
     };
   },
   mounted() {
-    document.addEventListener("click", this.reset);
+    document.getElementsByTagName('main')[0].addEventListener("click", this.reset);
     document.addEventListener("keydown", this.onKeydown);
   },
   unmounted() {
-    document.removeEventListener("click", this.reset);
+    document.getElementsByTagName('main')[0].removeEventListener("click", this.reset);
     document.removeEventListener("keydown", this.onKeydown);
   },
   props: {

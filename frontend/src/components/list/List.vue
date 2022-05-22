@@ -25,12 +25,13 @@
     >
       <template #item="{ element }">
         <item
+          :key="element.id"
           :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
           :id="element.id"
           @dragstart="dragStart"
           @click.stop="isMobile && (editItem ? editItem.id !== element.id && reset() : setEdit(element))"
           @mousedown="!isMobile && itemClicked(element, $event)"
-          :selected="!isMobile && itemIsSelected(element)"
+          :selected="itemIsSelected(element)"
           :edited="editItem && editItem.id == element.id"
           class="note"
           :ref="`item-${element.id}`"

@@ -1,5 +1,5 @@
 <template>
-  <q-card flat :class="{ selected: selected, item: true }">
+  <q-card flat :class="{ selected: !isMobile && selected, item: true }">
     <q-checkbox
       v-if="item.icon"
       v-model="item.done"
