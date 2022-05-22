@@ -341,7 +341,6 @@ export default {
 }
 .icon-checkbox {
   position: absolute;
-  top: 19px;
   left: -5px;
   z-index: 999;
 }
