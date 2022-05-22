@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     selectedIndexes() {
-      return this.selectedItems.map((item) => this.items.indexOf(item));
+      return this.selectedItems ? this.selectedItems.map((item) => this.items.indexOf(item)) : [];
     },
     lastSelectedIndex() {
       if (!this.lastSelected) {
@@ -112,7 +112,7 @@ export default {
       return this.itemIsSelected(item);
     },
     itemIsSelected(item) {
-      return this.selectedItems.some((i) => i[this.uid] === item[this.uid]);
+      return this.selectedItems && this.selectedItems.some((i) => i[this.uid] === item[this.uid]);
     },
     itemIsDisabled(item) {
       const disabled =

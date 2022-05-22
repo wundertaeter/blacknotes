@@ -175,13 +175,15 @@ export default {
         if (value) {
           if (this.item.__typename.includes("_note")) {
             this.edit = true;
-            this.focusTitle();
+            if(!this.isMobile) this.focusTitle();
           } else {
             this.$router.push({
               name: "project",
               params: { id: this.item.id },
             });
           }
+        }else{
+          this.edit = false;
         }
       },
     },
@@ -214,6 +216,9 @@ export default {
     renderProjectTitle() {
       return this.$route.name != "project" && this.item.project;
     },
+    isMobile(){
+      return this.$q.platform.is.mobile;
+    }
   },
   methods: {
     update(note) {

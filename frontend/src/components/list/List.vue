@@ -15,6 +15,7 @@
           type: 'transition-group',
           name: !drag ? 'flip-list' : null
       }"
+      :disabled="!!editItem"
       v-bind="dragOptions"
       :sort="sort"
       :drop="drop"
@@ -28,10 +29,9 @@
           :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
           :id="element.id"
           @dragstart="dragStart"
-          @click.stop="isMobile && setEdit(element)"
-          @touchstart="itemClicked(element, $event)"
-          @mousedown="itemClicked(element, $event)"
-          :selected="itemIsSelected(element)"
+          @click.stop="isMobile && (editItem ? editItem.id !== element.id && reset() : setEdit(element))"
+          @mousedown="!isMobile && itemClicked(element, $event)"
+          :selected="!isMobile && itemIsSelected(element)"
           :edited="editItem && editItem.id == element.id"
           class="note"
           :ref="`item-${element.id}`"
@@ -405,7 +405,7 @@ export default {
       return {
         animation: 200,
         group: "description",
-        disabled: false,
+        disabled: this.editItem,
         ghostClass: "ghost"
       };
     },
