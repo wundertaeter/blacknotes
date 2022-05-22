@@ -15,7 +15,7 @@
       v-else
       v-model="item.done"
       @update:modelValue="$emit('check', item)"
-      class="checkbox"
+      :class="edited ? 'checkbox-edit' : 'checkbox'"
       color="orange"
     />
     <q-card-section class="text-white editor">
@@ -334,11 +334,10 @@ export default {
   font-size: 70%;
 }
 .display-project {
-  margin-top: 7.5px;
   line-height: 80%;
 }
 .list-view {
-  height: 55px;
+  height: 20px;
 }
 .icon-checkbox {
   position: absolute;
@@ -347,6 +346,11 @@ export default {
   z-index: 999;
 }
 .checkbox {
+  position: absolute;
+  top: 6px;
+  z-index: 999;
+}
+.checkbox-edit {
   position: absolute;
   top: 24px;
   z-index: 999;
