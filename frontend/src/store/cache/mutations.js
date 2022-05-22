@@ -33,7 +33,7 @@ export function updateOnIndex(state, { key, index, items }) {
 }
 
 export function addProjects(state, { key, item }) {
-    console.log('Add item to projects' + key, item);
+    console.log('Add item to projects ' + key, item);
     const cache = state[key];
     if (cache) {
         let added = false;
@@ -66,7 +66,7 @@ export function addProjects(state, { key, item }) {
 }
 
 export function removeProjects(state, { key, item }) {
-    console.log('Remove item from projects' + key, item);
+    console.log('Remove item from projects ' + key, item);
     const cache = state[key];
     if (cache) {
         const items = JSON.parse(JSON.stringify(cache));

@@ -9,6 +9,13 @@
     <draggable
       :id="id"
       v-model="itemsCopy"
+      tag="transition-group"
+      :component-data="{
+          tag: 'ul',
+          type: 'transition-group',
+          name: !drag ? 'flip-list' : null
+      }"
+      v-bind="dragOptions"
       :sort="sort"
       :drop="drop"
       xxremove="onRemove"
@@ -21,7 +28,7 @@
           :data-type="element.__typename.includes('_note') ? 'note' : 'project'"
           :id="element.id"
           @dragstart="dragStart"
-          @click.stop
+          @click.stop="isMobile && setEdit(element)"
           @touchstart="itemClicked(element, $event)"
           @mousedown="itemClicked(element, $event)"
           :selected="itemIsSelected(element)"
@@ -32,7 +39,7 @@
           @update:modelValue="updateItem"
           @check="check"
           @edit="setEditItem"
-          @dblclick="setEdit(element)"
+          @dblclick="!isMobile && setEdit(element)"
           :date-preview="datePreview"
         />
       </template>
@@ -56,6 +63,7 @@ const SORT_PROJECTS = require("src/gql/mutations/SortProjects.gql");
 // const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
 // const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
 import { uuidv4 } from "src/common/utils";
+const projects = ['anytime', 'logbook', 'upcoming'];
 export default {
   name: "NoteList",
   components: {
@@ -189,12 +197,21 @@ export default {
         (item) => !items.find((it) => it.id == item.id)
       );
 
-      items.forEach((item) => {
-        this.$store.commit("cache/removeProjects", {
-          key: this.cacheKey,
-          item,
+      if(projects.includes(this.cacheKey)){
+        items.forEach((item) => {
+          this.$store.commit("cache/removeProjects", {
+            key: this.cacheKey,
+            item,
+          });
         });
-      });
+      }else{
+        items.forEach((item) => {
+          this.$store.commit("cache/remove", {
+            key: this.cacheKey,
+            item,
+          });
+        });
+      }
 
       this.itemsCopy = JSON.parse(
         JSON.stringify([
@@ -384,6 +401,17 @@ export default {
     user() {
       return this.$store.state.user;
     },
+    dragOptions() {
+      return {
+        animation: 200,
+        group: "description",
+        disabled: false,
+        ghostClass: "ghost"
+      };
+    },
+    isMobile(){
+      return this.$q.platform.is.mobile;
+    }
   },
 };
 </script>
@@ -395,5 +423,24 @@ export default {
 .notes {
   position: relative;
   text-align: center;
+}
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+
+}
+.list-group {
+  min-height: 20px;
+}
+.list-group-item {
+  cursor: move;
+}
+.list-group-item i {
+  cursor: pointer;
 }
 </style>
