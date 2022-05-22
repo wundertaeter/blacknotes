@@ -5,11 +5,14 @@ from rest_framework.response import Response
 from core.api.serializers import HasuraTokenObtainPairSerializer, UserSerializer
 from django.conf import settings
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from datetime import date, timedelta
-
+from datetime import date, timedelta, datetime
+import jwt
 
 def get_cookie_domain(request):
     return 'localhost' if settings.DEBUG else '.' + '.'.join(request.get_host().split('.')[1:])
+
+def get_exp_date(token):
+    return datetime.fromtimestamp(jwt.decode(token, options={"verify_signature": False})['exp'])
 
 class HasuraTokenObtainPairView(TokenObtainPairView):
     serializer_class = HasuraTokenObtainPairSerializer
@@ -18,8 +21,8 @@ class HasuraTokenObtainPairView(TokenObtainPairView):
         resp = super().post(request, *args, **kwargs)
         tokens = resp.data
         domain = get_cookie_domain(request)
-        resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True)
-        resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True)
+        resp.set_cookie('access', tokens['access'], domain=domain, samesite=None, httponly=True, secure=True, expires=get_exp_date(tokens['access']))
+        resp.set_cookie('refresh', tokens['refresh'], domain=domain, samesite=None, httponly=True, secure=True, expires=get_exp_date(tokens['refresh']))
         return resp
 
 
@@ -48,8 +51,8 @@ class LogoutView(generics.GenericAPIView):
         resp = Response({}, status=status.HTTP_200_OK)
         yesterday = date.today() - timedelta(days=1)
         domain = get_cookie_domain(request)
-        resp.set_cookie('access', domain=domain, samesite=None, httponly=True, expires=yesterday)
-        resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, expires=yesterday)
+        resp.set_cookie('access', domain=domain, samesite=None, httponly=True, secure=True, expires=yesterday)
+        resp.set_cookie('refresh', domain=domain, samesite=None, httponly=True, secure=True, expires=yesterday)
         return resp
 
 class CreateUserView(generics.CreateAPIView):
