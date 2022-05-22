@@ -22,6 +22,7 @@
           :id="element.id"
           @dragstart="dragStart"
           @click.stop
+          @touchstart="itemClicked(element, $event)"
           @mousedown="itemClicked(element, $event)"
           :selected="itemIsSelected(element)"
           :edited="editItem && editItem.id == element.id"
