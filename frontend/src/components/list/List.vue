@@ -15,7 +15,6 @@
           type: 'transition-group',
           name: !drag ? 'flip-list' : null
       }"
-      :disabled="!!editItem"
       v-bind="dragOptions"
       :sort="sort"
       :drop="drop"
@@ -405,8 +404,12 @@ export default {
       return {
         animation: 200,
         group: "description",
-        disabled: this.editItem,
-        ghostClass: "ghost"
+        disabled: !!this.editItem,
+        ghostClass: "ghost",
+        // chosenClass: "",
+        // dragClass: "",
+        delayOnTouchOnly: true,
+        delay: 50,
       };
     },
     isMobile(){
