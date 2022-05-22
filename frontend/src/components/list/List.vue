@@ -11,7 +11,7 @@
       v-model="itemsCopy"
       tag="transition-group"
       :component-data="{
-          tag: 'ul',
+          tag: 'div',
           type: 'transition-group',
           name: !drag ? 'flip-list' : null
       }"
