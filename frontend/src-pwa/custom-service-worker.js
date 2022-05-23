@@ -4,6 +4,10 @@
  * quasar.conf > pwa > workboxPluginMode is set to "InjectManifest"
  */
 
+
+// Caching
+// https://medium.com/js-dojo/vuejs-pwa-cache-busting-8d09edd22a31
+
 import { precacheAndRoute, getCacheKeyForURL } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 import { cacheNames } from "workbox-core";
@@ -12,6 +16,8 @@ import {
     NetworkFirst,
     NetworkOnly,
 } from "workbox-strategies";
+
+console.log('ServiceWorker v1');
 
 // Activate precaching
 precacheAndRoute(self.__WB_MANIFEST, {
@@ -47,3 +53,5 @@ registerRoute(
         }
     })
 );
+
+registerRoute(new RegExp("^http"), new StaleWhileRevalidate());
