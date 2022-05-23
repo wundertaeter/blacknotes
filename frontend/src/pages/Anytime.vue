@@ -7,8 +7,10 @@
     sort
     :config="config"
   >
-    <template v-slot:toolbar="{ addNote }">
-      <q-btn icon="add" flat @click="addNote" />
+    <template v-slot:toolbar="{ addNote, trash, edit, selectedItems }">
+      <q-btn icon="add" :disabled="edit" flat @click.stop="addNote" />
+      <q-space />
+      <q-btn icon="delete" flat @click="trash" :disabled="!selectedItems.length"/>
     </template>
   </projects>
 </template>

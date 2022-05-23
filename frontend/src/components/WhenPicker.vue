@@ -1,6 +1,6 @@
 <template>
-  <q-btn>
-    <q-menu v-model="showMenu">
+  <q-btn @click="isMobile ? showMenu = true : null">
+    <q-menu v-if="!isMobile" v-model="showMenu">
       <q-date
         color="orange"
         mask="YYYY-MM-DD"
@@ -18,7 +18,9 @@
           @click.stop
           align="left"
         >
-          <span v-if="item.repeat"> <q-icon name="repeat" /> {{ item.repeat }} </span>
+          <span v-if="item.repeat">
+            <q-icon name="repeat" /> {{ item.repeat }}
+          </span>
           <span v-else> <q-icon name="add" /> Repeat </span>
 
           <q-menu v-model="showRepeatMenu" fit>
@@ -42,23 +44,67 @@
       </q-date>
     </q-menu>
     <slot name="default" />
+    <q-dialog v-if="isMobile" v-model="showMenu">
+      <q-card>
+      <q-date
+        color="orange"
+        mask="YYYY-MM-DD"
+        @click.stop
+        v-model="item.when"
+        :options="dateOptions"
+        minimal
+        @update:modelValue="updateModelValue"
+      >
+        <q-btn
+          :flat="!item.repeat"
+          :outlines="!!item.repeat"
+          style="width: 100%"
+          v-if="!addRepeat"
+          @click.stop
+          align="left"
+        >
+          <span v-if="item.repeat">
+            <q-icon name="repeat" /> {{ item.repeat }}
+          </span>
+          <span v-else> <q-icon name="add" /> Repeat </span>
+
+          <q-menu v-model="showRepeatMenu" fit>
+            <q-list>
+              <q-item
+                v-for="option in repeatOptions"
+                :key="option.unit"
+                clickable
+                @click.stop="changeRepeat(option)"
+              >
+                {{ displayOption(option) }}
+              </q-item>
+            </q-list>
+          </q-menu>
+
+          <q-space />
+          <span v-if="item.repeat">
+            <q-icon name="close" @click.stop="removeRepeat" />
+          </span>
+        </q-btn>
+      </q-date>
+      </q-card>
+    </q-dialog>
   </q-btn>
 </template>
 
 <script>
 import { isToday, isFuture } from "src/common/date.js";
-import { date, repeat } from "src/common/date.js";
 
 export default {
   data(props) {
     return {
       showMenu: false,
-      item: {...props.modelValue},
+      item: { ...props.modelValue },
       repeatOptions: [
-        { unit: 'day', count: 1  },
-        { unit: 'week', count: 1  },
-        { unit: 'month', count: 1  },
-        { unit: 'year', count: 1  },
+        { unit: "day", count: 1 },
+        { unit: "week", count: 1 },
+        { unit: "month", count: 1 },
+        { unit: "year", count: 1 },
       ],
       addRepeat: false,
       showRepeatMenu: false,
@@ -67,21 +113,26 @@ export default {
   watch: {
     modelValue: {
       handler(value) {
-        this.item = {...value};
+        this.item = { ...value };
       },
+    },
+  },
+  computed: {
+    isMobile() {
+      return this.$q.platform.is.mobile;
     },
   },
   props: {
     modelValue: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
-    multiply(string, number){
+    multiply(string, number) {
       return number > 1 ? string + s : string;
     },
-    displayOption(option){
+    displayOption(option) {
       return `${option.count} ${this.multiply(option.unit, option.count)}`;
     },
     dateOptions(timestamp) {

@@ -5,8 +5,8 @@
     :config="config"
     :sort-by="sortBy"
   >
-    <template v-slot:toolbar="{ revert }">
-      <q-btn icon="replay" flat @click="revert" />
+    <template v-slot:toolbar="{ revert, selectedItems }">
+      <q-btn icon="replay" :disabled="!selectedItems.length" flat @click="revert" />
       <q-space />
       <q-btn icon="delete" flat @click="deleteAll" />
     </template>

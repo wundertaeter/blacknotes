@@ -395,7 +395,7 @@ export default defineComponent({
       return this.$store.state.user;
     },
     userProjects() {
-      return this.user.projects;
+      return this.user.projects.filter(project => !project.done);
     },
     currentProject() {
       return this.$route.name

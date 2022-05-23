@@ -20,14 +20,17 @@ export default {
       edit: null,
       listComponents: [],
       checkTimeout: null,
+      main: null,
     };
   },
   mounted() {
-    document.getElementsByTagName('main')[0].addEventListener("click", this.reset);
+    this.main = document.getElementsByTagName('main')[0];
+    console.log('main', this.main);
+    this.main.addEventListener("click", this.reset);
     document.addEventListener("keydown", this.onKeydown);
   },
   unmounted() {
-    document.getElementsByTagName('main')[0].removeEventListener("click", this.reset);
+    this.main?.removeEventListener("click", this.reset);
     document.removeEventListener("keydown", this.onKeydown);
   },
   props: {
@@ -80,7 +83,10 @@ export default {
       }
       this.listComponents.push(component);
     },
-    trash(e, set) {
+    trash(e) {
+      this.trashItem(e, { deleted: true, deleted_at: new Date() })
+    },
+    trashItem(e, set) {
       e.stopPropagation();
       const notes = [];
       const projects = [];
@@ -114,9 +120,11 @@ export default {
           },
         });
       }
+      this.setEditItem(null);
+      this.setSelectedItems([]);
     },
     revert(e) {
-      this.trash(e, { deleted: false, deleted_at: null });
+      this.trashItem(e, { deleted: false, deleted_at: null });
     },
     setEditItem(item) {
       this.edit = item;

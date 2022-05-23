@@ -1,138 +1,148 @@
 <template>
-  <q-page>
-    <q-scroll-area class="fill-window">
-      <div v-if="project" class="q-pa-md container">
-        <h4>
-          <q-icon v-if="project.default" :name="project.icon" />
-          <q-checkbox
-            v-else
-            v-model="project.done"
-            size="lg"
-            color="orange"
-            checked-icon="radio_button_checked"
-            :unchecked-icon="project.icon"
-            indeterminate-icon="help"
-            @update:modelValue="checkProject"
+  <div>
+    <q-page>
+      <q-scroll-area class="fill-window">
+        <div v-if="project" class="q-pa-md container">
+          <h4>
+            <q-icon v-if="project.default" :name="project.icon" />
+            <q-checkbox
+              v-else
+              v-model="project.done"
+              size="lg"
+              color="orange"
+              checked-icon="radio_button_checked"
+              :unchecked-icon="project.icon"
+              indeterminate-icon="help"
+              @update:modelValue="checkProject"
+            />
+            {{ project.title ? project.title : "New Project" }}
+            <q-btn icon="more_vert" class="float-right" v-if="more" @click.stop>
+              <q-menu v-model="moreShowing">
+                <q-list style="min-width: 100px">
+                  <q-item clickable v-close-popup @click="trashProject">
+                    <q-item-section avatar>
+                      <q-icon name="delete" />
+                    </q-item-section>
+
+                    <q-item-section>
+                      <q-item-label> Delete </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="
+                      project.done = true;
+                      checkProject();
+                    "
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="done" />
+                    </q-item-section>
+
+                    <q-item-section>
+                      <q-item-label> Check </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click.stop="shareDialog = true"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="share" />
+                    </q-item-section>
+
+                    <q-item-section>
+                      <q-item-label> Share </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </h4>
+
+          <list
+            v-if="cache"
+            @select="setSelectedItems"
+            @edit="setEdit"
+            :cache-key="modelValue.id"
+            :position-column="positionColumn"
+            :sort="sort"
+            :items="cache"
+            :allItems="cache"
+            :selected="selectedItems"
+            :edited="edit"
+            @mounted="listComponentMounted"
+            @check="check"
           />
-          {{ project.title ? project.title : "New Project" }}
-          <q-btn icon="more_vert" class="float-right" v-if="more" @click.stop>
-            <q-menu v-model="moreShowing">
-              <q-list style="min-width: 100px">
-                <q-item clickable v-close-popup @click="trashProject">
-                  <q-item-section avatar>
-                    <q-icon name="delete" />
-                  </q-item-section>
+        </div>
+      </q-scroll-area>
 
-                  <q-item-section>
-                    <q-item-label> Delete </q-item-label>
-                  </q-item-section>
-                </q-item>
+      <q-dialog v-model="shareDialog">
+        <q-card style="min-width: 50vw">
+          <q-card-section>
+            <div class="text-h6">Share</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <div>
+              <q-list bordered separator v-if="shares.length">
                 <q-item
-                  clickable
-                  v-close-popup
-                  @click="
-                    project.done = true;
-                    checkProject();
-                  "
+                  xxclickable
+                  xxv-ripple
+                  v-for="friend in shares"
+                  :key="friend.id"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="done" />
-                  </q-item-section>
-
-                  <q-item-section>
-                    <q-item-label> Check </q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click.stop="shareDialog = true"
-                >
-                  <q-item-section avatar>
-                    <q-icon name="share" />
-                  </q-item-section>
-
-                  <q-item-section>
-                    <q-item-label> Share </q-item-label>
+                  <q-item-section>{{ friend.user.username }}</q-item-section>
+                  <q-item-section side>
+                    <q-toggle
+                      flat
+                      v-model="friend.isConnected"
+                      color="orange"
+                    />
                   </q-item-section>
                 </q-item>
               </q-list>
-            </q-menu>
-          </q-btn>
-        </h4>
+              <div v-else>You do not have any friends... Go find some!</div>
+            </div>
+          </q-card-section>
 
-        <list
-          v-if="cache"
-          @select="setSelectedItems"
-          @edit="setEdit"
-          :cache-key="modelValue.id"
-          :position-column="positionColumn"
-          :sort="sort"
-          :items="cache"
-          :allItems="cache"
-          :selected="selectedItems"
-          :edited="edit"
-          @mounted="listComponentMounted"
-          @check="check"
-        />
-      </div>
-    </q-scroll-area>
+          <q-card-actions v-if="shares.length" align="right">
+            <q-btn
+              v-if="shares.length"
+              flat
+              label="Share"
+              @click.stop="shareProject"
+              v-close-popup
+            />
+          </q-card-actions>
+
+          <q-card-actions v-else>
+            <div class="row" style="width: 100%">
+              <q-btn flat label="Cancle" v-close-popup />
+              <q-space />
+              <q-btn
+                flat
+                label="Find Some"
+                v-close-popup
+                @click.stop="$router.push('profile')"
+              />
+            </div>
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+    </q-page>
     <q-footer class="fixed-bottom footer">
       <q-toolbar>
-        <slot name="toolbar" v-bind="{ addNote, revert }" />
+        <slot
+          name="toolbar"
+          v-bind="{ addNote, revert, trash, selectedItems, edit }"
+        />
       </q-toolbar>
     </q-footer>
-    <q-dialog v-model="shareDialog">
-      <q-card style="min-width: 50vw">
-        <q-card-section>
-          <div class="text-h6">Share</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <div>
-            <q-list bordered separator v-if="shares.length">
-              <q-item
-                xxclickable
-                xxv-ripple
-                v-for="friend in shares"
-                :key="friend.id"
-              >
-                <q-item-section>{{ friend.user.username }}</q-item-section>
-                <q-item-section side>
-                  <q-toggle flat v-model="friend.isConnected" color="orange" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-            <div v-else>You do not have any friends... Go find some!</div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions v-if="shares.length" align="right">
-          <q-btn
-            v-if="shares.length"
-            flat
-            label="Share"
-            @click.stop="shareProject"
-            v-close-popup
-          />
-        </q-card-actions>
-
-        <q-card-actions v-else>
-          <div class="row" style="width: 100%">
-            <q-btn flat label="Cancle" v-close-popup />
-            <q-space />
-            <q-btn
-              flat
-              label="Find Some"
-              v-close-popup
-              @click.stop="$router.push('profile')"
-            />
-          </div>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </q-page>
+  </div>
 </template>
 
 <script>
@@ -158,6 +168,7 @@ export default {
   },
   mounted() {
     this.buildShares();
+    console.log('PROPJECT mounted', this.config)
   },
   props: {
     modelValue: {
@@ -188,13 +199,13 @@ export default {
       deep: true,
     },
     "user.friends": {
-      handler(){
+      handler() {
         this.buildShares();
       },
       deep: true,
     },
     "project.friends": {
-      handler(){
+      handler() {
         this.buildShares();
       },
       deep: true,
@@ -212,7 +223,7 @@ export default {
   },
   methods: {
     buildShares() {
-      if(this.user?.friends && this.project.friends){
+      if (this.user?.friends && this.project.friends) {
         this.shares = this.user.friends.map((friend) => ({
           ...friend,
           isConnected: this.project.friends.some(

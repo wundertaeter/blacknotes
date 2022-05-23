@@ -1,21 +1,23 @@
 // app global css in SCSS form
 @import "./variables.scss";
-.footer{
-   border-top: 1px solid $grey;
-   height: 55px;
+
+.footer {
+  border-top: 1px solid $grey;
+  height: 55px;
 }
 
 body {
-   overflow-x: hidden;
- }
+  overflow-x: hidden;
+}
 
- textarea {
-   resize: none !important; /* this will disable resize for all textarea elements.  */
- }
+textarea {
+  resize: none !important;
+  /* this will disable resize for all textarea elements.  */
+}
 
- textarea::-webkit-scrollbar {
-   display: none;
- }
+textarea::-webkit-scrollbar {
+  display: none;
+}
 
 .container {
   margin-left: 50px;
@@ -32,4 +34,8 @@ body {
 .fill-window {
   height: calc(100vh - 105px);
   width: 100%;
+}
+
+body.platform-ios.q-body--prevent-scroll { 
+  position: relative !important;
 }

@@ -6,7 +6,12 @@
     icon="assignment_turned_in"
     title="Logbook"
     id="logbook"
-  />
+  >
+    <template v-slot:toolbar="{ trash, selectedItems }">
+      <q-space />
+      <q-btn icon="delete" flat @click="trash" :disabled="!selectedItems.length"/>
+    </template>
+  </logbook>
 </template>
 
 <script>

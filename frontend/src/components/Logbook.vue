@@ -1,49 +1,54 @@
 <template>
-  <q-page>
-    <q-scroll-area class="fill-window">
-      <div class="q-pa-md container">
-        <h4>
-          <q-icon :name="icon" />
-          {{ title }}
-        </h4>
-        <q-timeline color="secondary">
-          <q-timeline-entry
-            v-for="(project, index) in cache"
-            :key="project.title"
-            :subtitle="project.title"
-            xxavatar="https://cdn.quasar.dev/img/avatar2.jpg"
-          >
-            <list
-              @select="setSelectedItems"
-              @edit="setEdit"
-              :position-column="positionColumn"
-              :project-index="index"
-              group="people"
-              :items="project.notes"
-              :update-when="!!project._when"
-              :cache-key="id"
-              :allItems="allItems"
-              :when="project._when"
-              :date-preview="false"
-              :selected="selectedItems"
-              :edited="edit"
-              @mounted="listComponentMounted"
-              @check="check"
-            />
-          </q-timeline-entry>
+  <div>
+    <q-page>
+      <q-scroll-area class="fill-window">
+        <div class="q-pa-md container">
+          <h4>
+            <q-icon :name="icon" />
+            {{ title }}
+          </h4>
+          <q-timeline color="secondary">
+            <q-timeline-entry
+              v-for="(project, index) in cache"
+              :key="project.title"
+              :subtitle="project.title"
+              xxavatar="https://cdn.quasar.dev/img/avatar2.jpg"
+            >
+              <list
+                @select="setSelectedItems"
+                @edit="setEdit"
+                :position-column="positionColumn"
+                :project-index="index"
+                group="people"
+                :items="project.notes"
+                :update-when="!!project._when"
+                :cache-key="id"
+                :allItems="allItems"
+                :when="project._when"
+                :date-preview="false"
+                :selected="selectedItems"
+                :edited="edit"
+                @mounted="listComponentMounted"
+                @check="check"
+              />
+            </q-timeline-entry>
 
-          <!--q-timeline-entry heading>
+            <!--q-timeline-entry heading>
         November, 2017
       </q-timeline-entry-->
-        </q-timeline>
-      </div>
-    </q-scroll-area>
-    <q-footer class="fixed-bottom footer">
+          </q-timeline>
+        </div>
+      </q-scroll-area>
+    </q-page>
+    <q-footer class="fixed-bottom footer z-top">
       <q-toolbar>
-        <slot name="toolbar" v-bind:addNote="addNote" />
+        <slot
+          name="toolbar"
+          v-bind="{ addNote, revert, trash, selectedItems, edit }"
+        />
       </q-toolbar>
     </q-footer>
-  </q-page>
+  </div>
 </template>
 
 <script>
@@ -67,7 +72,8 @@ export default {
   computed: {
     cache() {
       return (
-        this.$store.state.cache[this.id]?.filter((p) => p.notes?.length > 0) || []
+        this.$store.state.cache[this.id]?.filter((p) => p.notes?.length > 0) ||
+        []
       );
     },
     orderdDates() {
