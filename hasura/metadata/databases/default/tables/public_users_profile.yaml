@@ -17,9 +17,10 @@ select_permissions:
 - permission:
     allow_aggregations: true
     columns:
-    - id
     - avatar
+    - id
     - user_id
+    - white_mode
     filter: {}
   role: user
 update_permissions:
@@ -30,6 +31,7 @@ update_permissions:
     columns:
     - avatar
     - user_id
+    - white_mode
     filter:
       user_id:
         _eq: X-Hasura-User-Id
