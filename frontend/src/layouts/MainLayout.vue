@@ -347,12 +347,13 @@ export default defineComponent({
       this.navigateTo("project", { id: project.id });
     },
     navigateTo(name, params) {
-      this.$router.push({ name, params });
-      if (this.small) {
-        this.$nextTick(() => {
-          this.leftDrawerOpen = false;
-        })
-      }
+      this.$router.push({ name, params }).then(() => {
+        if (this.small) {
+          this.$nextTick(() => {
+            this.leftDrawerOpen = false;
+          })
+        }
+      })
     },
     updateProjectName(project, value) {
       project.title = value;
