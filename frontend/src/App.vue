@@ -19,6 +19,9 @@ export default defineComponent({
       // messageColor: 'black'
     });
     this.$store.commit("cache/load");
+    if(!this.userId){
+      this.$q.dark.set(true);
+    }
   },
   computed: {
     userId() {
