@@ -350,10 +350,12 @@ export default defineComponent({
       this.$router.push({ name, params }).then(() => {
         if (this.small) {
           this.$nextTick(() => {
-            this.leftDrawerOpen = false;
-          })
+            setTimeout(() => {
+              this.leftDrawerOpen = false;
+            }, 500);
+          });
         }
-      })
+      });
     },
     updateProjectName(project, value) {
       project.title = value;
@@ -367,7 +369,7 @@ export default defineComponent({
           id: project.id,
           title: project.title,
         },
-      }).then(() => project.edit = false);
+      }).then(() => (project.edit = false));
     },
     toggleLeftDrawer() {
       this.leftDrawerOpen = !this.leftDrawerOpen;
@@ -400,7 +402,9 @@ export default defineComponent({
       return this.$store.state.user;
     },
     userProjects() {
-      return this.user.projects.filter(project => !project.done && !project.deleted);
+      return this.user.projects.filter(
+        (project) => !project.done && !project.deleted
+      );
     },
     currentProject() {
       return this.$route.name
