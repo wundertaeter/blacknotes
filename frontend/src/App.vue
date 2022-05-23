@@ -19,7 +19,6 @@ export default defineComponent({
       // messageColor: 'black'
     });
     this.$store.commit("cache/load");
-    this.$q.dark.set(true);
   },
   computed: {
     userId() {
@@ -38,6 +37,7 @@ export default defineComponent({
         };
       },
       result(result) {
+        this.$q.dark.set(!result.data.user.profile.white_mode);
         this.$store.commit("user/updateUser", result.data);
       },
       skip() {

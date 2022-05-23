@@ -1,0 +1,6 @@
+mutation UpdateProfile($id: bigint!, $data: users_profile_set_input!) {
+  update_users_profile_by_pk(pk_columns: {id: $id}, _set: $data) {
+    avatar
+    white_mode
+  }
+}

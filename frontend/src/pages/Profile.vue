@@ -25,6 +25,15 @@
           <div v-else>You do not have any friends... Go find some!</div>
         </div>
 
+        <hr style="margin-top: 50px; margin-bottom: 50px" />
+        <div class="row">
+          <h3>Dark Mode</h3>
+          <q-toggle
+            size="150px"
+            v-model="whiteMode"
+            @update:modelValue="changeDarkMode"
+          />
+        </div>
         <hr style="margin-top: 50px" />
       </div>
     </q-scroll-area>
@@ -64,6 +73,7 @@ const ADD_FRIEND = require("src/gql/mutations/AddFriend.gql");
 const GET_USER_ID_BY_USERNAME = require("src/gql/queries/GetUserIdByUsername.gql");
 const DELETE_FRIEND = require("src/gql/mutations/DeleteFriend.gql");
 const UNSHARE_PROJECTS = require("src/gql/mutations/UnshareProjects.gql");
+const UPDATE_PROFILE = require("src/gql/mutations/UpdateProfile.gql");
 export default {
   data() {
     return {
@@ -72,6 +82,9 @@ export default {
     };
   },
   methods: {
+    changeDarkMode() {
+      this.$q.dark.set(!this.whiteMode);
+    },
     logout() {
       this.$store.commit("user/initUser", {});
       this.$store.commit("user/updateAccessToken", null);
@@ -151,6 +164,23 @@ export default {
   computed: {
     user() {
       return this.$store.state.user;
+    },
+    whiteMode: {
+      get() {
+        return this.user.profile?.white_mode;
+      },
+      set(value) {
+        this.$store.commit("user/updateWhiteMode", value);
+        this.$mutateQueue({
+          mutation: UPDATE_PROFILE,
+          variables: {
+            id: this.user.profile.id,
+            data: {
+              white_mode: value,
+            },
+          },
+        });
+      },
     },
   },
 };

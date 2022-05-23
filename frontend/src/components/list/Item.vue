@@ -26,13 +26,13 @@
             'display-project': renderProjectTitle,
           }"
         >
-          {{
+          <span :style="`color: ${user.profile.white_mode ? 'black' : 'white'}`">{{
             item.title
               ? item.title
               : item.__typename.includes("_note")
               ? "New To-Do"
               : "New Project"
-          }}
+          }}</span>
           <br />
           <span v-if="renderProjectTitle" class="project-title">
             {{ item.project.title }}
@@ -338,6 +338,7 @@ export default {
 .project-title {
   color: $grey;
   font-size: 70%;
+  margin-left: 0px;
 }
 .display-project {
   line-height: 80%;

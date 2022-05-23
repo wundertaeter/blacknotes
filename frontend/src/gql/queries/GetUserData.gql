@@ -6,6 +6,7 @@ query GetUserData($id: Int!) {
     profile{
       id
       avatar
+      white_mode
     }
   }
   friends: users_profile_friends(where: {profile: {user_id: {_eq: $id}}}) {

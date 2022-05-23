@@ -19,6 +19,10 @@ export function updateProject(state, project) {
     state.projects[index] = project;
 }
 
+export function updateWhiteMode(state, whiteMode){
+    state.profile.white_mode = whiteMode;
+}
+
 export function updateUser(state, data) {
     console.log('updateUser', data)
     if (data.user) {
