@@ -207,7 +207,7 @@
       </div>
       <q-footer>
         <q-toolbar class="fixed-bottom footer">
-          <q-toolbar-title>
+          <q-toolbar-title v-if="user.id">
             <q-btn icon="add" label="New List" @click="createProject">
               <!--q-menu>
                 <q-list style="min-width: 100px">

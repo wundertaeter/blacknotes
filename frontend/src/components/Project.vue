@@ -5,6 +5,7 @@
         <div v-if="project" class="q-pa-md container">
           <h4>
             <div class="row">
+              <div class="col-1">
               <q-icon
                 v-if="project.default"
                 :name="project.icon"
@@ -20,6 +21,8 @@
                 indeterminate-icon="help"
                 @update:modelValue="checkProject"
               />
+              </div>
+              <div class="col-10">
               <span v-if="project.default" class="project-title">
                 {{ project.title }}
               </span>
@@ -37,7 +40,9 @@
                 v-model="project.title"
                 placeholder="New Project"
               />
-              <q-space />
+              </div>
+              <div class="col-1">
+            
               <q-btn icon="more_vert" v-if="more" @click.stop>
                 <q-menu v-model="moreShowing">
                   <q-list style="min-width: 100px">
@@ -83,6 +88,7 @@
                   </q-list>
                 </q-menu>
               </q-btn>
+            </div>
             </div>
           </h4>
 
@@ -436,5 +442,6 @@ export default {
 <style>
 .project-title {
   font-size: 24px;
+  margin-left: 15px;
 }
 </style>
