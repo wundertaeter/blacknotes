@@ -441,6 +441,11 @@ export default {
 <style>
 .project-title {
   font-size: 24px;
-  margin-left: 15px;
+  width: 90%;
+}
+@media screen and (max-width:1023px) {
+  .project-title {
+    width: 50%;
+  }
 }
 </style>
