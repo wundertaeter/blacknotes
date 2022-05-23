@@ -27,7 +27,9 @@
           }"
         >
           {{
-            item.title || item.__typename.includes("_note")
+            item.title
+              ? item.title
+              : item.__typename.includes("_note")
               ? "New To-Do"
               : "New Project"
           }}
