@@ -184,8 +184,11 @@
                   <q-input
                     v-if="element.edit || !element.title"
                     v-model="element.title"
-                    @blur="updateProjectName(element)"
-                    @keydown.enter="updateProjectName(element)"
+                    @keydown.enter="commitProjectName(element)"
+                    @update:modelValue="
+                      (value) => updateProjectName(element, value)
+                    "
+                    @blur="commitProjectName(element)"
                     borderless
                     dense
                     autofocus
@@ -351,18 +354,19 @@ export default defineComponent({
         })
       }
     },
-    updateProjectName(project) {
-      if (!project.title) return;
-      console.log("updateProjectName", project);
-      this.$apollo
-        .mutate({
-          mutation: UPDATE_PROJECT_NAME_BY_PK,
-          variables: {
-            id: project.id,
-            title: project.title,
-          },
-        })
-        .then(() => (project.edit = false));
+    updateProjectName(project, value) {
+      project.title = value;
+      console.log("updateProjectName", project, value);
+      this.$store.commit("user/updateProject", project);
+    },
+    commitProjectName(project) {
+      this.$mutateQueue({
+        mutation: UPDATE_PROJECT_NAME_BY_PK,
+        variables: {
+          id: project.id,
+          title: project.title,
+        },
+      }).then(() => project.edit = false);
     },
     toggleLeftDrawer() {
       this.leftDrawerOpen = !this.leftDrawerOpen;
@@ -395,7 +399,7 @@ export default defineComponent({
       return this.$store.state.user;
     },
     userProjects() {
-      return this.user.projects.filter(project => !project.done);
+      return this.user.projects.filter(project => !project.done && !project.deleted);
     },
     currentProject() {
       return this.$route.name

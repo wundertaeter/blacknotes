@@ -26,7 +26,11 @@
             'display-project': renderProjectTitle,
           }"
         >
-          {{ item.title || "New To-Do" }}
+          {{
+            item.title || item.__typename.includes("_note")
+              ? "New To-Do"
+              : "New Project"
+          }}
           <br />
           <span v-if="renderProjectTitle" class="project-title">
             {{ item.project.title }}
@@ -175,14 +179,14 @@ export default {
         if (value) {
           if (this.item.__typename.includes("_note")) {
             this.edit = true;
-            if(!this.isMobile) this.focusTitle();
+            if (!this.isMobile) this.focusTitle();
           } else {
             this.$router.push({
               name: "project",
               params: { id: this.item.id },
             });
           }
-        }else{
+        } else {
           this.edit = false;
         }
       },
@@ -216,9 +220,9 @@ export default {
     renderProjectTitle() {
       return this.$route.name != "project" && this.item.project;
     },
-    isMobile(){
+    isMobile() {
       return this.$q.platform.is.mobile;
-    }
+    },
   },
   methods: {
     update(note) {

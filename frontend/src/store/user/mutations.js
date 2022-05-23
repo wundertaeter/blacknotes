@@ -14,6 +14,11 @@ export function updateProjects(state, projects) {
     });
 }
 
+export function updateProject(state, project) {
+    const index = state.projects.findIndex(p => p.id == project.id);
+    state.projects[index] = project;
+}
+
 export function updateUser(state, data) {
     console.log('updateUser', data)
     if (data.user) {

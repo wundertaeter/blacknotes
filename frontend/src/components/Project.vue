@@ -4,63 +4,86 @@
       <q-scroll-area class="fill-window">
         <div v-if="project" class="q-pa-md container">
           <h4>
-            <q-icon v-if="project.default" :name="project.icon" />
-            <q-checkbox
-              v-else
-              v-model="project.done"
-              size="lg"
-              color="orange"
-              checked-icon="radio_button_checked"
-              :unchecked-icon="project.icon"
-              indeterminate-icon="help"
-              @update:modelValue="checkProject"
-            />
-            {{ project.title ? project.title : "New Project" }}
-            <q-btn icon="more_vert" class="float-right" v-if="more" @click.stop>
-              <q-menu v-model="moreShowing">
-                <q-list style="min-width: 100px">
-                  <q-item clickable v-close-popup @click="trashProject">
-                    <q-item-section avatar>
-                      <q-icon name="delete" />
-                    </q-item-section>
+            <div class="row">
+              <q-icon
+                v-if="project.default"
+                :name="project.icon"
+                :input-style="{ fontSize: '24px' }"
+              />
+              <q-checkbox
+                v-else
+                v-model="project.done"
+                size="lg"
+                color="orange"
+                checked-icon="radio_button_checked"
+                :unchecked-icon="project.icon"
+                indeterminate-icon="help"
+                @update:modelValue="checkProject"
+              />
+              <span v-if="project.default" class="project-title">
+                {{ project.title }}
+              </span>
+              <q-input
+                v-else
+                class="project-title"
+                style="margin-top: 5px"
+                @update:modelValue="
+                  (value) => updateProjectName(project, value)
+                "
+                @blur="commitProjectName(project)"
+                @keydown.enter="commitProjectName(project)"
+                borderless
+                dense
+                v-model="project.title"
+                placeholder="New Project"
+              />
+              <q-space />
+              <q-btn icon="more_vert" v-if="more" @click.stop>
+                <q-menu v-model="moreShowing">
+                  <q-list style="min-width: 100px">
+                    <q-item clickable v-close-popup @click="trashProject">
+                      <q-item-section avatar>
+                        <q-icon name="delete" />
+                      </q-item-section>
 
-                    <q-item-section>
-                      <q-item-label> Delete </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click="
-                      project.done = true;
-                      checkProject();
-                    "
-                  >
-                    <q-item-section avatar>
-                      <q-icon name="done" />
-                    </q-item-section>
+                      <q-item-section>
+                        <q-item-label> Delete </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="
+                        project.done = true;
+                        checkProject();
+                      "
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="done" />
+                      </q-item-section>
 
-                    <q-item-section>
-                      <q-item-label> Check </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click.stop="shareDialog = true"
-                  >
-                    <q-item-section avatar>
-                      <q-icon name="share" />
-                    </q-item-section>
+                      <q-item-section>
+                        <q-item-label> Check </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click.stop="shareDialog = true"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="share" />
+                      </q-item-section>
 
-                    <q-item-section>
-                      <q-item-label> Share </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
-            </q-btn>
+                      <q-item-section>
+                        <q-item-label> Share </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </div>
           </h4>
 
           <list
@@ -150,6 +173,7 @@ const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 const TRASH_PROJECT = require("src/gql/mutations/TrashProject.gql");
 const SHARE_PROJECT = require("src/gql/mutations/ShareProject.gql");
 const UNSHARE_PROJECT = require("src/gql/mutations/UnshareProject.gql");
+const UPDATE_PROJECT_NAME_BY_PK = require("src/gql/mutations/UpdateProjectNameByPk.gql");
 import { toDatabaseString, today } from "src/common/date.js";
 import { uuidv4 } from "src/common/utils.js";
 import Base from "src/generics/Base.js";
@@ -164,11 +188,12 @@ export default {
       moreShowing: false,
       shareDialog: null,
       shares: [],
+      projectTitleTimeout: null,
     };
   },
   mounted() {
     this.buildShares();
-    console.log('PROPJECT mounted', this.config)
+    console.log("PROPJECT mounted", this.config);
   },
   props: {
     modelValue: {
@@ -222,6 +247,20 @@ export default {
     },
   },
   methods: {
+    updateProjectName(project, value) {
+      project.title = value;
+      console.log("updateProjectName", project, value);
+      this.$store.commit("user/updateProject", project);
+    },
+    commitProjectName(project) {
+      this.$mutateQueue({
+        mutation: UPDATE_PROJECT_NAME_BY_PK,
+        variables: {
+          id: project.id,
+          title: project.title,
+        },
+      }).then(() => project.edit = false);
+    },
     buildShares() {
       if (this.user?.friends && this.project.friends) {
         this.shares = this.user.friends.map((friend) => ({
@@ -394,3 +433,8 @@ export default {
   },
 };
 </script>
+<style>
+.project-title {
+  font-size: 24px;
+}
+</style>

@@ -53,7 +53,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.userId || !this.user;
+          return !this.userId || !this.user || this.user.loading;
         },
         result(result) {
           if (result.data.projects) {
@@ -69,7 +69,7 @@ export default defineComponent({
           };
         },
         skip() {
-          return !this.userId || !this.user;
+          return !this.userId || !this.user || this.user.loading;
         },
         result(result) {
           if (result.data.friends) {
