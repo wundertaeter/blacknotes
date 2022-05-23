@@ -5,90 +5,89 @@
         <div v-if="project" class="q-pa-md container">
           <h4>
             <div class="row">
-              <div class="col-1">
-              <q-icon
-                v-if="project.default"
-                :name="project.icon"
-                :input-style="{ fontSize: '24px' }"
-              />
-              <q-checkbox
-                v-else
-                v-model="project.done"
-                size="lg"
-                color="orange"
-                checked-icon="radio_button_checked"
-                :unchecked-icon="project.icon"
-                indeterminate-icon="help"
-                @update:modelValue="checkProject"
-              />
+              <div class="col-11">
+                <div class="row">
+                  <q-icon
+                    v-if="project.default"
+                    :name="project.icon"
+                    :input-style="{ fontSize: '24px' }"
+                  />
+                  <q-checkbox
+                    v-else
+                    v-model="project.done"
+                    size="lg"
+                    color="orange"
+                    checked-icon="radio_button_checked"
+                    :unchecked-icon="project.icon"
+                    indeterminate-icon="help"
+                    @update:modelValue="checkProject"
+                  />
+                  <span v-if="project.default" class="project-title">
+                    {{ project.title }}
+                  </span>
+                  <q-input
+                    v-else
+                    class="project-title"
+                    style="margin-top: 5px"
+                    @update:modelValue="
+                      (value) => updateProjectName(project, value)
+                    "
+                    @blur="commitProjectName(project)"
+                    @keydown.enter="commitProjectName(project)"
+                    borderless
+                    dense
+                    v-model="project.title"
+                    placeholder="New Project"
+                  />
+                </div>
               </div>
-              <div class="col-10">
-              <span v-if="project.default" class="project-title">
-                {{ project.title }}
-              </span>
-              <q-input
-                v-else
-                class="project-title"
-                style="margin-top: 5px"
-                @update:modelValue="
-                  (value) => updateProjectName(project, value)
-                "
-                @blur="commitProjectName(project)"
-                @keydown.enter="commitProjectName(project)"
-                borderless
-                dense
-                v-model="project.title"
-                placeholder="New Project"
-              />
-              </div>
               <div class="col-1">
-            
-              <q-btn icon="more_vert" v-if="more" @click.stop>
-                <q-menu v-model="moreShowing">
-                  <q-list style="min-width: 100px">
-                    <q-item clickable v-close-popup @click="trashProject">
-                      <q-item-section avatar>
-                        <q-icon name="delete" />
-                      </q-item-section>
+                <q-btn icon="more_vert" v-if="more" @click.stop>
+                  <q-menu v-model="moreShowing">
+                    <q-list style="min-width: 100px">
+                      <q-item clickable v-close-popup @click="trashProject">
+                        <q-item-section avatar>
+                          <q-icon name="delete" />
+                        </q-item-section>
 
-                      <q-item-section>
-                        <q-item-label> Delete </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="
-                        project.done = true;
-                        checkProject();
-                      "
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="done" />
-                      </q-item-section>
+                        <q-item-section>
+                          <q-item-label> Delete </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="
+                          project.done = true;
+                          checkProject();
+                        "
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="done" />
+                        </q-item-section>
 
-                      <q-item-section>
-                        <q-item-label> Check </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-separator />
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click.stop="shareDialog = true"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="share" />
-                      </q-item-section>
+                        <q-item-section>
+                          <q-item-label> Check </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-separator />
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click.stop="shareDialog = true"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="share" />
+                        </q-item-section>
 
-                      <q-item-section>
-                        <q-item-label> Share </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-btn>
-            </div>
+                        <q-item-section>
+                          <q-item-label> Share </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </div>
             </div>
           </h4>
 
@@ -265,7 +264,7 @@ export default {
           id: project.id,
           title: project.title,
         },
-      }).then(() => project.edit = false);
+      }).then(() => (project.edit = false));
     },
     buildShares() {
       if (this.user?.friends && this.project.friends) {

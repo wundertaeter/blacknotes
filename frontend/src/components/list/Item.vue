@@ -325,7 +325,7 @@ export default {
   border-top: 1px solid black;
 }
 .selected {
-  border: 3px solid $orange;
+  border: 2px solid $orange;
 }
 .when {
   min-width: 100px;
