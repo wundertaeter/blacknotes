@@ -1,5 +1,5 @@
 <template>
-  <q-btn @click="isMobile ? showMenu = true : null">
+  <q-btn @click="isMobile ? (showMenu = true) : null">
     <q-menu v-if="!isMobile" v-model="showMenu">
       <q-date
         color="orange"
@@ -24,18 +24,29 @@
           <span v-else> <q-icon name="add" /> Repeat </span>
 
           <q-menu v-model="showRepeatMenu" fit>
-            <q-list>
-              <q-item
-                v-for="option in repeatOptions"
-                :key="option.unit"
-                clickable
-                @click.stop="changeRepeat(option)"
-              >
-                {{ displayOption(option) }}
-              </q-item>
-            </q-list>
+            <div class="row" style="padding-left: 10px; padding-right: 10px">
+              <div class="col-6">
+                <q-select
+                  borderless
+                  color="orange"
+                  v-model="unit"
+                  :options="unitOptions"
+                  label="Unit"
+                  @update:modelValue="changeRepeat"
+                />
+              </div>
+              <div class="col-6">
+                <q-select
+                  borderless
+                  color="orange"
+                  v-model="value"
+                  :options="valueOptions"
+                  label="Value"
+                  @update:modelValue="changeRepeat"
+                />
+              </div>
+            </div>
           </q-menu>
-
           <q-space />
           <span v-if="item.repeat">
             <q-icon name="close" @click.stop="removeRepeat" />
@@ -46,47 +57,59 @@
     <slot name="default" />
     <q-dialog v-if="isMobile" v-model="showMenu">
       <q-card>
-      <q-date
-        color="orange"
-        mask="YYYY-MM-DD"
-        @click.stop
-        v-model="item.when"
-        :options="dateOptions"
-        minimal
-        @update:modelValue="updateModelValue"
-      >
-        <q-btn
-          :flat="!item.repeat"
-          :outlines="!!item.repeat"
-          style="width: 100%"
-          v-if="!addRepeat"
+        <q-date
+          color="orange"
+          mask="YYYY-MM-DD"
           @click.stop
-          align="left"
+          v-model="item.when"
+          :options="dateOptions"
+          minimal
+          @update:modelValue="updateModelValue"
         >
-          <span v-if="item.repeat">
-            <q-icon name="repeat" /> {{ item.repeat }}
-          </span>
-          <span v-else> <q-icon name="add" /> Repeat </span>
+          <q-btn
+            :flat="!item.repeat"
+            :outlines="!!item.repeat"
+            style="width: 100%"
+            v-if="!addRepeat"
+            @click.stop
+            align="left"
+          >
+            <span v-if="item.repeat">
+              <q-icon name="repeat" /> {{ item.repeat }}
+            </span>
+            <span v-else> <q-icon name="add" /> Repeat </span>
 
-          <q-menu v-model="showRepeatMenu" fit>
-            <q-list>
-              <q-item
-                v-for="option in repeatOptions"
-                :key="option.unit"
-                clickable
-                @click.stop="changeRepeat(option)"
-              >
-                {{ displayOption(option) }}
-              </q-item>
-            </q-list>
-          </q-menu>
+            <q-menu v-model="showRepeatMenu" fit>
+              <div class="row" style="padding-left: 10px; padding-right: 10px">
+                <div class="col-6">
+                  <q-select
+                    borderless
+                    color="orange"
+                    v-model="unit"
+                    :options="unitOptions"
+                    label="Unit"
+                    @update:modelValue="changeRepeat"
+                  />
+                </div>
+                <div class="col-6">
+                  <q-select
+                    borderless
+                    color="orange"
+                    v-model="value"
+                    :options="valueOptions"
+                    label="Value"
+                    @update:modelValue="changeRepeat"
+                  />
+                </div>
+              </div>
+            </q-menu>
 
-          <q-space />
-          <span v-if="item.repeat">
-            <q-icon name="close" @click.stop="removeRepeat" />
-          </span>
-        </q-btn>
-      </q-date>
+            <q-space />
+            <span v-if="item.repeat">
+              <q-icon name="close" @click.stop="removeRepeat" />
+            </span>
+          </q-btn>
+        </q-date>
       </q-card>
     </q-dialog>
   </q-btn>
@@ -97,17 +120,17 @@ import { isToday, isFuture } from "src/common/date.js";
 
 export default {
   data(props) {
+    const repeat = props.modelValue.repeat?.split(":");
+    const [unit, value] = repeat ? repeat : [null, null];
     return {
       showMenu: false,
       item: { ...props.modelValue },
-      repeatOptions: [
-        { unit: "day", count: 1 },
-        { unit: "week", count: 1 },
-        { unit: "month", count: 1 },
-        { unit: "year", count: 1 },
-      ],
+      valueOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      unitOptions: ['day', 'week', 'month', 'year'],
       addRepeat: false,
       showRepeatMenu: false,
+      unit: unit,
+      value: value,
     };
   },
   watch: {
@@ -132,9 +155,6 @@ export default {
     multiply(string, number) {
       return number > 1 ? string + s : string;
     },
-    displayOption(option) {
-      return `${option.count} ${this.multiply(option.unit, option.count)}`;
-    },
     dateOptions(timestamp) {
       return isToday(timestamp) || isFuture(timestamp);
     },
@@ -148,9 +168,10 @@ export default {
       this.updateModelValue();
     },
     changeRepeat(option) {
-      console.log("changeRepeat", this.value, option.value);
-      this.item.repeat = `${option.unit}:${option.count}`;
-      this.showRepeatMenu = false;
+      console.log("changeRepeat", option, this.unit, this.value);
+      if (this.unit && this.value) {
+      }
+      this.item.repeat = `${this.unit}:${this.value}`;
 
       this.updateModelValue();
     },

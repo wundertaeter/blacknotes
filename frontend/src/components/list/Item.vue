@@ -40,7 +40,8 @@
         </div>
         <div class="col-6 text-right self-center ellipsis">
           <span class="when" v-if="item.when && datePreview">
-            <q-icon name="today" />
+            <q-icon v-if="item.repeat" name="repeat" size="xs" style="margin-top: -2px"/>
+            <q-icon v-else name="today" size="xs" style="margin-top: -2px"/>
             {{ formatDate(item.when, "D. MMM") }}
           </span>
           <span v-else-if="item.user_id !== user.id">
@@ -87,7 +88,7 @@
           @mouseover="btnHover = true"
           v-if="item.when"
           v-model="item"
-          icon="today"
+          :icon="item.repeat ? 'repeat' : 'today'"
           @update:modelValue="updateModelValue"
           :label="formatDate(item.when, 'ddd D. MMM')"
         >

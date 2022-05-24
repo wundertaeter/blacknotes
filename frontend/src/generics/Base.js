@@ -192,9 +192,9 @@ export default {
     },
     repeatNote(note) {
       if (note.repeat) {
-        const [unit, count] = note.repeat.split(':');
-        const repeat = unit === 'week' ? { day: 7 * count } : { [unit]: count };
-        const newNote = { ...note, id: uuidv4(), done: false, completed_at: null, when: toDatabaseString(date.addToDate(note.completed_at, repeat)) };
+        const [unit, value] = note.repeat.split(':');
+        const repeat = unit === 'week' ? { day: 7 * value } : { [unit]: value };
+        const newNote = { ...note, id: uuidv4(), project_id: note.project?.id, done: false, completed_at: null, when: toDatabaseString(date.addToDate(note.completed_at, repeat)) };
         this.$updateCache(newNote);
         this.createNote(newNote);
       }
