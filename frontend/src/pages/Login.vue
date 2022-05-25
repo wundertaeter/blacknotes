@@ -7,9 +7,9 @@
           Login
         </h4>
 
-        <q-input v-model="username" type="username" label="username" />
-        <q-input v-model="password" type="password" label="password" />
-        <q-btn label="login" v-on:click="login" />
+        <q-input v-model="username" type="text" name="username" label="username" @keydown.enter="login"/>
+        <q-input v-model="password" type="password" name="password" label="password" @keydown.enter="login"/>
+        <q-btn label="login" flat v-on:click="login"/>
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
