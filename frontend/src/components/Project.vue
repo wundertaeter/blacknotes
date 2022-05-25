@@ -5,7 +5,7 @@
         <div v-if="project" class="q-pa-md container">
           <h4>
             <div class="row">
-              <div class="col-11">
+              <div class="col-10">
                 <div class="row">
                   <q-icon
                     v-if="project.default"
@@ -41,8 +41,8 @@
                   />
                 </div>
               </div>
-              <div class="col-1">
-                <q-btn icon="more_vert" v-if="more" @click.stop>
+              <div class="col-2">
+                <q-btn icon="more_vert" class="float-right" style="top: 6px;" flat v-if="more" @click.stop>
                   <q-menu v-model="moreShowing">
                     <q-list style="min-width: 100px">
                       <q-item clickable v-close-popup @click="trashProject">

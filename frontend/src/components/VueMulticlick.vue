@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     selectedIndexes() {
-      return this.selectedItems ? this.selectedItems.map((item) => this.items.indexOf(item)) : [];
+      return this.selectedItems?.map((item) => this.items.indexOf(item)) || [];
     },
     lastSelectedIndex() {
       if (!this.lastSelected) {
