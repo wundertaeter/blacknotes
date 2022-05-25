@@ -22,7 +22,7 @@ query GetUserData($id: Int!) {
       avatar
     }
   }
-  projects: notes_project(order_by: {position: asc_nulls_last}, where: {_and: {_or: [{user_id: {_eq: $id}}, {friends: {user_id: {_eq: $id}}}]}, space_id: {_is_null: true}, deleted: {_eq: false}, done: {_eq: false}}) {
+  projects: notes_project(order_by: {position: asc_nulls_last}, where: {_and: {_or: [{user_id: {_eq: $id}}, {friends: {user_id: {_eq: $id}}}]}, space_id: {_is_null: true}}) {
     title
     icon
     id

@@ -187,6 +187,7 @@ export default {
   name: "ProjectComponent",
   extends: Base,
   data() {
+    console.log('config', this.config)
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
       timeout: null,
@@ -267,7 +268,7 @@ export default {
       }).then(() => (project.edit = false));
     },
     buildShares() {
-      if (this.user?.friends && this.project.friends) {
+      if (this.user?.friends && this.project?.friends) {
         this.shares = this.user.friends.map((friend) => ({
           ...friend,
           isConnected: this.project.friends.some(
@@ -391,11 +392,13 @@ export default {
       if (!next) {
         next = projects[projects.length - 1] || null;
       }
-      console.log("next project", projects, next);
-      this.$router.push({ name: "project", params: { id: next.id } });
       this.$store.commit("user/updateProjects", projects);
-      if (!next) {
+      console.log("next project", projects, next);
+      if(next){
+        this.$router.push({ name: "project", params: { id: next.id } });
+      }else{
         this.project = null;
+        this.$router.push({ name: "today"});
       }
     },
     checkProject() {

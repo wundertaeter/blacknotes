@@ -5,10 +5,9 @@
     more
     sort
     :config="{
-      notes_subscription: SUBSCRIBE_PROJECT,
+      notes_subscription: project.done ? SUBSCRIBE_DONE_PROJECT: SUBSCRIBE_PROJECT,
       variables: {
         project_id: id,
-        done: project.done ? {} : { _eq: false },
       },
     }"
     position-column="position"
@@ -24,6 +23,7 @@
 <script>
 import { defineComponent } from "vue";
 const SUBSCRIBE_PROJECT = require("src/gql/subscriptions/SubscribeProject.gql");
+const SUBSCRIBE_DONE_PROJECT = require("src/gql/subscriptions/SubscribeDoneProject.gql");
 import Project from "src/components/Project.vue";
 
 export default defineComponent({
@@ -41,11 +41,13 @@ export default defineComponent({
     return {
       config: null,
       SUBSCRIBE_PROJECT,
+      SUBSCRIBE_DONE_PROJECT,
       unwatch: null,
     };
   },
   computed: {
     project() {
+      console.log('this.projects', this.projects);
       return this.projects.find((project) => project.id == this.id);
     },
     projects() {

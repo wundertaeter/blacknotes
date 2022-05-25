@@ -15,7 +15,7 @@
       v-else
       v-model="item.done"
       @update:modelValue="$emit('check', item)"
-      :class="edited ? 'checkbox-edit' : 'checkbox'"
+      :class="edit ? 'checkbox-edit' : 'checkbox'"
       color="orange"
     />
     <q-card-section class="text-white editor">
@@ -26,7 +26,7 @@
             'display-project': renderProjectTitle,
           }"
         >
-          <span :style="`color: ${user.profile.white_mode ? 'black' : 'white'}`">{{
+          <span :style="`color: ${user.profile?.white_mode ? 'black' : 'white'}`">{{
             item.title
               ? item.title
               : item.__typename.includes("_note")
