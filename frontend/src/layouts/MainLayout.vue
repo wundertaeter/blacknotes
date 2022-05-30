@@ -329,15 +329,16 @@ export default defineComponent({
     },
     updatePositions(e) {
       console.log("update position", e);
+      const objs = [];
       for (let i = 0; i < this.projects.length; i++) {
         this.projects[i].position = i;
-        delete this.projects[i].edit;
-        delete this.projects[i].__typename;
+        const {__typename, edit, friends, ...obj} = this.projects[i];
+        objs.push(obj);
       }
       this.$apollo.mutate({
         mutation: SORT_PROJECTS,
         variables: {
-          objects: this.projects,
+          objects: objs,
           update_columns: ["position"],
         },
       });
@@ -414,7 +415,7 @@ export default defineComponent({
         : null;
     },
     maxPosition() {
-      const positions = this.projects.map((project) => project.position);
+      const positions = this.user.projects.map((project) => project.position);
       return positions.length ? Math.max(...positions) : 0;
     },
   },

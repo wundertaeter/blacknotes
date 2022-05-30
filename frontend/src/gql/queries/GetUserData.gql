@@ -30,6 +30,7 @@ query GetUserData($id: Int!) {
     deleted
     user_id
     completed_at
+    position
     anytime_position
     today_position
     someday_position
