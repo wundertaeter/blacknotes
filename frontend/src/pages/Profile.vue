@@ -26,7 +26,7 @@
         </div>
 
         <hr style="margin-top: 50px; margin-bottom: 50px" />
-        <div class="row">
+        <!--div class="row">
           <h3>Dark Mode</h3>
           <q-toggle
             size="150px"
@@ -34,7 +34,7 @@
             @update:modelValue="changeDarkMode"
           />
         </div>
-        <hr style="margin-top: 50px" />
+        <hr style="margin-top: 50px" /-->
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
