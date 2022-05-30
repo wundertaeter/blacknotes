@@ -184,7 +184,7 @@
                   <q-input
                     v-if="element.edit || !element.title"
                     v-model="element.title"
-                    @keydown.enter="commitProjectName(element)"
+                    @keydown.enter="e => e.target.blur()"
                     @update:modelValue="
                       (value) => updateProjectName(element, value)
                     "

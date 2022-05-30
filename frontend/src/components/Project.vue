@@ -385,7 +385,7 @@ export default {
       this.$updateCache(project);
     },
     nextProject() {
-      const projects = [...this.user.projects];
+      const projects = [...this.user.projects.filter(p => !p.done && !p.deleted)];
       const index = projects.findIndex((p) => p.id == this.project.id);
       projects.splice(index, 1);
       let next = projects[index];
