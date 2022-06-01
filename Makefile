@@ -20,3 +20,6 @@ hs-metadata:
 
 hs-metadata-reload:
 	cd hasura; hasura metadata reload --admin-secret=${HASURA_SECRET};
+
+gen-icons:
+	cd frontend; icongenie generate -b public/icon.png --splashscreen-icon-ratio=0 -i public/icon.png --png-color=fff --svg-color=fff --splashscreen-color=fff --theme-color=fff

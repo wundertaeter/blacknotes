@@ -1,0 +1,7 @@
+{
+  "appId": "blacknotes.de",
+  "appName": "blacknotes",
+  "bundledWebRuntime": false,
+  "npmClient": "yarn",
+  "webDir": "www"
+}
