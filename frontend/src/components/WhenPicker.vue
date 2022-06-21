@@ -200,6 +200,14 @@ export default {
       return formatDate(this.when) === "Someday";
     },
   },
+  watch: {
+    modelValue: {
+      handler(value){
+        this.item = {...value};
+      },
+      deep: true
+    }
+  },
   props: {
     modelValue: {
       type: Object,
