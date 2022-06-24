@@ -11,7 +11,8 @@
         minimal
       >
         <q-btn
-          :flat="!item.repeat"
+          xxflat="!item.repeat"
+          flat
           @click="addSomeday"
           style="width: 100%; text-align: center"
         >
@@ -20,12 +21,17 @@
             <q-space />
             <span>Someday</span>
             <q-space />
-            <q-icon name="close" v-if="isSomeday" @click.stop="removeSomeday" />
+            <q-icon
+              name="close"
+              :style="isSomeday ? '' : 'visibility: hidden'"
+              @click.stop="removeSomeday"
+            />
           </div>
         </q-btn>
 
         <q-btn
           style="width: 100%; text-align: center"
+          flat
           v-if="!addRepeat"
           @click.stop="showRepeatMenu = !showRepeatMenu"
         >
@@ -41,6 +47,11 @@
             <q-space />
             <span>Repeat</span>
             <q-space />
+            <q-icon
+              name="close"
+              style="visibility: hidden"
+              @click.stop="removeSomeday"
+            />
           </div>
         </q-btn>
         <div
@@ -95,7 +106,8 @@
           minimal
         >
           <q-btn
-            :flat="!item.repeat"
+            xxflat="!item.repeat"
+            flat
             @click="addSomeday"
             style="width: 100%; text-align: center"
           >
@@ -106,7 +118,7 @@
               <q-space />
               <q-icon
                 name="close"
-                v-if="isSomeday"
+                :style="isSomeday ? '' : 'visibility: hidden'"
                 @click.stop="removeSomeday"
               />
             </div>
@@ -115,6 +127,7 @@
         <div class="mobile-actions">
           <q-btn
             style="width: 100%; text-align: center"
+            flat
             v-if="!addRepeat"
             @click.stop="showRepeatMenu = !showRepeatMenu"
           >
@@ -130,6 +143,11 @@
               <q-space />
               <span>Repeat</span>
               <q-space />
+              <q-icon
+                name="close"
+                style="visibility: hidden"
+                @click.stop="removeSomeday"
+              />
             </div>
           </q-btn>
           <div
@@ -202,11 +220,11 @@ export default {
   },
   watch: {
     modelValue: {
-      handler(value){
-        this.item = {...value};
+      handler(value) {
+        this.item = { ...value };
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   props: {
     modelValue: {
