@@ -130,8 +130,9 @@ export default {
       this.edit = item;
     },
     setSelectedItems(items) {
-      // console.log('setSelectedItems base', items);
-      this.selectedItems = items;
+      if(Array.isArray(items)){ // TODO sometimes items is an event. Find the bug
+        this.selectedItems = items;
+      }
     },
     setSelectedItem(item) {
       this.setSelectedItems(item ? [item] : []);
