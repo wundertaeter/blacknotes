@@ -1,6 +1,6 @@
 <template>
   <q-banner
-    v-if="showNotificationBanner && user.id"
+    v-if="showNotificationBanner"
     inline-actions
     class="text-dark banner"
   >
@@ -28,6 +28,8 @@ export default {
   data() {
     return {
       showNotificationBanner: false,
+      serviceWorkerSupport: "serviceWorker" in navigator,
+      pushNotificationSupport: "Notification" in window,
     };
   },
   mounted() {
@@ -35,7 +37,7 @@ export default {
     if (
       this.serviceWorkerSupport &&
       this.pushNotificationSupport &&
-      this.profile
+      this.user.id
     ) {
       setTimeout(() => {
         let neverShowNotificationBanner = localStorage.getItem(
