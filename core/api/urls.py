@@ -1,7 +1,7 @@
 from django.urls import path
 
 from rest_framework_simplejwt.views import TokenVerifyView
-from .views import HasuraTokenObtainPairView, CreateUserView, UserDetails, HasuraTokenRefreshView, LogoutView
+from .views import HasuraTokenObtainPairView, CreateUserView, UserDetails, HasuraTokenRefreshView, LogoutView, NotifyView
 
 urlpatterns = [
     path('user/', CreateUserView.as_view(), name='create_user'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('token/', HasuraTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', HasuraTokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('notify/', NotifyView.as_view(), name='notify-view'),
 ]

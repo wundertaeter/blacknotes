@@ -68,3 +68,38 @@ class UserDetails(views.APIView):
 
     def get(self, request, format=None):
         return Response({"id": request.user.id, "username": request.user.username, "email": request.user.email})
+
+
+from users.models import PushNotifications
+from notes.models import Note
+from datetime import date
+from pywebpush import webpush
+from django.conf import settings
+import json
+
+
+class NotifyView(views.APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+        except Exception as e:
+            return Response({'success': False, 'error': 'invalid json'}, 500)
+
+        if data.get('secret') != settings.SECRET_KEY:
+            return Response({'success': False, 'error': 'unauthorized'}, 401)
+
+        notes = Note.objects.filter(when=date.today()).order_by('user__id')
+        print(notes)
+        user = None
+
+        for note in notes:
+            if note.user != user:
+                user = note.user
+                subscriptions = PushNotifications.objects.filter(user=user)
+            for sub in subscriptions:
+                print('send message')
+                webpush(subscription_info=sub.subscription,
+                        data=json.dumps({'title': note.title}),
+                        vapid_private_key=settings.WEBPUSH_SETTINGS['VAPID_PRIVATE_KEY'],
+                        vapid_claims={"sub": 'mailto:' + settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']})
+        return Response({'success': True}, 200)
