@@ -18,7 +18,7 @@ registerRoute(new RegExp("^http"), new StaleWhileRevalidate());
 // Receive the push event sent from the backend
 self.addEventListener("push", e => {
     const data = e.data.json();
-    console.log("Service Worker: Push Recieved...");
+    console.log("Service Worker: Push Recieved...", data);
     const info = { icon: `${self.registration.scope}favicon.ico` };
     if (data.msg) info.body = data.msg;
     info.data = { onClickURL: data.on_click_url };
