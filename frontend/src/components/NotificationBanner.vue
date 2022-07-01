@@ -27,7 +27,7 @@ const CREATE_PUSH_SUBSCRIPTION = require("src/gql/mutations/CreatePushSubscripti
 export default {
   data() {
     return {
-      showNotificationBanner: true,
+      showNotificationBanner: false,
     };
   },
   mounted() {

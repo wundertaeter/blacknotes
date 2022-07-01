@@ -1,5 +1,5 @@
 mutation CreatePushSubscription($subscription: jsonb!, $user_id: uuid!) {
-  insert_push_subscriptions_one(object: {subscription: $subscription, user_id: $user_id}) {
+  insert_users_pushnotifications_one(object: {subscription: $subscription, user_id: $user_id}) {
     subscription
     user_id
   }
