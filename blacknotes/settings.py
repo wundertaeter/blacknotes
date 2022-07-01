@@ -42,12 +42,19 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'webpush',
 
 
     'notes',
     'users',
 
 ]
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": os.getenv('WP_PUBLIC_VAPID_KEY'),
+    "VAPID_PRIVATE_KEY": os.getenv('WP_PRIVATE_VAPID_KEY'),
+    "VAPID_ADMIN_EMAIL": "blacknotes@gmail.com"
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
