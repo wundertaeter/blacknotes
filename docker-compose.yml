@@ -44,6 +44,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       DJANGO_SECRET: $DJANGO_SECRET
+      WP_PUBLIC_VAPID_KEY: $WP_PUBLIC_VAPID_KEY
+      WP_PRIVATE_VAPID_KEY: $WP_PRIVATE_VAPID_KEY
     depends_on:
       - "postgres"
     extra_hosts:
