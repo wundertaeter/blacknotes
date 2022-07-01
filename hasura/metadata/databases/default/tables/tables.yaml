@@ -6,3 +6,4 @@
 - "!include public_notes_space.yaml"
 - "!include public_users_profile.yaml"
 - "!include public_users_profile_friends.yaml"
+- "!include public_users_pushnotifications.yaml"

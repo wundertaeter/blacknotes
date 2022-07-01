@@ -1,38 +1,38 @@
 table:
-  name: users_profile
   schema: public
+  name: users_profile
 object_relationships:
-- name: user
-  using:
-    foreign_key_constraint_on: user_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 array_relationships:
-- name: friends
-  using:
-    foreign_key_constraint_on:
-      column: profile_id
-      table:
-        name: users_profile_friends
-        schema: public
+  - name: friends
+    using:
+      foreign_key_constraint_on:
+        column: profile_id
+        table:
+          schema: public
+          name: users_profile_friends
 select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - avatar
-    - id
-    - user_id
-    - white_mode
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - avatar
+        - id
+        - user_id
+        - white_mode
+      filter: {}
+      allow_aggregations: true
 update_permissions:
-- permission:
-    check:
-      user_id:
-        _eq: X-Hasura-User-Id
-    columns:
-    - avatar
-    - user_id
-    - white_mode
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - avatar
+        - user_id
+        - white_mode
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id

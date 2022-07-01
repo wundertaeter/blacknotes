@@ -1,20 +1,18 @@
 table:
   schema: public
-  name: users_profile_friends
+  name: users_pushnotifications
 object_relationships:
-  - name: profile
-    using:
-      foreign_key_constraint_on: profile_id
   - name: user
     using:
       foreign_key_constraint_on: user_id
 insert_permissions:
   - role: user
     permission:
-      check: {}
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
       columns:
-        - id
-        - profile_id
+        - subscription
         - user_id
       backend_only: false
 select_permissions:
@@ -22,20 +20,15 @@ select_permissions:
     permission:
       columns:
         - id
-        - profile_id
+        - subscription
         - user_id
-      filter: {}
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
       allow_aggregations: true
-update_permissions:
-  - role: user
-    permission:
-      columns:
-        - id
-        - profile_id
-        - user_id
-      filter: {}
-      check: {}
 delete_permissions:
   - role: user
     permission:
-      filter: {}
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

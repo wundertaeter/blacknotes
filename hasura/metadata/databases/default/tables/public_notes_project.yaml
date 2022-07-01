@@ -1,92 +1,92 @@
 table:
-  name: notes_project
   schema: public
+  name: notes_project
 object_relationships:
-- name: space
-  using:
-    foreign_key_constraint_on: space_id
-- name: user
-  using:
-    foreign_key_constraint_on: user_id
+  - name: space
+    using:
+      foreign_key_constraint_on: space_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 array_relationships:
-- name: friends
-  using:
-    foreign_key_constraint_on:
-      column: project_id
-      table:
-        name: notes_project_friends
-        schema: public
-- name: notes
-  using:
-    foreign_key_constraint_on:
-      column: project_id
-      table:
-        name: notes_note
-        schema: public
+  - name: friends
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: notes_project_friends
+  - name: notes
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: notes_note
 insert_permissions:
-- permission:
-    backend_only: false
-    check: {}
-    columns:
-    - deleted
-    - done
-    - icon
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - completed_at
-    - deleted_at
-    - id
-    - space_id
-  role: user
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - deleted
+        - done
+        - icon
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - completed_at
+        - deleted_at
+        - id
+        - space_id
+      backend_only: false
 select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - deleted
-    - done
-    - icon
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - completed_at
-    - deleted_at
-    - id
-    - space_id
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - deleted
+        - done
+        - icon
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - completed_at
+        - deleted_at
+        - id
+        - space_id
+      filter: {}
+      allow_aggregations: true
 update_permissions:
-- permission:
-    check: {}
-    columns:
-    - deleted
-    - done
-    - icon
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - completed_at
-    - deleted_at
-    - id
-    - space_id
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - deleted
+        - done
+        - icon
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - completed_at
+        - deleted_at
+        - id
+        - space_id
+      filter: {}
+      check: {}
 delete_permissions:
-- permission:
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      filter: {}

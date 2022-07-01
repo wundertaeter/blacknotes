@@ -1,83 +1,83 @@
 table:
-  name: active_notes
   schema: public
+  name: active_notes
 object_relationships:
-- name: project
-  using:
-    manual_configuration:
-      column_mapping:
-        project_id: id
-      insertion_order: null
-      remote_table:
-        name: notes_project
-        schema: public
+  - name: project
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: notes_project
+        insertion_order: null
+        column_mapping:
+          project_id: id
 insert_permissions:
-- permission:
-    backend_only: false
-    check: {}
-    columns:
-    - deleted
-    - done
-    - repeat
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - content
-    - completed_at
-    - deleted_at
-    - id
-    - project_id
-  role: user
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - deleted
+        - done
+        - repeat
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - content
+        - completed_at
+        - deleted_at
+        - id
+        - project_id
+      backend_only: false
 select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - deleted
-    - done
-    - repeat
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - content
-    - completed_at
-    - deleted_at
-    - id
-    - project_id
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - deleted
+        - done
+        - repeat
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - content
+        - completed_at
+        - deleted_at
+        - id
+        - project_id
+      filter: {}
+      allow_aggregations: true
 update_permissions:
-- permission:
-    check: {}
-    columns:
-    - deleted
-    - done
-    - repeat
-    - title
-    - when
-    - anytime_position
-    - position
-    - someday_position
-    - today_position
-    - upcoming_position
-    - user_id
-    - content
-    - completed_at
-    - deleted_at
-    - id
-    - project_id
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - deleted
+        - done
+        - repeat
+        - title
+        - when
+        - anytime_position
+        - position
+        - someday_position
+        - today_position
+        - upcoming_position
+        - user_id
+        - content
+        - completed_at
+        - deleted_at
+        - id
+        - project_id
+      filter: {}
+      check: {}
 delete_permissions:
-- permission:
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      filter: {}

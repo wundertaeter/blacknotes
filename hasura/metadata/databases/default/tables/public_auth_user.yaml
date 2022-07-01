@@ -1,56 +1,63 @@
 table:
-  name: auth_user
   schema: public
+  name: auth_user
 object_relationships:
-- name: profile
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: users_profile
-        schema: public
+  - name: profile
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: users_profile
 array_relationships:
-- name: friends
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: users_profile_friends
-        schema: public
-- name: notes
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: notes_note
-        schema: public
-- name: projects
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: notes_project
-        schema: public
-- name: spaces
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: notes_space
-        schema: public
+  - name: friends
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: users_profile_friends
+  - name: notes
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: notes_note
+  - name: projects
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: notes_project
+  - name: pushnotifications
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: users_pushnotifications
+  - name: spaces
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: notes_space
 select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - date_joined
-    - email
-    - first_name
-    - id
-    - is_active
-    - is_staff
-    - is_superuser
-    - last_login
-    - last_name
-    - username
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - date_joined
+        - email
+        - first_name
+        - id
+        - is_active
+        - is_staff
+        - is_superuser
+        - last_login
+        - last_name
+        - username
+      filter: {}
+      allow_aggregations: true
