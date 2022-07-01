@@ -22,6 +22,6 @@ for note in notes:
     for sub in subscriptions:
         print('send message')
         webpush(subscription_info=sub.subscription,
-                data=json.dumps({'msg': 'Hey'}),
+                data=json.dumps({'title': note.title}),
                 vapid_private_key=settings.WEBPUSH_SETTINGS['VAPID_PRIVATE_KEY'],
                 vapid_claims={"sub": 'mailto:' + settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']})
