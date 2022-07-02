@@ -28,6 +28,7 @@ DEBUG = os.getenv('DJANGO_DEBUG')
 
 ALLOWED_HOSTS = ['web', 'localhost', '127.0.0.1', 'auth.blacknotes.de']
 
+CSRF_TRUSTED_ORIGINS = ['web', 'localhost', '127.0.0.1', 'auth.blacknotes.de']
 
 # Application definition
 
