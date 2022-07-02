@@ -20,6 +20,9 @@ subscription SubscribeAnytimeProjects($user_id: Int!) {
       when
       user_id
       deleted
+      position
+      completed_at
+      repeat
       anytime_position
       today_position
       someday_position

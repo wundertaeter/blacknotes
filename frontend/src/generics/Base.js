@@ -4,6 +4,7 @@ import List from "src/components/list/List.vue";
 const CREATE_NOTE = require("src/gql/mutations/CreateNote.gql");
 const TRASH_PROJECTS = require("src/gql/mutations/TrashProjects.gql");
 const TRASH_NOTES = require("src/gql/mutations/TrashNotes.gql");
+const UPDATE_NOTE = require("src/gql/mutations/UpdateNote.gql");
 const CHECK_NOTE = require("src/gql/mutations/CheckNote.gql");
 const CHECK_PROJECT = require("src/gql/mutations/CheckProject.gql");
 
@@ -130,7 +131,7 @@ export default {
       this.edit = item;
     },
     setSelectedItems(items) {
-      if(Array.isArray(items)){ // TODO sometimes items is an event. Find the bug
+      if (Array.isArray(items)) { // TODO sometimes items is an event. Find the bug
         this.selectedItems = items;
       }
     },
@@ -180,25 +181,36 @@ export default {
       this.checkTimeout = setTimeout(() => {
         // we leave completed_at filled so that the timeline removeItem method can assing the item to a timeline date
         item = { ...item, completed_at: item.done ? new Date() : item.completed_at };
-        this.$mutateQueue({
-          mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
-          variables: item,
-        });
-        this.removeItem(item);
-        if (item.__typename.includes('_note') && item.done && !item.deleted) {
+        if (item.repeat && item.done && !item.deleted) {
           this.repeatNote(item);
+        } else {
+          this.$mutateQueue({
+            mutation: item.__typename.includes("_note") ? CHECK_NOTE : CHECK_PROJECT,
+            variables: item,
+          });
+          this.removeItem(item);
         }
 
       }, 500);
     },
     repeatNote(note) {
-      if (note.repeat) {
-        const [unit, value] = note.repeat.split(':');
-        const repeat = unit === 'week' ? { day: 7 * value } : { [unit]: value };
-        const newNote = { ...note, id: uuidv4(), project_id: note.project?.id, done: false, completed_at: null, when: toDatabaseString(date.addToDate(note.completed_at, repeat)) };
-        this.$updateCache(newNote);
-        this.createNote(newNote);
-      }
+      console.log('repeat?', note.repeat);
+
+      const newNote = { ...note, project_id: note.project?.id, id: uuidv4() };
+      this.createNote(newNote);
+      this.$updateCache(newNote);
+
+      const [unit, value] = note.repeat.split(':');
+      const repeat = unit === 'week' ? { day: 7 * value } : { [unit]: value };
+      const oldNote = { ...note, project_id: note.project?.id, done: false, completed_at: null, when: toDatabaseString(date.addToDate(note.completed_at, repeat)) };
+      this.$updateCache(oldNote);
+      this.updateNote(oldNote);
+    },
+    updateNote(note) {
+      this.$mutateQueue({
+        mutation: UPDATE_NOTE,
+        variables: note,
+      });
     },
     createNote(note) {
       const { __typename, project, ...object } = note;
