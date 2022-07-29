@@ -6,10 +6,33 @@
           <q-icon name="login" />
           Login
         </h4>
-
-        <q-input v-model="username" type="text" name="username" label="username" @keydown.enter="login"/>
-        <q-input v-model="password" type="password" name="password" label="password" @keydown.enter="login"/>
-        <q-btn label="login" flat v-on:click="login"/>
+        <q-card>
+          <q-card-section class="bg-primary text-white">
+            <q-input
+              borderless
+              v-model="username"
+              type="text"
+              name="username"
+              label="username"
+              :rules="[(value) => !!value || 'required']"
+              @keydown.enter="login"
+            />
+            <q-input
+              borderless
+              v-model="password"
+              type="password"
+              name="password"
+              label="password"
+              :rules="[(value) => !!value || 'required']"
+              @keydown.enter="login"
+            />
+          </q-card-section>
+          <q-separator />
+          <q-card-actions align="left">
+            <q-btn label="login" flat v-on:click="login" />
+          </q-card-actions>
+        </q-card>
+        <router-link to="register" class="register-now">register now</router-link>
       </div>
     </q-scroll-area>
     <q-footer class="fixed-bottom footer">
@@ -20,7 +43,6 @@
 
 <script>
 import { defineComponent } from "vue";
-import { CSRF } from "src/common/csrf_token.js";
 export default defineComponent({
   name: "LoginView",
   data() {
@@ -58,6 +80,21 @@ export default defineComponent({
           this.$router.push("today");
         });
     },
+    register(){
+      
+    }
   },
 });
 </script>
+<style lang="scss">
+@import "../css/quasar.variables.scss";
+input:-webkit-autofill {
+  -webkit-box-shadow: 200px 200px 100px $orange inset;
+  box-shadow: 200px 200px 100px $orange inset;
+}
+.register-now{
+  color: orange;
+  margin-right: 5px;
+  float: right;
+}
+</style>

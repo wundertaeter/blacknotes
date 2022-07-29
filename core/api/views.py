@@ -2,10 +2,11 @@ from rest_framework import permissions, generics, views, status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt import authentication
 from rest_framework.response import Response
-from core.api.serializers import HasuraTokenObtainPairSerializer, UserSerializer
+from core.api.serializers import HasuraTokenObtainPairSerializer, UserSerializer, UserListSerializer
 from django.conf import settings
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from datetime import date, timedelta, datetime
+from django.contrib.auth.models import User
 import jwt
 
 def get_cookie_domain(request):
@@ -60,6 +61,27 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [
         permissions.AllowAny  # Or anon users can't register
     ]
+
+
+class UsernameExistsView(views.APIView):
+    serializer_class = UserListSerializer
+    queryset = User.objects.all()
+    permission_classes = [
+        permissions.AllowAny  # Or anon users can't register
+    ]
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except Exception as e:
+            return Response({'success': False, 'error': 'invalid json'}, 500)
+        username = data.get('username')
+        print(username)
+        data = {}
+        if(username):
+            data['exists'] = self.queryset.filter(username=username).exists()
+        return Response(data)
+        
 
 
 class UserDetails(views.APIView):

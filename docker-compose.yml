@@ -33,7 +33,7 @@ services:
       HASURA_GRAPHQL_JWT_SECRET: '{ "type": "HS256", "key": "${DJANGO_SECRET}" }'
   web:
     build: .
-    command: gunicorn blacknotes.wsgi:application --bind 0.0.0.0:8000 #python manage.py runserver 0.0.0.0:8000
+    command: gunicorn blacknotes.wsgi:application --bind 0.0.0.0:8000 --reload #python manage.py runserver 0.0.0.0:8000
     restart: always
     volumes:
       - .:/app

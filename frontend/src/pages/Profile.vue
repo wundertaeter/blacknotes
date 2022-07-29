@@ -7,9 +7,9 @@
           Profile
         </h4>
         <hr />
-        <div v-if="user?.friends" style="max-width: 350px">
+        <div style="max-width: 350px;">
           <h6>Your Friends</h6>
-          <q-list bordered separator v-if="user.friends.length">
+          <q-list bordered separator v-if="user?.friends && user.friends.length">
             <q-item
               xxclickable
               xxv-ripple

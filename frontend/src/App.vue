@@ -40,8 +40,10 @@ export default defineComponent({
         };
       },
       result(result) {
-        this.$q.dark.set(!result.data.user.profile.white_mode);
-        this.$store.commit("user/updateUser", result.data);
+        if(result.data.user){
+          this.$q.dark.set(!result.data.user.profile.white_mode);
+          this.$store.commit("user/updateUser", result.data);
+        }
       },
       skip() {
         return !this.userId;
