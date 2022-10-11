@@ -1,5 +1,5 @@
 subscription SubscribeDoneProjectNotes($project_id: uuid!) {
-  active_notes: notes_note(order_by: {position: asc_nulls_last}, where: {_and: {project_id: {_eq: $project_id}, deleted: {_eq: false}}}) {
+  notes_note: notes_note(order_by: {position: asc_nulls_last}, where: {_and: {project_id: {_eq: $project_id}, deleted: {_eq: false}}}) {
     id
     title
     content

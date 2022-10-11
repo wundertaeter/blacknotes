@@ -279,7 +279,7 @@ export default {
     },
     newNote() {
       return {
-        __typename: "active_notes",
+        __typename: "notes_note",
         id: uuidv4(),
         title: "",
         content: "",

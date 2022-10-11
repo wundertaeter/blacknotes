@@ -1,4 +1,3 @@
-- "!include public_active_notes.yaml"
 - "!include public_auth_user.yaml"
 - "!include public_notes_note.yaml"
 - "!include public_notes_project.yaml"

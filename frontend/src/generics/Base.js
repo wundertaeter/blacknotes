@@ -241,7 +241,7 @@ export default {
   },
   apollo: {
     $subscribe: {
-      active_notes: {
+      notes_note: {
         query() {
           return this.config.notes_subscription;
         },
@@ -257,7 +257,7 @@ export default {
         },
         result({ data }) {
           console.log("note sub", data);
-          this.notes = data.active_notes;
+          this.notes = data.notes_note;
           this.updateCache();
         },
       },
