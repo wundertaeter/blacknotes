@@ -33,7 +33,7 @@ class HasuraTokenRefreshView(TokenRefreshView):
         refresh = request.COOKIES.get('refresh')
         access = request.COOKIES.get('access')
 
-        if refresh and access:
+        if refresh:
             serializer = self.get_serializer(data={'refresh': refresh, 'access': access})
         else:
             serializer = self.get_serializer(data=request.data)

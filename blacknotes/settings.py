@@ -65,7 +65,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
-    'REFRESH_TOKEN_LIFETIME': timedelta(weeks=12)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=365)
 }
 
 CORS_ALLOWED_ORIGINS = ['https://www.blacknotes.de']
