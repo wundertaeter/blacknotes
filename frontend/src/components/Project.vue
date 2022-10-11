@@ -34,6 +34,8 @@
                     "
                     @blur="commitProjectName(project)"
                     @keydown.enter="commitProjectName(project)"
+                    :key="project.id"
+                    :autofocus="!isMobile && !project.title"
                     borderless
                     dense
                     v-model="project.title"
@@ -42,7 +44,14 @@
                 </div>
               </div>
               <div class="col-2">
-                <q-btn icon="more_vert" class="float-right" style="top: 6px;" flat v-if="more" @click.stop>
+                <q-btn
+                  icon="more_vert"
+                  class="float-right"
+                  style="top: 6px"
+                  flat
+                  v-if="more"
+                  @click.stop
+                >
                   <q-menu v-model="moreShowing">
                     <q-list style="min-width: 100px">
                       <q-item clickable v-close-popup @click="trashProject">
@@ -187,7 +196,7 @@ export default {
   name: "ProjectComponent",
   extends: Base,
   data() {
-    console.log('config', this.config)
+    console.log("config", this.config);
     return {
       project: JSON.parse(JSON.stringify(this.modelValue)),
       timeout: null,
@@ -250,6 +259,9 @@ export default {
     },
     cache() {
       return this.$store.state.cache[this.modelValue.id] || [];
+    },
+    isMobile() {
+      return this.$q.platform.is.mobile;
     },
   },
   methods: {
@@ -385,7 +397,9 @@ export default {
       this.$updateCache(project);
     },
     nextProject() {
-      const projects = [...this.user.projects.filter(p => !p.done && !p.deleted)];
+      const projects = [
+        ...this.user.projects.filter((p) => !p.done && !p.deleted),
+      ];
       const index = projects.findIndex((p) => p.id == this.project.id);
       projects.splice(index, 1);
       let next = projects[index];
@@ -394,11 +408,11 @@ export default {
       }
       this.$store.commit("user/updateProjects", projects);
       console.log("next project", projects, next);
-      if(next){
+      if (next) {
         this.$router.push({ name: "project", params: { id: next.id } });
-      }else{
+      } else {
         this.project = null;
-        this.$router.push({ name: "today"});
+        this.$router.push({ name: "today" });
       }
     },
     checkProject() {
@@ -446,7 +460,7 @@ export default {
   font-size: 24px;
   width: 90%;
 }
-@media screen and (max-width:1023px) {
+@media screen and (max-width: 1023px) {
   .project-title {
     width: 50%;
   }

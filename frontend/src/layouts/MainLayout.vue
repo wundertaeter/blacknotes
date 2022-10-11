@@ -157,6 +157,7 @@
           <draggable
             v-model="projects"
             :group="{ name: 'people', put: false }"
+            v-bind="dragOptions"
             @end="updatePositions"
             item-key="id"
           >
@@ -181,7 +182,7 @@
                 </q-item-section>
 
                 <q-item-section>
-                  <q-input
+                  <!--q-input
                     v-if="element.edit || !element.title"
                     v-model="element.title"
                     @keydown.enter="(e) => e.target.blur()"
@@ -194,7 +195,8 @@
                     autofocus
                     placeholder="New Project"
                   />
-                  <span v-else>{{ element.title }}</span>
+                  <span v-else>{{ element.title }}</span-->
+                  <span>{{ element.title || "New Project" }}</span>
                 </q-item-section>
 
                 <q-item-section side v-if="element.user_id !== user.id">
@@ -383,6 +385,7 @@ export default defineComponent({
         user_id: this.user.id,
         position: this.maxPosition + 1,
         icon: "radio_button_unchecked",
+        done: false,
       };
       this.$store.commit("user/updateProjects", [
         ...this.userProjects,
@@ -392,9 +395,21 @@ export default defineComponent({
         mutation: CREATE_PROJECT,
         variables: project,
       });
+      this.navigateTo("project", { id: project.id });
     },
   },
   computed: {
+    dragOptions() {
+      return {
+        animation: 200,
+        group: "description",
+        ghostClass: "ghost",
+        // chosenClass: "",
+        // dragClass: "",
+        delayOnTouchOnly: true,
+        delay: 50,
+      };
+    },
     isMobile() {
       return this.$q.platform.is.mobile;
     },
@@ -438,5 +453,9 @@ export default defineComponent({
   overflow-y: auto;
   margin-bottom: 55px;
   height: calc(100% - 55px);
+}
+.ghost {
+  opacity: 0.5;
+
 }
 </style>
