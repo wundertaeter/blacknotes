@@ -3,11 +3,12 @@
 
 .footer {
   border-top: 1px solid $grey;
+  background-color: $primary;
   height: 55px;
 }
 
 body {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 textarea {

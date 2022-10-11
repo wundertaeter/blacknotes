@@ -20,7 +20,7 @@
       :width="this.small ? $q.screen.width : 300"
       behavior="desktop"
     >
-      <div>
+      <q-scroll-area class="scroll-area">
         <q-list class="menu-section">
           <q-item
             v-if="user.id"
@@ -184,7 +184,7 @@
                   <q-input
                     v-if="element.edit || !element.title"
                     v-model="element.title"
-                    @keydown.enter="e => e.target.blur()"
+                    @keydown.enter="(e) => e.target.blur()"
                     @update:modelValue="
                       (value) => updateProjectName(element, value)
                     "
@@ -204,7 +204,7 @@
             </template>
           </draggable>
         </q-list>
-      </div>
+      </q-scroll-area>
       <q-footer>
         <q-toolbar class="fixed-bottom footer">
           <q-toolbar-title v-if="user.id">
@@ -252,7 +252,7 @@ export default defineComponent({
   name: "MainLayout",
   components: {
     draggable,
-    NotificationBanner
+    NotificationBanner,
   },
   // mounted() {
   //   console.log('Layout.vue mounted');
@@ -334,7 +334,7 @@ export default defineComponent({
       const objs = [];
       for (let i = 0; i < this.projects.length; i++) {
         this.projects[i].position = i;
-        const {__typename, edit, friends, ...obj} = this.projects[i];
+        const { __typename, edit, friends, ...obj } = this.projects[i];
         objs.push(obj);
       }
       this.$apollo.mutate({
@@ -433,5 +433,10 @@ export default defineComponent({
 }
 .focused {
   border: 3px solid $orange;
+}
+.scroll-area {
+  overflow-y: auto;
+  margin-bottom: 55px;
+  height: calc(100% - 55px);
 }
 </style>
