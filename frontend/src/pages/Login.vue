@@ -77,7 +77,7 @@ export default defineComponent({
         .then(({ data }) => {
           console.log("user tokens", data);
           this.$store.commit("user/updateAccessToken", data.access);
-          this.$router.push("today");
+          this.$router.push("/");
         });
     },
     register(){

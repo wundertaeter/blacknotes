@@ -45,25 +45,31 @@ export default route(function (/* { store, ssrContext } */) {
         const tokenResp = await axios.post(process.env.DJANGO_URL + "/token/refresh/", {}, {
           withCredentials: true
         })
-        if(tokenResp.data){
+        if (tokenResp.data) {
           Store.commit('user/updateAccessToken', tokenResp.data.access);
           user = Store.state.user
         }
       } catch { }
     }
     if (!user.id && user.access) {
-        const resp = await axios.get(process.env.DJANGO_URL + "/user/me/", {
-          headers: {
-            "content-type": "application/json",
-            "Authorization": `Bearer ${user.access}`
-          },
-        })
-        console.log('RESP', resp);
-        Store.commit("user/initUser", resp.data);
+      const resp = await axios.get(process.env.DJANGO_URL + "/user/me/", {
+        headers: {
+          "content-type": "application/json",
+          "Authorization": `Bearer ${user.access}`
+        },
+      })
+      console.log('RESP', resp);
+      Store.commit("user/initUser", resp.data);
     }
-    if (!user.id && !to.matched.some(record => record.meta.public)) {
+    const publicRoute = to.matched.some(record => record.meta.public)
+    if (!user.id && !publicRoute) {
       next('/login');
+    } else if (to.name == 'index') {
+      next(localStorage.getItem('currentRoute') || 'today');
     } else {
+      if (!publicRoute) {
+        localStorage.setItem('currentRoute', to.path)
+      }
       next();
     }
   });
